@@ -22,7 +22,7 @@ wdblib_PROGRAMS = pointLoad
 # This is to be replaced by a "find wdb" macro:
 AM_CXXFLAGS =			-DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS)
 	
-pointLoad_LDADD = $(wdb_LIBS) \ 
+pointLoad_LDADD = $(wdb_LIBS) \
                       -lfimex -lwdbLoad -lwdbConfig -lwdbProj -lwdbExcept -lwdbLog -lwdbMath
 
 SED_SUBSTITUTION = 		sed s/__WDB_VERSION__/$(WDB_VERSION)/g $<\
@@ -48,7 +48,7 @@ CLEANFILES =
 EXTRA_DIST =
 
 #include doc/doc.mk
-include etc/etc.mk
+#include etc/etc.mk
 include src/src.mk
 #include test/test.mk
 #include test/configuration/test.mk
