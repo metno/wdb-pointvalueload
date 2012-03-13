@@ -34,7 +34,6 @@
 #include "GribFile.hpp"
 #include "GribField.hpp"
 #include "GribLoader.hpp"
-#include "WciSession.hpp"
 
 // wdb
 //
@@ -114,19 +113,35 @@ namespace wdb { namespace load { namespace point {
         std::set<double> levels_;
     };
 
-    GribLoader::GribLoader(DBConnection& wdbConnection, const CmdLine& cmdLine) //, WdbLogHandler& logHandler)
+    GribLoader::GribLoader(WdbConnection& wdbConnection, const CmdLine& cmdLine) //, WdbLogHandler& logHandler)
         : connection_(wdbConnection), options_(cmdLine) //, logHandler_(logHandler)
     {
 
-        mainCfg_.open(options_.loading().mainCfgFileName);
+        if(cmdLine.loading().validtimeConfig.empty())
+            throw std::runtime_error("Can't open validtime.config file [empty string?]");
+        if(cmdLine.loading().dataproviderConfig.empty())
+            throw std::runtime_error("Can't open dataprovider.config file [empty string?]");
+        if(cmdLine.loading().valueparameterConfig.empty())
+            throw std::runtime_error("Can't open valueparameter.config file [empty string?]");
+        if(cmdLine.loading().levelparameterConfig.empty())
+            throw std::runtime_error("Can't open levelparameter.config file [empty string?]");
+        if(cmdLine.loading().leveladditionsConfig.empty())
+            throw std::runtime_error("Can't open leveladditions.config file [empty string?]");
+        if(cmdLine.loading().valueparameter2Config.empty())
+            throw std::runtime_error("Can't open valueparameter2.config file [empty string?]");
+        if(cmdLine.loading().levelparameter2Config.empty())
+            throw std::runtime_error("Can't open levelparameter2.config file [empty string?]");
+        if(cmdLine.loading().leveladditions2Config.empty())
+            throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
 
-        point2DataProviderName_.open(getConfigFile(mainCfg_.get("dataprovider.config")).file_string());
-        point2ValueParameter1_.open(getConfigFile(mainCfg_.get("valueparameter1.config")).file_string());
-        point2LevelParameter1_.open(getConfigFile(mainCfg_.get("levelparameter1.config")).file_string());
-        point2LevelAdditions1_.open(getConfigFile(mainCfg_.get("leveladditions1.config")).file_string());
-        point2ValueParameter2_.open(getConfigFile(mainCfg_.get("valueparameter2.config")).file_string());
-        point2LevelParameter2_.open(getConfigFile(mainCfg_.get("levelparameter2.config")).file_string());
-        point2LevelAdditions2_.open(getConfigFile(mainCfg_.get("leveladditions2.config")).file_string());
+        point2DataProviderName_.open(getConfigFile(cmdLine.loading().dataproviderConfig).file_string());
+        point2ValueParameter1_.open(getConfigFile(cmdLine.loading().valueparameterConfig).file_string());
+        point2LevelParameter1_.open(getConfigFile(cmdLine.loading().levelparameterConfig).file_string());
+        point2LevelAdditions1_.open(getConfigFile(cmdLine.loading().leveladditionsConfig).file_string());
+        point2ValueParameter2_.open(getConfigFile(cmdLine.loading().valueparameter2Config).file_string());
+        point2LevelParameter2_.open(getConfigFile(cmdLine.loading().levelparameter2Config).file_string());
+        point2LevelAdditions2_.open(getConfigFile(cmdLine.loading().leveladditions2Config).file_string());
+
     }
 
     GribLoader::~GribLoader()
@@ -136,6 +151,9 @@ namespace wdb { namespace load { namespace point {
 
     bool GribLoader::openTemplateCDM(const std::string& fileName)
     {
+        if(fileName.empty())
+            throw std::runtime_error(" Can't open template interpolation file! ");
+
         cdmTemplate_ =
                 MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
 
@@ -147,6 +165,9 @@ namespace wdb { namespace load { namespace point {
 
     bool GribLoader::openDataCDM(const std::string& fileName, const std::string& fimexCfgFileName)
     {
+        if(fimexCfgFileName.empty())
+            throw std::runtime_error(" Can't open fimex reader configuration file!");
+
         cdmData_ =
                 MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_GRIB, fileName, fimexCfgFileName);
 
@@ -169,6 +190,8 @@ namespace wdb { namespace load { namespace point {
         unsigned int* eIt = &pointids_[cdmTemplate_->getData(stationIdVarName)->size()];
         for(; sIt!=eIt; ++sIt)
             placenames_.push_back(boost::lexical_cast<std::string>(*sIt));
+
+        return true;
     }
 
     bool GribLoader::extractBounds()
@@ -226,22 +249,11 @@ namespace wdb { namespace load { namespace point {
         return true;
     }
 
-    int GribLoader::load(GribFile& file)
+    void GribLoader::load(GribFile& file)
     {
         std::string gribFileName = file.fileName();
-        std::string fimexCfgFileName; // = getConfigFile("fimexreader.conf").native_file_string();
-
-        if(not options_.loading().fimexReaderConfig.empty()) {
-            fimexCfgFileName = options_.loading().fimexReaderConfig;
-        } else {
-            fimexCfgFileName = mainCfg_.get("fimex.config");
-        }
-
-        std::string tmplFileName;
-        if(not options_.loading().fimexReaderTemplate.empty())
-            tmplFileName = options_.loading().fimexReaderTemplate;
-        else
-            tmplFileName = mainCfg_.get("fimex.interpolate.template");
+        std::string tmplFileName = options_.loading().fimexTemplate;
+        std::string fimexCfgFileName = options_.loading().fimexConfig;
 
         openTemplateCDM(tmplFileName);
 
@@ -465,7 +477,7 @@ namespace wdb { namespace load { namespace point {
 
                                     try {
 
-                                        if(options_.loading().dryRun) {
+                                        if(options_.output().dry_run) {
                                             std::cerr << ++inserts << std::endl;
                                             std::cerr<<"*";
                                             std::cerr << " VAR NAME: "<< varname

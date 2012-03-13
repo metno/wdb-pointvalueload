@@ -32,7 +32,6 @@
 
 // project
 #include "GribGridDefinition.hpp"
-#include "GribHandleReaderInterface.hpp"
 
 // wdb
 #include <wdb/WdbLevel.h>
@@ -50,11 +49,13 @@
 
 namespace wdb { namespace load { namespace point {
 
+    class GribHandleReader;
+
     class GribField
     {
     public:
         GribField(grib_handle * gribHandle);
-        GribField(GribHandleReaderInterface * gribHandleReader);
+        GribField(GribHandleReader * gribHandleReader);
         ~GribField();
 
         /** Get grid values
@@ -253,7 +254,7 @@ namespace wdb { namespace load { namespace point {
         void initializeData( wmo::codeTable::ScanMode defaultMode );
 
         /// Wraps reading of grib_handle
-        GribHandleReaderInterface * gribHandleReader_;
+        GribHandleReader * gribHandleReader_;
     };
 
 } } } // end namespaces

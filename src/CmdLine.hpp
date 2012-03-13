@@ -30,36 +30,58 @@
 #define POINTCMDLINE_H_
 
 // wdb
-#include <wdb/LoaderConfiguration.h>
+#include <wdbConfiguration.h>
 
-// project
+// boost
+#include <boost/program_options.hpp>
+
+// std
 #include <string>
 
 namespace wdb { namespace load { namespace point {
 
-    class CmdLine : public LoaderConfiguration
+    class CmdLine : public WdbConfiguration
     {
     public:
         CmdLine();
         ~CmdLine();
 
+        struct OutputOptions
+        {
+            bool dry_run;
+        };
+
+        struct InputOptions
+        {
+            std::string type;
+            std::vector<std::string> file;
+        };
+
         struct LoadingOptions
         {
-            bool dryRun;
-            std::string inputFileType;
-            std::string mainCfgFileName;
-            std::string referenceTime;
-            std::string fimexReaderConfig;
-            std::string fimexReaderTemplate;
+            std::string nameSpace;
+            std::string validtimeConfig;
+            std::string dataproviderConfig;
+            std::string valueparameterConfig;
+            std::string levelparameterConfig;
+            std::string leveladditionsConfig;
+            std::string valueparameter2Config;
+            std::string levelparameter2Config;
+            std::string leveladditions2Config;
+            std::string fimexConfig;
+            std::string fimexTemplate;
 //            std::string fimexReduceSouth;
 //            std::string fimexReduceNorth;
 //            std::string fimexReduceEast;
 //            std::string fimexReduceWest;
         };
 
+        const InputOptions & input() const { return input_; }
+        const OutputOptions & output() const { return output_; }
         const LoadingOptions & loading() const { return loading_; }
-
     private:
+        InputOptions input_;
+        OutputOptions output_;
         LoadingOptions loading_;
 };
 

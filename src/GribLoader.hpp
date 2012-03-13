@@ -32,7 +32,7 @@
 // project
 #include "CmdLine.h"
 #include "CfgFileReader.h"
-#include "DBConnection.hpp"
+#include "WdbConnection.hpp"
 
 // wdb
 #include <wdb/WdbLevel.h>
@@ -60,10 +60,10 @@ namespace wdb { namespace load { namespace point {
     class GribLoader
     {
     public:
-        GribLoader(DBConnection& wdbConnection, const CmdLine& cmdLine); //, WdbLogHandler& logHandler);
+        GribLoader(WdbConnection& wdbConnection, const CmdLine& cmdLine); //, WdbLogHandler& logHandler);
         ~GribLoader( );
 
-        int load(GribFile& gribFile);
+        void load(GribFile& gribFile);
 //        void load(const GribField& field, int fieldNumber = 0);
 //        int loadFromTemplate(GribFile& file, boost::shared_ptr<MetNoFimex::CDMReader> cdmreader, const std::string& tmplFileName);
 
@@ -88,14 +88,12 @@ namespace wdb { namespace load { namespace point {
         /// GRIB Edition Number
         int editionNumber_;
         /// The Database Connection
-        DBConnection& connection_;
+        WdbConnection& connection_;
         /// The GribLoad Configuration
         const CmdLine& options_;
         /// The GribLoad Logger
 //        WdbLogHandler& logHandler_;
 
-        /// Conversion Hash Map - Config Path Name
-        CfgFileReader mainCfg_;
         /// Conversion Hash Map - Dataprovider Name
         CfgFileReader point2DataProviderName_;
         /// Conversion Hash Map - Value Parameter

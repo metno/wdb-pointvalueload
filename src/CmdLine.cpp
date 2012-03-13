@@ -28,40 +28,79 @@
 
 #include "CmdLine.h"
 
-namespace
-{
+// std
+#include <fstream>
+
+using namespace std;
 using namespace boost::program_options;
 
-options_description getLoading(wdb::load::point::CmdLine::LoadingOptions & out )
+namespace
 {
-    options_description input("Point Loading");
-    input.add_options()
-    ( "dry-run", bool_switch( & out.dryRun ), "no database insertions done)" )
-    ( "loaderconfig", value<std::string>( & out.mainCfgFileName ), "main config file (points to other config files needed by loader)" )
-    ( "input.type", value<std::string>( & out.inputFileType ), "file type to be loaded -- felt,grib)" )
-    ( "referenceTime,t", value<std::string>( & out.referenceTime ), "Store data into database using the given reference time, instead of whatever the given document(s) say" )
-    ( "fimex.config", value<std::string>( & out.fimexReaderConfig), "Path to fimex reader configuration file" )
-    ( "fimex.interpolate.template", value<std::string>( & out.fimexReaderTemplate), "Path to template file tha fimex reader will use for point interpolation" )
+
+    options_description getInput(wdb::load::point::CmdLine::InputOptions & out)
+    {
+        options_description input("Input");
+        input.add_options()
+        ( "type", value( & out.type ), "File type to be loaded [felt/grib]" )
+        ( "name", value( & out.file ), "Name of file to process" )
+        ;
+
+        return input;
+    }
+
+    options_description getOutput(wdb::load::point::CmdLine::OutputOptions & out)
+    {
+        options_description output( "Output" );
+        output.add_options()
+        ( "dry-run", bool_switch(& out.dry_run), "List SQL commands instead of inserting into database" )
+        ;
+
+        return output;
+    }
+
+    options_description getLoading(wdb::load::point::CmdLine::LoadingOptions & out )
+    {
+        options_description input("Point Loading");
+        input.add_options()
+        ( "placenamespaceid", value(& out.nameSpace), "Specify a non-default namespace. ")
+        ( "validtime.config", value(& out.validtimeConfig), "Specify path to validtime configuration file")
+        ( "dataprovider.config", value(& out.dataproviderConfig), "Specify path to dataprovider configuration file")
+        ( "valueparameter.config", value(& out.valueparameterConfig), "Specify path to valueparameter [FELT/GRIB1] configuration file")
+        ( "levelparameter.config", value(& out.levelparameterConfig), "Specify path to levelparameter [FELT/GRIB1] configuration file")
+        ( "leveladditions.config", value(& out.leveladditionsConfig), "Specify path to leveladditiond [FELT/GRIB1] configuration file")
+        ( "valueparameter2.config", value(& out.valueparameter2Config), "Specify path to valueparameter [GRIB2] configuration file")
+        ( "levelparameter2.config", value(& out.levelparameter2Config), "Specify path to levelparameter [GRIB2] configuration file")
+        ( "leveladditions2.config", value(& out.leveladditions2Config), "Specify path to leveladditiond [GRIB2] configuration file")
+        ( "fimex.config", value(& out.fimexConfig), "Path to fimex reader configuration file" )
+        ( "fimex.interpolate.template", value(& out.fimexTemplate), "Path to template file tha fimex reader will use for point interpolation" )
 //    ( "fimex.reduceToBoundingBox.south", value<std::string>( & out.fimexReduceSouth), "geographical bounding-box in degree" )
 //    ( "fimex.reduceToBoundingBox.north", value<std::string>( & out.fimexReduceNorth), "geographical bounding-box in degree" )
 //    ( "fimex.reduceToBoundingBox.east", value<std::string>( & out.fimexReduceEast), "geographical bounding-box in degree" )
 //    ( "fimex.reduceToBoundingBox.west", value<std::string>( & out.fimexReduceWest), "geographical bounding-box in degree" )
-    ;
-
+        ;
 
     // norway
     // --fimex.reduceToBoundingBox.south 55 --fimex.reduceToBoundingBox.north 80 --fimex.reduceToBoundingBox.west 5 --fimex.reduceToBoundingBox.east 30
 
 	return input;
-}
+    }
 }
 
 namespace wdb { namespace load { namespace point {
 
-    CmdLine::CmdLine() : wdb::load::LoaderConfiguration("")
+    CmdLine::CmdLine() : WdbConfiguration("")
     {
+
+        cmdOptions().add(getInput(input_));
+        cmdOptions().add(getOutput(output_));
         cmdOptions().add(getLoading(loading_));
+
+        configOptions().add(getInput(input_));
+        configOptions().add(getOutput(output_));
         configOptions().add(getLoading(loading_));
+
+        shownOptions().add(getInput(input_));
+        shownOptions().add(getOutput(output_));
         shownOptions().add(getLoading(loading_));
     }
 
@@ -71,3 +110,7 @@ namespace wdb { namespace load { namespace point {
     }
 
 } } }
+
+
+
+

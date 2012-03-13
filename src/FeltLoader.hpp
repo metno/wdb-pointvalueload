@@ -33,7 +33,7 @@
 //
 #include "CmdLine.h"
 #include "CfgFileReader.h"
-#include "DBConnection.hpp"
+#include "WdbConnection.hpp"
 
 // wdb
 //
@@ -71,7 +71,7 @@ namespace wdb { namespace load { namespace point {
     class FeltLoader
     {
     public:
-        FeltLoader(DBConnection& connection, const CmdLine& cmdLine);
+        FeltLoader(WdbConnection& connection, const CmdLine& cmdLine);
         ~FeltLoader();
 
         void load(const felt::FeltFile& feltFile);
@@ -94,16 +94,13 @@ namespace wdb { namespace load { namespace point {
         std::string valueParameterUnit(const felt::FeltField & field);
         void levelValues( std::vector<wdb::load::Level>& levels, const felt::FeltField& field);
         int dataVersion(const felt::FeltField & field);
-        int confidenceCode(const felt::FeltField & field);
 
 	/// The Database Connection
-        DBConnection& connection_;
+        WdbConnection& connection_;
 
         /// The Loader cmd line options
         const CmdLine& options_;
 
-        /// Conversion Hash Map - Config Path Name
-        CfgFileReader mainCfg_;
 	/// Conversion Hash Map - Dataprovider Name
         CfgFileReader point2DataProviderName_;
 	/// Conversion Hash Map - Value Parameter

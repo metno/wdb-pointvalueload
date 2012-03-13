@@ -33,7 +33,7 @@
 //
 //
 #include "FeltLoader.h"
-#include "WciSession.hpp"
+#include "WciTransactors.hpp"
 
 // wdb
 //
@@ -111,17 +111,27 @@ namespace wdb { namespace load { namespace point {
         std::set<double> levels_;
     };
 
-    FeltLoader::FeltLoader(DBConnection& connection, const CmdLine& cmdLine)
+    FeltLoader::FeltLoader(WdbConnection& connection, const CmdLine& cmdLine)
         : connection_(connection), options_(cmdLine),
           northBound_(90.0), southBound_(-90.0), westBound_(-180.0), eastBound_(180.0)
     {
-        mainCfg_.open(options_.loading().mainCfgFileName);
 
-        point2ValidTime_.open(getConfigFile(mainCfg_.get("validtime.config")).file_string());
-        point2DataProviderName_.open(getConfigFile(mainCfg_.get("dataprovider.config")).file_string());
-        point2ValueParameter_.open(getConfigFile(mainCfg_.get("valueparameter.config")).file_string());
-        point2LevelParameter_.open(getConfigFile(mainCfg_.get("levelparameter.config")).file_string());
-        point2LevelAdditions_.open(getConfigFile(mainCfg_.get("leveladditions.config")).file_string());
+        if(cmdLine.loading().validtimeConfig.empty())
+            throw std::runtime_error("Can't open validtime.config file [empty string?]");
+        if(cmdLine.loading().dataproviderConfig.empty())
+            throw std::runtime_error("Can't open dataprovider.config file [empty string?]");
+        if(cmdLine.loading().valueparameterConfig.empty())
+            throw std::runtime_error("Can't open valueparameter.config file [empty string?]");
+        if(cmdLine.loading().levelparameterConfig.empty())
+            throw std::runtime_error("Can't open levelparameter.config file [empty string?]");
+        if(cmdLine.loading().leveladditionsConfig.empty())
+            throw std::runtime_error("Can't open leveladditions.config file [empty string?]");
+
+        point2ValidTime_.open(getConfigFile(cmdLine.loading().validtimeConfig).file_string());
+        point2DataProviderName_.open(getConfigFile(cmdLine.loading().dataproviderConfig).file_string());
+        point2ValueParameter_.open(getConfigFile(cmdLine.loading().valueparameterConfig).file_string());
+        point2LevelParameter_.open(getConfigFile(cmdLine.loading().levelparameterConfig).file_string());
+        point2LevelAdditions_.open(getConfigFile(cmdLine.loading().leveladditionsConfig).file_string());
     }
 
     FeltLoader::~FeltLoader()
@@ -131,6 +141,9 @@ namespace wdb { namespace load { namespace point {
 
     bool FeltLoader::openTemplateCDM(const std::string& fileName)
     {
+        if(fileName.empty())
+            throw std::runtime_error(" Can't open template interpolation file! ");
+
         cdmTemplate_ =
                 MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
 
@@ -142,6 +155,9 @@ namespace wdb { namespace load { namespace point {
 
     bool FeltLoader::openDataCDM(const std::string& fileName, const std::string& fimexCfgFileName)
     {
+        if(fimexCfgFileName.empty())
+            throw std::runtime_error(" Can't open fimex reader configuration file!");
+
         cdmData_ =
                 MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_FELT, fileName, fimexCfgFileName);
 
@@ -164,6 +180,8 @@ namespace wdb { namespace load { namespace point {
         unsigned int* eIt = &pointids_[cdmTemplate_->getData(stationIdVarName)->size()];
         for(; sIt!=eIt; ++sIt)
             placenames_.push_back(boost::lexical_cast<std::string>(*sIt));
+
+        return true;
     }
 
     bool FeltLoader::extractBounds()
@@ -224,19 +242,8 @@ namespace wdb { namespace load { namespace point {
     void FeltLoader::load(const felt::FeltFile& file)
     {
         std::string feltFileName = file.fileName().native_file_string();
-        std::string fimexCfgFileName; // = getConfigFile("fimexreader.conf").native_file_string();
-
-        if(not options_.loading().fimexReaderConfig.empty()) {
-            fimexCfgFileName = options_.loading().fimexReaderConfig;
-        } else {
-            fimexCfgFileName = mainCfg_.get("fimex.config");
-        }
-
-        std::string tmplFileName;
-        if(not options_.loading().fimexReaderTemplate.empty())
-            tmplFileName = options_.loading().fimexReaderTemplate;
-        else
-            tmplFileName = mainCfg_.get("fimex.interpolate.template");
+        std::string tmplFileName = options_.loading().fimexTemplate;
+        std::string fimexCfgFileName = options_.loading().fimexConfig;
 
         openTemplateCDM(tmplFileName);
 
@@ -370,10 +377,11 @@ namespace wdb { namespace load { namespace point {
                     continue;
                 }
 
+
                 for(size_t i = 0; i < yDim.getLength(); ++i) {
                     for(size_t j = 0; j < xDim.getLength(); ++j){
-                        // do point by point for same value parameter
-//                        std::cerr << "LEVELS SIZE .... "<< levels.size() << std::endl;
+                        std::string buffer;
+                        buffer.reserve(100 * yDim.getLength() * xDim.getLength() * entry.levels_.size() * 70 * 50);
                         for(std::set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
 //                            std::cerr<<"x= "<<j<<"   "<<"y= "<<i<<"   "<<"z= "<<l<<std::endl;
 //                           std::cerr << " LEVEL NAME: " << levels[l].levelParameter_ << " LEVEL FROM:" << levels[l].levelFrom_ << " LEVEL TO:" << levels[l].levelTo_ << std::endl;
@@ -409,9 +417,10 @@ namespace wdb { namespace load { namespace point {
                                 epsLength = 1;
                             }
 
-                            // time by time slice
+                            // eps members
                             for(size_t e = 0; e < epsLength; ++e)
                             {
+                                // time by time slice
                                 for(size_t u = 0; u < uDim; ++u)
                                 {
                                     double value;
@@ -439,24 +448,39 @@ namespace wdb { namespace load { namespace point {
 
                                     try {
 
-                                        if(options_.loading().dryRun) {
-                                            std::cerr << ++inserts << std::endl;
-//                                            std::cerr<<"*";
-                                            std::cerr << " VAR NAME: "<< varname
-                                                      << " CF NAME: " << standardName
-                                                      << " DATA PROVIDER: " << dataProvider
-                                                      << " PLACENAME: " << placename
-                                                      << " REF TIME:" << strReferenceTime
-                                                      << " VALID FROM:" << validtime
-                                                      << " VALID TO:" << validtime
-                                                      << " LEVEL NAME: " << entry.levelname_
-                                                      << " LEVEL FROM:" << wdbLevel
-                                                      << " LEVEL TO:" << wdbLevel
-                                                      << " VERSION: " << version
-                                                         //                                              << " DATA VERSION:" << dataVersion(**it)
-                                                         //                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
-                                                      << " VALUE: " << value << ""
-                                                      << std::endl;
+                                        if(options_.output().dry_run) {
+                                            std::stringstream sstream;
+
+//                                            sstream << " VAR NAME: "<< varname
+//                                                      << " CF NAME: " << standardName
+//                                                      << " DATA PROVIDER: " << dataProvider
+//                                                      << " PLACENAME: " << placename
+//                                                      << " REF TIME:" << strReferenceTime
+//                                                      << " VALID FROM:" << validtime
+//                                                      << " VALID TO:" << validtime
+//                                                      << " LEVEL NAME: " << entry.levelname_
+//                                                      << " LEVEL FROM:" << wdbLevel
+//                                                      << " LEVEL TO:" << wdbLevel
+//                                                      << " VERSION: " << version
+////                                              << " DATA VERSION:" << dataVersion(**it)
+////                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
+//                                                      << " VALUE: " << value
+//                                                      << std::endl;
+
+                                            sstream << " <"<< varname
+                                                      << "|" << standardName
+                                                      << "|" << dataProvider
+                                                      << "|" << placename
+                                                      << "|" << strReferenceTime
+                                                      << "|" << validtime
+                                                      << "|" << validtime
+                                                      << "|" << entry.levelname_
+                                                      << "|" << wdbLevel
+                                                      << "|" << wdbLevel
+                                                      << "|" << version
+                                                      << "|" << value << "> ";
+
+                                            buffer.append(sstream.str());
                                         } else {
 
                                             std::cerr<<"*";
@@ -485,12 +509,13 @@ namespace wdb { namespace load { namespace point {
                                         std::cerr << e.what() << " Data field not loaded.";
                                     }
 
-                                }
-                            }
-                        }
-                    }
-                }
-
+                            } // time slices end
+                        } // eps slices
+                    } // z slices
+                    std::clog << buffer;
+                    buffer.clear();
+                } // x slices
+            } // y slices
 
         }
 
@@ -671,12 +696,6 @@ namespace wdb { namespace load { namespace point {
     {
         return field.dataVersion();
     }
-
-    int FeltLoader::confidenceCode(const felt::FeltField & field)
-    {
-        return 0; // Default
-    }
-
 
 
 //    void FeltLoader::load(const felt::FeltField & field, const std::string& placename, boost::shared_ptr<MetNoFimex::CDMInterpolator>& interpolator)

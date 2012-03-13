@@ -31,7 +31,7 @@
 
 // project
 #include "CmdLine.h"
-#include "DBConnection.hpp"
+#include "WdbConnection.hpp"
 
 
 namespace wdb { namespace load { namespace point {
@@ -49,7 +49,7 @@ namespace wdb { namespace load { namespace point {
 
     private:
         const CmdLine& options_;
-        DBConnection wdbConnection_;
+        WdbConnection wdbConnection_;
         boost::shared_ptr<FeltLoader> felt_;
         boost::shared_ptr<GribLoader> grib_;
     };

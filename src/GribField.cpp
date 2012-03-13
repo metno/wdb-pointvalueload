@@ -169,7 +169,7 @@ GribField::GribField( grib_handle * gribHandle )
     initializeData( wdbStandardScanMode );
 }
 
-GribField::GribField( GribHandleReaderInterface * gribHandleReader ) :
+GribField::GribField( GribHandleReader * gribHandleReader ) :
                 values_(0),
                 sizeOfValues_(0),
                 gribHandleReader_(gribHandleReader)

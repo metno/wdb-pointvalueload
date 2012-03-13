@@ -43,7 +43,7 @@
 namespace wdb { namespace load { namespace point {
 
 Loader::Loader(const CmdLine& cmdLine)
-    : options_(cmdLine), wdbConnection_(cmdLine)
+    : options_(cmdLine), wdbConnection_(cmdLine, cmdLine.loading().nameSpace)
 {
     // NOOP
 }
@@ -55,19 +55,19 @@ Loader::~Loader()
 
 void Loader::load()
 {
-    if(options_.loading().inputFileType.empty()) {
+    if(options_.input().type.empty()) {
         std::cerr << "Missing input file type"<<std::endl;
         return;
     }
 
-    if(options_.loading().inputFileType != "felt" and options_.loading().inputFileType !="grib") {
+    if(options_.input().type != "felt" and options_.input().type !="grib") {
         std::cerr << "Unrecognized input file type"<<std::endl;
         return;
     }
 
-    if(options_.loading().inputFileType == "felt") {
+    if(options_.input().type == "felt") {
         felt_ = boost::shared_ptr<FeltLoader>(new FeltLoader(wdbConnection_, options_));
-    } else if(options_.loading().inputFileType == "grib") {
+    } else if(options_.input().type == "grib") {
         grib_ = boost::shared_ptr<GribLoader>(new GribLoader(wdbConnection_, options_));
     }
 
@@ -78,10 +78,10 @@ void Loader::load()
     for(std::vector<boost::filesystem::path>::const_iterator it = files.begin(); it != files.end(); ++ it)
     {
         try {
-            if(options_.loading().inputFileType == "felt") {
+            if(options_.input().type == "felt") {
                 felt::FeltFile feltFile(*it);
                 felt_->load(feltFile);
-            } else if(options_.loading().inputFileType == "grib") {
+            } else if(options_.input().type == "grib") {
                 GribFile gribFile(it->native_file_string());
                 grib_->load(gribFile);
             }

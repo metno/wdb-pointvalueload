@@ -158,7 +158,7 @@ void GribGridDefinition::setup()
     geometry_ = new GridGeometry(sridProj, o, iNumber, jNumber, iIncrement, jIncrement, startI, startJ );
 }
 
-GribGridDefinition::GribGridDefinition( GribHandleReaderInterface & reader )
+GribGridDefinition::GribGridDefinition(GribHandleReader& reader)
         : geometry_(0), gribHandleReader_(reader)
 {
         setup();
@@ -280,6 +280,8 @@ std::string GribGridDefinition::getProjDefinition() const
         errMsg << "Unsupported grid type in GRIB file.";
         throw std::runtime_error( errMsg.str() );
     }
+
+    return errMsg.str();
 }
 
 std::string GribGridDefinition::getEarthsOblateFigure(long factorToM) const
@@ -363,11 +365,8 @@ std::string GribGridDefinition::regularLatLonProjDefinition() const
     return srcProjDef.str();
 }
 
-//GridDefinition getGridDefRotatedLL(boost::shared_ptr<grib_handle> gh)
 std::string GribGridDefinition::rotatedLatLonProjDefinition() const
 {
-    long edition = gribHandleReader_.getLong( "editionNumber" );
-
     double latRot, lonRot;
     lonRot = gribHandleReader_.getDouble("longitudeOfSouthernPoleInDegrees");
     latRot = gribHandleReader_.getDouble("latitudeOfSouthernPoleInDegrees");
@@ -378,50 +377,6 @@ std::string GribGridDefinition::rotatedLatLonProjDefinition() const
 
     return proj;
 }
-
-//std::string GribGridDefinition::rotatedLatLonProjDefinition() const
-//{
-//    // Define the PROJ definitions used for the computation of the
-//    // Rotated projection
-//    std::ostringstream srcProjDef;
-//    srcProjDef << "+proj=ob_tran +o_proj=longlat";
-//    srcProjDef << " +lon_0=";
-//    srcProjDef << gribHandleReader_.getDouble("longitudeOfSouthernPoleInDegrees");
-//    srcProjDef << " +o_lat_p=";
-//    srcProjDef << - gribHandleReader_.getDouble("latitudeOfSouthernPoleInDegrees");
-//    // Earth Shape
-//    long int earthIsOblate;
-//    int ed = gribHandleReader_.getLong( "editionNumber" );
-//    if(ed == 1) {
-//        earthIsOblate = gribHandleReader_.getLong("earthIsOblate");
-//        if (earthIsOblate)
-//        {
-//            srcProjDef << " +a=6378160.0 +b=6356775.0";
-//        }
-//        else {
-//            srcProjDef << " +a=6367470.0";
-//        }
-//        srcProjDef << " +no_defs";
-//    } else {
-//        long shapeOfTheEarth = gribHandleReader_.getLong("shapeOfTheEarth");
-////        switch (shapeOfTheEarth) { // see code table 3.2
-////                     case 0: earth = "+a=6367470 +e=0"; break;
-////                     case 1: earth = getEarthsSphericalFigure(gh); break;
-////                     case 2: earth = "+a=6378160 +b=6356775"; break;
-////                     case 3: earth = getEarthsOblateFigure(gh, 1000); break;//  number in km
-////                     case 4: earth = "+a=6378137 +b=6356752.314"; break;
-////                     case 5: earth = "+a=6378137 +b=6356752.314245"; break;// WGS84
-////                     case 6: earth = "+a=6371229"; break;
-////                     case 7: earth = getEarthsOblateFigure(gh, 1); break;// numbers in m
-////                     case 8: earth = "+a=6371200 +e=0"; break;// TODO: definition not fully understood
-////                     default: throw CDMException("undefined shape of the earth: " + type2string(shapeOfTheEarth));
-//        std::cerr<<"shapeOfTheEarth = "<< shapeOfTheEarth << std::endl;
-//    }
-
-
-//    // Set the PROJ string for SRID
-//    return srcProjDef.str();
-//}
 
 std::string
 GribGridDefinition::lambertProjDefinition() const

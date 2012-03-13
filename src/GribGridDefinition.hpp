@@ -72,7 +72,7 @@ namespace wmo { namespace codeTable {
 namespace wdb { namespace load { namespace point {
 
 // FORWARD REFERENCES
-class GribHandleReaderInterface;
+class GribHandleReader;
 
 /**
  * GribGridDefinition encapsulates the grid definition of a GRIB field.
@@ -88,7 +88,7 @@ public:
     /**
      * Constructor
      */
-    explicit GribGridDefinition( GribHandleReaderInterface & reader);
+    explicit GribGridDefinition( GribHandleReader & reader);
 
     /**
      * Default Destructor
@@ -175,7 +175,7 @@ private:
     GridGeometry * geometry_;
 
     /// Wraps reading of grib_handle (in order to facilitate testing).
-    GribHandleReaderInterface & gribHandleReader_;
+    GribHandleReader& gribHandleReader_;
 
 
     // Grid Types - WMO Code Table 6

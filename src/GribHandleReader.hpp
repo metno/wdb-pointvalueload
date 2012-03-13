@@ -36,7 +36,8 @@
  * @see GribField
  */
 
-#include "GribHandleReaderInterface.hpp"
+// std
+#include <string>
 
 // FORWARD REFERENCES
 class WdbProjection;
@@ -49,7 +50,7 @@ namespace wdb { namespace load { namespace point {
       * Wraps reading of grib_handle. This class exists to ease testing of other
       * grib-related classes.
       */
-    class GribHandleReader : public GribHandleReaderInterface
+    class GribHandleReader
     {
     public:
         /** Constructor
