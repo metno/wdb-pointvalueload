@@ -26,24 +26,26 @@
     MA  02110-1301, USA
 */
 
-#ifndef POINTDBCONNECTION_HPP
-#define POINTDBCONNECTION_HPP
+#ifndef POINTWDBCONNECTION_HPP
+#define POINTWDBCONNECTION_HPP
 
 
-// wdb
-//
+// wdb loader
 #include <wdb/LoaderConfiguration.h>
 #include <wdb/LoaderDatabaseConnection.h>
 
 namespace wdb { namespace load { namespace point {
-    class DBConnection : public LoaderDatabaseConnection
+
+    class WdbConnection : public pqxx::connection
     {
     public:
-        DBConnection(const wdb::load::LoaderConfiguration& config);
+        WdbConnection(const WdbConfiguration& config, std::string placenamespace);
 
-        ~DBConnection();
+        ~WdbConnection();
 
         void wcibegin(const std::string& dataProvider);
+
+        void readUnit( const std::string & unit, float * coeff, float * term );
 
         void write(
                 const float value,
@@ -70,6 +72,9 @@ namespace wdb { namespace load { namespace point {
                 const float levelTo,
                 const int dataversion
                 );
+    private:
+        void setup_();
+        const WdbConfiguration * config_;
     };
 
 } } } // end namespaces
