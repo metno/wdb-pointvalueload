@@ -23,7 +23,7 @@ wdblib_PROGRAMS = pointLoad
 AM_CXXFLAGS =			-DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS)
 	
 pointLoad_LDADD = $(wdb_LIBS) \
-                      -lfimex -lwdbLoad -lwdbConfig -lwdbProj -lwdbExcept -lwdbLog -lwdbMath
+                      -lfimex -lgrib_api -lwdbLoad -lwdbConfig -lwdbProj -lwdbExcept -lwdbLog -lwdbMath
 
 SED_SUBSTITUTION = 		sed s/__WDB_VERSION__/$(WDB_VERSION)/g $<\
 						| sed s:__WDB_LIB_PATH__:"$(LD_LIBRARY_PATH)":g \
