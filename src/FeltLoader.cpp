@@ -60,6 +60,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 // std
 #include <algorithm>
@@ -134,12 +136,15 @@ namespace wdb { namespace load { namespace point {
 
     bool FeltLoader::openTemplateCDM(const std::string& fileName)
     {
+			std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
         if(fileName.empty())
             throw std::runtime_error(" Can't open template interpolation file! ");
 
-        cdmTemplate_ =
+	    if(!boost::filesystem::exists(fileName))
+			throw std::runtime_error(" Template file: " + fileName + " doesn't exist!");
+        
+		cdmTemplate_ =
                 MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
-
         assert(extractPointIds());
 
 //        cdmTemplate_->getCDM().toXMLStream(std::cerr);
@@ -150,6 +155,9 @@ namespace wdb { namespace load { namespace point {
     {
         if(fimexCfgFileName.empty())
             throw std::runtime_error(" Can't open fimex reader configuration file!");
+
+	    if(!boost::filesystem::exists(fimexCfgFileName))
+		    throw std::runtime_error(" Fimex configuration file: " + fimexCfgFileName + " doesn't exist!");
 
         cdmData_ =
                 MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_FELT, fileName, fimexCfgFileName);
@@ -234,14 +242,16 @@ namespace wdb { namespace load { namespace point {
 
     void FeltLoader::load(const felt::FeltFile& file)
     {
+
+			std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
         std::string feltFileName = file.fileName().native_file_string();
         std::string tmplFileName = options_.loading().fimexTemplate;
         std::string fimexCfgFileName = options_.loading().fimexConfig;
-
+std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
         openTemplateCDM(tmplFileName);
-
+std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
         openDataCDM(feltFileName, fimexCfgFileName);
-
+std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
 //        extractData();
 
         assert(interpolate(tmplFileName));

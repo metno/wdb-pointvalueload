@@ -46,6 +46,7 @@ Loader::Loader(const CmdLine& cmdLine)
     : options_(cmdLine), wdbConnection_(cmdLine, cmdLine.loading().nameSpace)
 {
     // NOOP
+	std::cerr << __FUNCTION__ << std::endl;
 }
 
 Loader::~Loader()
@@ -55,6 +56,7 @@ Loader::~Loader()
 
 void Loader::load()
 {
+		std::cerr << __FUNCTION__ << std::endl;
     if(options_.input().type.empty()) {
         std::cerr << "Missing input file type"<<std::endl;
         return;
@@ -75,12 +77,15 @@ void Loader::load()
     const std::vector<std::string>& file = options_.input().file;
     std::copy(file.begin(), file.end(), back_inserter(files));
 
+    std::cerr << __FUNCTION__ << std::endl;
     for(std::vector<boost::filesystem::path>::const_iterator it = files.begin(); it != files.end(); ++ it)
     {
+			std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
         try {
             if(options_.input().type == "felt") {
                 felt::FeltFile feltFile(*it);
                 felt_->load(feltFile);
+				std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
             } else if(options_.input().type == "grib") {
                 GribFile gribFile(it->native_file_string());
                 grib_->load(gribFile);

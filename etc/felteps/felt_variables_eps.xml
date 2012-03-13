@@ -124,15 +124,6 @@
 	<attribute name="units" value="K" type="string" />
 </parameter>
 
-<parameter id="4025,2,1000" name="cloud_area_fraction">
-	<attribute name="scale_factor" value="0.01" type="float" />
-	<attribute name="_FillValue" value="-32767" type="short" />
-	<attribute name="cell_methods" value="time: point" type="string" />
-	<attribute name="long_name" value="cloud_area_fraction" type="string" />
-	<attribute name="standard_name" value="cloud_area_fraction" type="string" />
-	<attribute name="units" value="1" type="string" />
-</parameter>
-
 <parameter id="4121,2,1000" name="max_air_temperature_2m" type="float">
 	<attribute name="_FillValue" value="9.9692099683868690e+36f" type="float" />
 	<attribute name="long_name" value="max_air_temperature_2m" type="string" />
@@ -142,18 +133,23 @@
 	<attribute name="units" value="K" type="string" />
 </parameter>
 
+<parameter id="4031,2,1000" name="air_temperature" type="float">
+	<attribute name="_FillValue" value="9.9692099683868690e+36f" type="float" />
+	<attribute name="cell_methods" value="time: point height: 2m" type="string" />
+	<attribute name="long_name" value="air_temperature_2m" type="string" />
+	<attribute name="standard_name" value="air_temperature" type="string" />
+	<attribute name="units" value="K" type="string" />
+</parameter>
 -->
 
-<parameter id="4033,2,1000" name="x_wind" type="float">
-	<attribute name="_FillValue" value="9.9692099683868690e+36f" type="float" />
-	<attribute name="cell_methods" value="time: point height: 10m" type="string" />
-	<attribute name="long_name" value="x_wind" type="string" />
-	<attribute name="standard_name" value="x_wind" type="string" />
-	<attribute name="height" value="10m" type="string" />
-	<attribute name="units" value="m s-1" type="string" />
-	<spatial_vector direction="x,longitude" counterpart="y_wind" />
+<parameter id="4025,2,1000" name="cloud_area_fraction">
+	<attribute name="scale_factor" value="0.01" type="float" />
+	<attribute name="_FillValue" value="-32767" type="short" />
+	<attribute name="cell_methods" value="time: point" type="string" />
+	<attribute name="long_name" value="cloud_area_fraction" type="string" />
+	<attribute name="standard_name" value="cloud_area_fraction" type="string" />
+	<attribute name="units" value="1" type="string" />
 </parameter>
-
 
 </variables>
 
