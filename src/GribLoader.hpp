@@ -30,8 +30,8 @@
 #define POINTGRIBLOADER_H_
 
 // project
-#include "CmdLine.h"
-#include "CfgFileReader.h"
+#include "CmdLine.hpp"
+#include "CfgFileReader.hpp"
 #include "WdbConnection.hpp"
 
 // wdb

@@ -1,7 +1,7 @@
 /*
  wdb
 
- Copyright (C) 2007 met.no
+ Copyright (C) 2012 met.no
 
  Contact information:
  Norwegian Meteorological Institute
@@ -30,21 +30,17 @@
 #include <config.h>
 #endif
 
-//
-//
-#include "FeltLoader.h"
+// project
+#include "FeltLoader.hpp"
 #include "WciTransactors.hpp"
 
 // wdb
-//
 #include <GridGeometry.h>
 
 // libfelt
-//
 #include <felt/FeltFile.h>
 
 // libfimex
-//
 #include <fimex/CDM.h>
 #include <fimex/CDMReader.h>
 #include <fimex/CDMExtractor.h>
@@ -56,11 +52,9 @@
 #include <fimex/CDMFileReaderFactory.h>
 
 // libpqxx
-//
 #include <pqxx/util>
 
 // boost
-//
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/filesystem.hpp>
@@ -68,7 +62,6 @@
 #include <boost/algorithm/string.hpp>
 
 // std
-//
 #include <algorithm>
 #include <functional>
 #include <cmath>

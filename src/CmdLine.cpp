@@ -1,7 +1,7 @@
 /*
  feltLoad
 
- Copyright (C) 2009 met.no
+ Copyright (C) 2012 met.no
 
  Contact information:
  Norwegian Meteorological Institute
@@ -25,8 +25,8 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  MA  02110-1301, USA
  */
-
-#include "CmdLine.h"
+// project
+#include "CmdLine.hpp"
 
 // std
 #include <fstream>

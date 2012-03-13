@@ -30,10 +30,10 @@
 #include <config.h>
 #endif
 
-// CLASS
-#include "CfgFileReader.h"
+// project
+#include "CfgFileReader.hpp"
 
-// PROJECT INCLUDES
+// wdb 
 #include <wdbLogHandler.h>
 #include <wdbException.h>
 

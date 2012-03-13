@@ -31,9 +31,8 @@
 #endif
 
 // project
-//
-#include "CmdLine.h"
 #include "Loader.hpp"
+#include "CmdLine.hpp"
 
 // libfelt
 #include <felt/FeltFile.h>
@@ -46,16 +45,13 @@
 #include <fimex/CDMFileReaderFactory.h>
 
 // wdb
-//
 #include <wdbLogHandler.h>
 #include <wdb/LoaderConfiguration.h>
 
 // boost
-//
 #include <boost/filesystem.hpp>
 
 // std
-//
 #include <iostream>
 #include <map>
 #include <vector>

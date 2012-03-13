@@ -28,7 +28,7 @@
 
 // project
 #include "Loader.hpp"
-#include "FeltLoader.h"
+#include "FeltLoader.hpp"
 #include "GribFile.hpp"
 #include "GribLoader.hpp"
 

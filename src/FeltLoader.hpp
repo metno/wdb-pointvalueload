@@ -30,13 +30,11 @@
 #define POINTFELTLOADER_H_
 
 // project
-//
-#include "CmdLine.h"
-#include "CfgFileReader.h"
+#include "CmdLine.hpp"
+#include "CfgFileReader.hpp"
 #include "WdbConnection.hpp"
 
 // wdb
-//
 #include <wdbLogHandler.h>
 #include <wdb/WdbLevel.h>
 #include <WdbConfigFile.h>
@@ -44,21 +42,17 @@
 #include <wdb/LoaderDatabaseConnection.h>
 
 // libfelt
-//
 #include <felt/FeltFile.h>
 #include <felt/FeltField.h>
 #include <felt/FeltConstants.h>
 
 // libfimex
-//
 #include <fimex/CDMInterpolator.h>
 
 // boost
-//
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
 // std
-//
 #include <vector>
 #include <tr1/unordered_map>
 

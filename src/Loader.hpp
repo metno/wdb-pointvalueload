@@ -30,7 +30,7 @@
 #define POINTLOADER_H_
 
 // project
-#include "CmdLine.h"
+#include "CmdLine.hpp"
 #include "WdbConnection.hpp"
 
 
