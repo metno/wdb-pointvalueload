@@ -1,7 +1,7 @@
-Source: wdb-feltload  
+Source: wdb-pointload  
 Section: science
 Priority: extra
-Maintainer: Vegard Bønes <wdb@met.no>
+Maintainer: Aleksandar Babic <wdb@met.no>
 Build-Depends: debhelper (>= 5),
  autotools-dev,
  libwdbload1
@@ -9,11 +9,11 @@ Build-Conflicts: autoconf2.13,
  automake1.4
 Standards-Version: 3.9.1
 
-Package: wdb-feltload
+Package: wdb-pointload
 Architecture: any
 Depends: ${shlibs:Depends},
  ${misc:Depends},
  libwdbload1
-Description: Load met.no proprietary FELT files into wdb
- A loader program for transferring forecasts from met.no FELT files into a 
- wdb database
+Description: Load point data from FELT/GRIB files into wdb
+ A loader program for transferring forecasts for pints (not gridded data) 
+ from FELT/GRIB files into a wdb database

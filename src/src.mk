@@ -13,9 +13,9 @@ pointLoad_SOURCES =  src/main.cpp \
 					 src/GribFile.cpp \
 					 src/GribHandleReader.cpp \
 					 src/WdbConnection.cpp \
-					 src/CmdLine.h \
-					 src/CfgFileReader.h \
-				     src/FeltLoader.h \
+					 src/CmdLine.hpp \
+					 src/CfgFileReader.hpp \
+				     src/FeltLoader.hpp \
 					 src/Loader.hpp \
 					 src/GribLoader.hpp \
 				     src/GribField.hpp \
