@@ -1,37 +1,55 @@
+###
+# Debian package related stuff
+###
 
-#-----------------------------------------------------------------------------
-# Common Debian Package
-#-----------------------------------------------------------------------------
+DEBIAN_SOURCE=$(top_srcdir)/$(DEBIAN_INPUT_BASE)/debian
 
-PKG_DIR = $(PACKAGE)-$(VERSION)
-DEBIAN_DIR = $(PKG_DIR)/debian
-DEBIAN_PACKAGE = `head -n1 $(top_srcdir)/NEWS | sed "s/ (/_/" | sed "s/\(.*\)-.*/\1/"`
+PKG_DIR        = $(PACKAGE)-$(VERSION)
+DEBIAN_DIR     = $(PKG_DIR)/debian
 ARCH = `dpkg-architecture -qDEB_HOST_ARCH_CPU`
-DEBIAN_PACKAGE_NAME_BASE = `head -n1 $(top_srcdir)/NEWS | sed "s/ (/_/" | sed "s/).*//"`
-DEBIAN_PACKAGE_NAME = $(DEBIAN_PACKAGE_NAME_BASE)_$(ARCH).deb
+DEBIAN_PACKAGE_NAME_BASE = `head -n1 $(DEBIAN_SOURCE)/changelog | sed "s/ (/_/" | sed "s/).*//"`
+DEBIAN_PACKAGE = $(DEBIAN_PACKAGE_NAME_BASE)
+DEBIAN_PACKAGE_NAME= $(DEBIAN_PACKAGE_NAME_BASE)_$(ARCH).deb
 DEBIAN_SOURCE_PACKAGE_NAME = $(DEBIAN_PACKAGE_NAME_BASE).dsc
 
-dist-debian: dist clean-debian
+debian-name:
+	@echo $(DEBIAN_PACKAGE_NAME)
+
+
+
+debian:	dist clean-debian 
 	tar xvzf $(PKG_DIR).tar.gz
-	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
-
-prepare-debian:
-	rm -rf $(DEBIAN_DIR)
 	mkdir -p $(DEBIAN_DIR)
-	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
-	cp $(top_srcdir)/NEWS $(DEBIAN_DIR)/changelog
-	chmod 774 $(DEBIAN_DIR)/rules
-	if [ -e $(DEBIAN_DIR)/templates ]; then  debconf-updatepo --podir=$(DEBIAN_DIR)/po; fi
+	rm -rf $(DEBIAN_DIR)/*
+	cp -r $(DEBIAN_SOURCE)/* $(DEBIAN_DIR)
+	@( if test -d $(DEBIAN_DIR) ; then \
+         cd $(DEBIAN_DIR); \
+         if test -f /etc/debian_version ; then \
+	 	debversion=`cat /etc/debian_version`; \
+		echo "----debversion: $$debversion"; \
+		if [ "$$debversion" = "4.0" ]; then \
+			if test -f control.etch ; then cp control.etch control; fi;  \
+			if test -f rules.etch ; then cp rules.etch rules;  fi; \
+		fi; \
+		if [ "$$debversion" = "squeeze/sid" ]; then \
+			if test -f control.lucid ; then cp control.lucid control; fi;  \
+			if test -f rules.lucid ; then cp rules.lucid rules;  fi; \
+		fi; \
+         fi \
+      fi \
+    )
+	chmod 744 $(DEBIAN_DIR)/rules
+	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
+	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -sa
+	lintian $(DEBIAN_PACKAGE_NAME) 
 
-update-debian: prepare-debian
+update-debian:
+	rm -rf $(DEBIAN_DIR)/*
+	cp -r $(DEBIAN_SOURCE)/* $(DEBIAN_DIR)
+	chmod 744 $(DEBIAN_DIR)/rules
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
-	lintian $(DEBIAN_PACKAGE_NAME) $(DEBIAN_SOURCE_PACKAGE_NAME)
+	lintian $(DEBIAN_PACKAGE_NAME) 
 
-build-debian:
-	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -sa -i.svn
-	lintian $(DEBIAN_PACKAGE_NAME) $(DEBIAN_SOURCE_PACKAGE_NAME)
-
-common-debian: dist-debian prepare-debian build-debian
 
 clean-debian:
 	debclean
