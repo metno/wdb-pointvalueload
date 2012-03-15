@@ -16,6 +16,7 @@ wdblibdir = 			$(libdir)/wdb
 
 pointloadbindir = $(bindir)
 etcpointloaddir = $(etcdir)
+dist_etcpointload_DATA =
 
 # Setting Targets
 bin_PROGRAMS = pointLoad
@@ -30,7 +31,7 @@ CLEANFILES =
 EXTRA_DIST =
 
 #include doc/doc.mk
-#include etc/etc.mk
+include etc/etc.mk
 include src/src.mk
 #include test/test.mk
 #include test/configuration/test.mk
