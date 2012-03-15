@@ -334,19 +334,18 @@ namespace wdb { namespace load { namespace point {
             }
         }
 
+        std::string dataprovider;
+
         for(std::map<std::string, EntryToLoad>::const_iterator it = entries.begin(); it != entries.end(); ++it)
         {
-//            std::cerr<<flt.information()<<std::endl;
-
                 const EntryToLoad& entry(it->second);
                 std::string wdbUnit = entry.unit_;
-                std::string dataProvider = entry.provider_;
+                if(dataprovider != entry.provider_) {
+                    dataprovider = entry.provider_;
+                    std::cout << dataprovider << std::endl;
+                }
                 std::string standardName = entry.name_;
                 std::string strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
-
-//                std::string strReferenceTime = toString(referenceTime(**it));
-//                std::string strValidTimeFrom = toString(validTimeFrom(**it));
-//                std::string strValidTimeTo = toString(validTimeTo(**it));
 
                 std::string cfname(standardName);
                 boost::algorithm::replace_all(cfname, " ", "_");
@@ -355,7 +354,7 @@ namespace wdb { namespace load { namespace point {
 //                    std::cerr << "cant find vars for cfname: " << cfname << std::endl;
                     continue;
                 } else if(variables.size() > 1) {
-                    std::cerr << "several vars for cfname: " << cfname << std::endl;
+//                    std::cerr << "several vars for cfname: " << cfname << std::endl;
                     continue;
                 }
 
@@ -392,15 +391,10 @@ namespace wdb { namespace load { namespace point {
                                 continue;
                         }
 
-//                        std::string buffer;
-//                        buffer.reserve(100 * yDim.getLength() * xDim.getLength() * entry.levels_.size() * 70 * 50);
                         for(std::set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
-//                           std::cerr << " LEVEL NAME: " << levels[l].levelParameter_ << " LEVEL FROM:" << levels[l].levelFrom_ << " LEVEL TO:" << levels[l].levelTo_ << std::endl;
                             size_t wdbLevel = *lIt;
-
                             size_t fimexLevelIndex = 0;
                             size_t fimexLevelLength = 1;
-
                             std::string fimexLevelName = cdmRef.getVerticalAxis(fimexVar.getName());
                             if(!fimexLevelName.empty()) {
                                 // match wdbIndex to index in fimex data
@@ -453,50 +447,45 @@ namespace wdb { namespace load { namespace point {
                                                 + i * xDim.getLength() + j); // jump to right x,y coordinate
                                     }
 
-                                    std::string varname = fimexVar.getName();
                                     std::string validtime = times_[u];
 
                                     try {
 
                                         if(options_.output().dry_run) {
-                                            std::stringstream sstream;
+//                                            std::cerr << " VAR NAME: "<< varname
+//                                                      << " CF NAME: " << standardName
+//                                                      << " DATA PROVIDER: " << dataprovider
+//                                                      << " PLACENAME: " << placename
+//                                                      << " REF TIME:" << strReferenceTime
+//                                                      << " VALID FROM:" << validtime
+//                                                      << " VALID TO:" << validtime
+//                                                      << " LEVEL NAME: " << entry.levelname_
+//                                                      << " LEVEL FROM:" << wdbLevel
+//                                                      << " LEVEL TO:" << wdbLevel
+//                                                      << " VERSION: " << version
+////                                              << " DATA VERSION:" << dataVersion(**it)
+////                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
+//                                                      << " VALUE: " << value
+//                                                      << std::endl;
 
-                                            std::cerr << " VAR NAME: "<< varname
-                                                      << " CF NAME: " << standardName
-                                                      << " DATA PROVIDER: " << dataProvider
-                                                      << " PLACENAME: " << placename
-                                                      << " REF TIME:" << strReferenceTime
-                                                      << " VALID FROM:" << validtime
-                                                      << " VALID TO:" << validtime
-                                                      << " LEVEL NAME: " << entry.levelname_
-                                                      << " LEVEL FROM:" << wdbLevel
-                                                      << " LEVEL TO:" << wdbLevel
-                                                      << " VERSION: " << version
-//                                              << " DATA VERSION:" << dataVersion(**it)
-//                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
-                                                      << " VALUE: " << value
-                                                      << std::endl;
+                                            std::cout << value            << "\t"
+                                                      << placename        << "\t"
+                                                      << strReferenceTime << "\t"
+                                                      << validtime        << "\t"
+                                                      << validtime        << "\t"
+                                                      << validtime        << "\t"
+                                                      << standardName     << "\t"
+                                                      << entry.levelname_ << "\t"
+                                                      << wdbLevel         << "\t"
+                                                      << wdbLevel         << "\t"
+                                                      << version          << std::endl;
 
-//                                            sstream << " <"<< varname
-//                                                      << "|" << standardName
-//                                                      << "|" << dataProvider
-//                                                      << "|" << placename
-//                                                      << "|" << strReferenceTime
-//                                                      << "|" << validtime
-//                                                      << "|" << validtime
-//                                                      << "|" << entry.levelname_
-//                                                      << "|" << wdbLevel
-//                                                      << "|" << wdbLevel
-//                                                      << "|" << version
-//                                                      << "|" << value << "> ";
-
-//                                            buffer.append(sstream.str());
                                         } else {
 
                                             std::cerr<<"*";
                                             connection_.write(
                                                               value,
-                                                              dataProvider,
+                                                              dataprovider,
                                                               placename,
                                                               strReferenceTime,
                                                               validtime,
@@ -510,7 +499,6 @@ namespace wdb { namespace load { namespace point {
 
                                         }
 
-
                                     } catch ( wdb::ignore_value &e ) {
                                         std::cerr << e.what() << " Data field not loaded.";
                                     } catch ( std::out_of_range &e ) {
@@ -521,14 +509,10 @@ namespace wdb { namespace load { namespace point {
                             } // time slices end
                         } // eps slices
                     } // z slices
-//                    std::clog << buffer;
-//                    buffer.clear();
                 } // x slices
             } // y slices
 
         }
-
-//         std::cerr<<"Num of INSERTS: "<<inserts<<std::endl;
     }
 
     std::string FeltLoader::dataProviderName(const felt::FeltField & field)
@@ -707,108 +691,4 @@ namespace wdb { namespace load { namespace point {
     }
 
 
-//    void FeltLoader::load(const felt::FeltField & field, const std::string& placename, boost::shared_ptr<MetNoFimex::CDMInterpolator>& interpolator)
-//    {
-//        try {
-//            const MetNoFimex::CDM& cdmRef = interpolator->getCDM();
-
-//            std::string strReferenceTime = toString(referenceTime(field));
-//            std::string strValidTimeFrom = toString(validTimeFrom(field));
-//            std::string strValidTimeTo = toString(validTimeTo(field));
-//            std::string dataProvider = dataProviderName(field);
-
-//            std::string standardName = valueParameterName(field);
-//            std::string unitInWdb = valueParameterUnit(field);
-//            std::string cfname(standardName);
-//            boost::algorithm::replace_all(cfname, " ", "_");
-//            std::vector<std::string> variables = cdmRef.findVariables("standard_name", cfname);
-//            if(variables.empty()) {
-//                std::cerr << "cant find vars for cfname: " << cfname << std::endl;
-//                return;
-//            } else if(variables.size() > 1) {
-//                std::cerr << "several vars for cfname: " << cfname << std::endl;
-//                return;
-//            }
-
-//            const MetNoFimex::CDMVariable fimexVar = cdmRef.getVariable(variables[0]);
-
-//            std::vector<wdb::load::Level> levels;
-//            levelValues(levels, field);
-
-////            size_t lDim = 1;
-////            std::string fimexLevelName = cdmRef.getVerticalAxis(var.getName());
-////            std::string standardlevelname = "NULL";
-////            boost::shared_array<double> fimexLevels;
-////            if(!fimexLevelName.empty()) {
-////                MetNoFimex::CDMDimension levelDim = cdmRef.getDimension(fimexLevelName);
-////                MetNoFimex::CDMAttribute levelAttr;
-////                if(cdmRef.getAttribute(levelDim.getName(), "standard_name", levelAttr)) {
-////                    standardlevelname = zAttr.getStringValue();
-////                    boost::algorithm::replace_all(levelname, "_", " ");
-////                }
-////                lDim = zDim.getLength();
-////                MetNoFimex::CDMVariable levelVar = cdmRef.getVariable(levelDim.getName());
-////                fimexLevels = levelVar.getData()->asDouble();
-////            }
-
-//            for(size_t i = 0; i < levels.size(); i++)
-//            {
-////                double lvlFrom;
-////                double lvlTo;
-
-////                if(zName.empty()) {
-////                    std::vector<wdb::load::Level> levels;
-////                    levelValues(levels, field);
-////                    levelname = levels[i].levelParameter_;
-////                    lvlFrom = levels[i].levelFrom_;
-////                    lvlTo = levels[i].levelTo_;
-////                } else {
-////                    lvlFrom = lvls[i];
-////                    lvlTo =lvlFrom;
-////                }
-////                size_t levelIndex = i;
-
-//                std::vector<float> data;
-//                size_t wdbLevel = levels[i].levelFrom_;
-
-//                bool found = getValuesForLevel(interpolator, fimexVar, unitInWdb, wdbLevel, data);
-
-//                if(!found) {
-//                    continue;
-//                } else {
-//                    std::cerr << " VAR NAME: "<< fimexVar.getName()
-//                              << " CF NAME: " << standardName
-//                              << " DATA PROVIDER: " << dataProvider
-//                              << " PLACENAME: " << placename
-//                              << " REF TIME:" << strReferenceTime
-//                              << " VALID FROM:" << strValidTimeFrom
-//                              << " VALID TO:" << strValidTimeTo
-//                              << " LEVEL NAME: " << levels[i].levelParameter_
-//                              << " LEVEL FROM:" << levels[i].levelFrom_
-//                              << " LEVEL TO:" << levels[i].levelTo_
-//                              << " DATA VERSION:" << dataVersion(field)
-//                              << " CONFIDENCE CODE: " << confidenceCode(field)
-//                              << " DATA SIZE: " << data.size() << "" << std::endl;
-
-//                    connection_.write(
-//                                      data[0],
-//                                      placename,
-//                                      strReferenceTime,
-//                                      strValidTimeFrom,
-//                                      strValidTimeTo,
-//                                      standardName,
-//                                      levels[i].levelParameter_,
-//                                      levels[i].levelFrom_,
-//                                      levels[i].levelTo_
-//                                     );
-//                }
-//            }
-//        } catch ( wdb::ignore_value &e ) {
-//            std::cerr << e.what() << " Data field not loaded.";
-//        } catch ( std::out_of_range &e ) {
-//            std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
-//        } catch ( std::exception & e ) {
-//            std::cerr << e.what() << " Data field not loaded.";
-//        }
-//    }
 } } } // end namespaces
