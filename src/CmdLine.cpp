@@ -73,6 +73,7 @@ namespace
         ( "leveladditions2.config", value(& out.leveladditions2Config), "Specify path to leveladditiond [GRIB2] configuration file")
         ( "fimex.config", value(& out.fimexConfig), "Path to fimex reader configuration file" )
         ( "fimex.interpolate.template", value(& out.fimexTemplate), "Path to template file tha fimex reader will use for point interpolation" )
+        ( "stations", value(& out.stations), " station ids to be selected from template (between qoutes '18700 1456') " )
 //    ( "fimex.reduceToBoundingBox.south", value<std::string>( & out.fimexReduceSouth), "geographical bounding-box in degree" )
 //    ( "fimex.reduceToBoundingBox.north", value<std::string>( & out.fimexReduceNorth), "geographical bounding-box in degree" )
 //    ( "fimex.reduceToBoundingBox.east", value<std::string>( & out.fimexReduceEast), "geographical bounding-box in degree" )

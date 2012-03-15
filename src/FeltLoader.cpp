@@ -136,7 +136,6 @@ namespace wdb { namespace load { namespace point {
 
     bool FeltLoader::openTemplateCDM(const std::string& fileName)
     {
-			std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
         if(fileName.empty())
             throw std::runtime_error(" Can't open template interpolation file! ");
 
@@ -145,6 +144,7 @@ namespace wdb { namespace load { namespace point {
         
 		cdmTemplate_ =
                 MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
+
         assert(extractPointIds());
 
 //        cdmTemplate_->getCDM().toXMLStream(std::cerr);
@@ -242,16 +242,14 @@ namespace wdb { namespace load { namespace point {
 
     void FeltLoader::load(const felt::FeltFile& file)
     {
-
-			std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
         std::string feltFileName = file.fileName().native_file_string();
         std::string tmplFileName = options_.loading().fimexTemplate;
         std::string fimexCfgFileName = options_.loading().fimexConfig;
-std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
+
         openTemplateCDM(tmplFileName);
-std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
+
         openDataCDM(feltFileName, fimexCfgFileName);
-std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
+
 //        extractData();
 
         assert(interpolate(tmplFileName));
@@ -383,10 +381,16 @@ std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
 
                 for(size_t i = 0; i < yDim.getLength(); ++i) {
                     for(size_t j = 0; j < xDim.getLength(); ++j){
-                        std::string buffer;
-                        buffer.reserve(100 * yDim.getLength() * xDim.getLength() * entry.levels_.size() * 70 * 50);
+
+                        std::string placename = placenames_[i * xDim.getLength() + j];
+                        if(!ids2load_.empty()) {
+                            if(ids2load_.find(placename) == ids2load_.end())
+                                continue;
+                        }
+
+//                        std::string buffer;
+//                        buffer.reserve(100 * yDim.getLength() * xDim.getLength() * entry.levels_.size() * 70 * 50);
                         for(std::set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
-//                            std::cerr<<"x= "<<j<<"   "<<"y= "<<i<<"   "<<"z= "<<l<<std::endl;
 //                           std::cerr << " LEVEL NAME: " << levels[l].levelParameter_ << " LEVEL FROM:" << levels[l].levelFrom_ << " LEVEL TO:" << levels[l].levelTo_ << std::endl;
                             size_t wdbLevel = *lIt;
 
@@ -446,7 +450,6 @@ std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
                                     }
 
                                     std::string varname = fimexVar.getName();
-                                    std::string placename = placenames_[i * xDim.getLength() + j];
                                     std::string validtime = times_[u];
 
                                     try {
@@ -454,36 +457,36 @@ std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
                                         if(options_.output().dry_run) {
                                             std::stringstream sstream;
 
-//                                            sstream << " VAR NAME: "<< varname
-//                                                      << " CF NAME: " << standardName
-//                                                      << " DATA PROVIDER: " << dataProvider
-//                                                      << " PLACENAME: " << placename
-//                                                      << " REF TIME:" << strReferenceTime
-//                                                      << " VALID FROM:" << validtime
-//                                                      << " VALID TO:" << validtime
-//                                                      << " LEVEL NAME: " << entry.levelname_
-//                                                      << " LEVEL FROM:" << wdbLevel
-//                                                      << " LEVEL TO:" << wdbLevel
-//                                                      << " VERSION: " << version
-////                                              << " DATA VERSION:" << dataVersion(**it)
-////                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
-//                                                      << " VALUE: " << value
-//                                                      << std::endl;
+                                            std::cerr << " VAR NAME: "<< varname
+                                                      << " CF NAME: " << standardName
+                                                      << " DATA PROVIDER: " << dataProvider
+                                                      << " PLACENAME: " << placename
+                                                      << " REF TIME:" << strReferenceTime
+                                                      << " VALID FROM:" << validtime
+                                                      << " VALID TO:" << validtime
+                                                      << " LEVEL NAME: " << entry.levelname_
+                                                      << " LEVEL FROM:" << wdbLevel
+                                                      << " LEVEL TO:" << wdbLevel
+                                                      << " VERSION: " << version
+//                                              << " DATA VERSION:" << dataVersion(**it)
+//                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
+                                                      << " VALUE: " << value
+                                                      << std::endl;
 
-                                            sstream << " <"<< varname
-                                                      << "|" << standardName
-                                                      << "|" << dataProvider
-                                                      << "|" << placename
-                                                      << "|" << strReferenceTime
-                                                      << "|" << validtime
-                                                      << "|" << validtime
-                                                      << "|" << entry.levelname_
-                                                      << "|" << wdbLevel
-                                                      << "|" << wdbLevel
-                                                      << "|" << version
-                                                      << "|" << value << "> ";
+//                                            sstream << " <"<< varname
+//                                                      << "|" << standardName
+//                                                      << "|" << dataProvider
+//                                                      << "|" << placename
+//                                                      << "|" << strReferenceTime
+//                                                      << "|" << validtime
+//                                                      << "|" << validtime
+//                                                      << "|" << entry.levelname_
+//                                                      << "|" << wdbLevel
+//                                                      << "|" << wdbLevel
+//                                                      << "|" << version
+//                                                      << "|" << value << "> ";
 
-                                            buffer.append(sstream.str());
+//                                            buffer.append(sstream.str());
                                         } else {
 
                                             std::cerr<<"*";
@@ -511,12 +514,11 @@ std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
                                     } catch ( std::exception & e ) {
                                         std::cerr << e.what() << " Data field not loaded.";
                                     }
-
                             } // time slices end
                         } // eps slices
                     } // z slices
-                    std::clog << buffer;
-                    buffer.clear();
+//                    std::clog << buffer;
+//                    buffer.clear();
                 } // x slices
             } // y slices
 
