@@ -182,6 +182,10 @@ namespace wdb { namespace load { namespace point {
         for(; sIt!=eIt; ++sIt)
             placenames_.push_back(boost::lexical_cast<std::string>(*sIt));
 
+        if(!options_.loading().stations.empty()) {
+            // there are selected stations to load
+            boost::split(ids2load_, options_.loading().stations, boost::is_any_of(" "));
+        }
         return true;
     }
 
