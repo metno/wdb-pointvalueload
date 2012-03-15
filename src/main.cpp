@@ -90,53 +90,6 @@ namespace
 
 int main(int argc, char ** argv)
 {
-//    // testing staggered data and template interpolation
-
-//    using namespace MetNoFimex;
-
-//    boost::shared_ptr<CDMReader> gribReader =
-//            CDMFileReaderFactory::create(MIFI_FILETYPE_GRIB,
-//                                         std::string("/opdata/ec/incoming_old/BES/BES03051800030715001"),
-//                                         std::string("/disk1/aleksandarb_git_repos/fimex/share/etc/cdmGribReaderConfig.xml"));
-
-////    gribReader->getCDM().toXMLStream(std::cerr);
-
-//    boost::shared_ptr<CDMInterpolator> interpolator =
-//            boost::shared_ptr<CDMInterpolator>(new CDMInterpolator(gribReader));
-
-//    interpolator->changeProjection(MIFI_INTERPOL_BICUBIC, std::string("etc/felt/test.nc"));
-
-////    interpolator->getCDM().toXMLStream(std::cerr);
-
-//    boost::shared_ptr<Data> data;
-//    boost::shared_array<double> dataArray;
-
-//    data = gribReader->getData("ga_swvl4_112");
-//    dataArray = data->asDouble();
-//    for(int i = 0; i < data->size(); ++i)
-//        std::cerr<< i << "  " << dataArray[i]<< std::endl;
-
-
-//    data = interpolator->getData("ga_swvl4_112");
-//    dataArray = data->asDouble();
-//    for(int i = 0; i < data->size(); ++i)
-//        std::cerr<< i << "  " << dataArray[i]<< std::endl;
-
-////    data = interpolator->getData("ga_sd_1");
-////    dataArray = data->asDouble();
-////    for(int i = 0; i < data->size(); ++i)
-////        std::cerr<< i << "  " << dataArray[i]<< std::endl;
-
-////    data = interpolator->getData("ga_t_105");
-////    dataArray = data->asDouble();
-////    for(int i = 0; i < data->size(); ++i)
-////        std::cerr<< i << "  " << dataArray[i]<< std::endl;
-
-////    NetCDF_CDMWriter(interpolator, "file1.nc");
-
-//    return 0;
-//    ////////////////////////////////////////////////////
-
     wdb::load::point::CmdLine cmdLine;
     try {
         cmdLine.parse( argc, argv );
