@@ -269,6 +269,7 @@ namespace wdb { namespace load { namespace point {
 
         // eps - realization variable
         size_t epsLength = 1;
+        size_t epsMaxVersion = 0;
         std::string epsVariableName;
         std::string epsCFName = "realization";
 
@@ -279,6 +280,7 @@ namespace wdb { namespace load { namespace point {
             epsDim = &cdmRef.getDimension(epsVariableName);
             epsLength = epsDim->getLength();
             realizations = cdmData_->getData(epsVariableName)->asInt();
+            epsMaxVersion = realizations[epsLength-1];
         }
 
         const MetNoFimex::CDMDimension* unlimited = cdmRef.getUnlimitedDim();
@@ -473,12 +475,12 @@ namespace wdb { namespace load { namespace point {
                                                       << strReferenceTime << "\t"
                                                       << validtime        << "\t"
                                                       << validtime        << "\t"
-                                                      << validtime        << "\t"
                                                       << standardName     << "\t"
                                                       << entry.levelname_ << "\t"
                                                       << wdbLevel         << "\t"
                                                       << wdbLevel         << "\t"
-                                                      << version          << std::endl;
+                                                      << version          << "\t"
+                                                      << epsMaxVersion    << std::endl;
 
                                         } else {
 
