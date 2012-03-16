@@ -7,15 +7,15 @@
 ]
 >
 
-<refentry id='stationLoad1'>
+<refentry id='pointLoad1'>
 	
 	<refmeta>
-		<refentrytitle>stationLoad</refentrytitle>
+		<refentrytitle>pointLoad</refentrytitle>
 		<manvolnum>1</manvolnum>
 	</refmeta>
 	
 	<refnamediv>
-		<refname>stationLoad</refname>
+		<refname>pointLoad</refname>
                 <refpurpose>Load weather stations location (and other meta-data) into the WDB database.
                             It is a part of the WDB system.
                 </refpurpose>
@@ -23,7 +23,7 @@
 	
 	<refsynopsisdiv>
 		<cmdsynopsis>
-			<command>stationLoad</command>
+			<command>pointLoad</command>
 			<arg choice='opt'>OPTIONS</arg>
 		</cmdsynopsis>
 	</refsynopsisdiv>
@@ -31,7 +31,7 @@
 	<refsect1>
 		<title>Description</title>
 		
-                <para>stationLoad loads meta-data of the weather station(s) into the wdb database.
+                <para>pointLoad loads meta-data of the weather station(s) into the wdb database.
                       The WDB database must be up and running for this program to work, unless one of the options:
                       --help or --list have been given on the command line.
                 </para>
@@ -135,7 +135,7 @@
 				<listitem>
 					<para>Specify the WDB user to connect as. The database user must have
 					      access to the wdb_grib role (this is will usually be the case if the
-					      stationLoad process is being run by the creator of the database).
+					      pointLoad process is being run by the creator of the database).
                                         </para>
 				</listitem>
 			</varlistentry>
@@ -182,7 +182,7 @@
 	<refsect1>
 		<title>Exit Status</title>
 		
-		<para>stationLoad returns 0 to the shell if it finished normally and 1 if a fatal error
+		<para>pointLoad returns 0 to the shell if it finished normally and 1 if a fatal error
 		      occured during loading (out of memory, files not found, database not found,
 		      etc.).
                 </para>
@@ -191,7 +191,7 @@
                       IMPORTANT:
                           It has been noticed that STINFOSYS contains stations with different IDs
                           but with same lon/lat. The WDB currently can't support such situation
-                          and will throw exception. The stationLoad tool will catch the exception,
+                          and will throw exception. The pointLoad tool will catch the exception,
                           print out the message and continue to load other stations.
                 </para>
 		
