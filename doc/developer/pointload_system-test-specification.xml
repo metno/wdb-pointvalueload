@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+"http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+	<!ENTITY % wdb.entities SYSTEM "../docbook/wdb_entities.ent">
+	%wdb.entities;
+]
+>
+
+<chapter id="cha:stationload_system-test-specification">
+
+  <title>StationLoad - System Test Specification</title>
+
+	<sect1><title>Introduction</title>
+
+<para>
+    This document describes the specific tests to be carried out during the system test of the StationLoad component, used for the weather station(s) locatin(s) loading. The purpose of this component is to load station meta-data from STINFOSYS into the WDB system.
+</para>
+
+<sect2><title>Purpose</title>
+
+<para>The test specification should:</para>
+
+<itemizedlist>
+    <listitem><para>Clarify the functionality/performance/accesibility requirements of the system</para></listitem>
+    <listitem><para>Clearly specify which tests must be passed for the component to be accepted for production</para></listitem>
+    <listitem><para>Document the consensus for the level of testing of the WDB</para></listitem>
+</itemizedlist>
+
+<para>The tests set forth in this document are designed to satisfy the demands of two distinct stakeholders in the product; namely the end-users of the WDB and the operational maintenance department.</para>
+
+<para>For each test, it must be defined who has the responsibility for performing the test. Any limitations with respect to the test must also be specified (e.g., for example if the test has yet to be implemented).</para>
+
+</sect2>
+
+<sect2><title>Controlling Document</title>
+
+<para>The test specification and implemented tests in the StationLoad component follow the principles described in the WDB Test plan [1].</para>
+
+</sect2>
+
+</sect1>
+
+<sect1><title>Compilation Test</title>
+
+<para>There should be no warnings during the compilation or linking of the StationLoad component.</para>
+
+</sect1>
+
+<sect1><title>Unit Tests</title>
+
+<para>At the moment there are no unit tests for the StationLoad component.</para>
+
+</sect1>
+
+<sect1><title>Performance Tests</title>
+
+<para>At the moment rhere are no performance tests for the StationLoad component.</para>
+
+</sect1>
+
+</chapter>

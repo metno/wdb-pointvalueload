@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+"http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+	<!ENTITY % wdb.entities SYSTEM "../docbook/wdb_entities.ent">
+	%wdb.entities;
+]
+>
+
+<chapter id="cha:stationload_system-design-specification">
+	
+	<title>StationLoad - System Design Specification</title>
+	
+	<sect1>
+		<title>Introduction</title>
+		
+		<para>This document is the System Design Specification of the WDB weather station Loading program.</para>
+		
+		<sect2>
+			<title>Purpose</title>
+			
+			<para>The system design specification provides a comprehensive overview of
+			      the design of the software system. This is used to ensure agreement between
+			      the developers of the WDB system. It is also intended to make it easier for new
+			      developers of WDB to become productive developing on the system.</para>
+			
+		</sect2>
+		
+	</sect1>
+	
+	<sect1>
+		<title>System Overview</title>
+		
+		<sect2>
+			<title>Work Domain</title>
+			
+			<figure id="fig:stationload_work-domain">
+				<title>Work domain and work flow of the StationLoad system</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center"
+							fileref="gfx/stationload_work-domain.png" format="PNG"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+			
+			<para><xref linkend="fig:stationload_work-domain"/> provides an overview of
+				the work domain and the work flow of the WDB weather stations loading system.</para>
+			
+		</sect2>
+		
+		<sect2>
+			<title>Technical Platform</title>
+			
+			<para>The stations loading software requires the following operating
+				environment:</para>
+			
+			<itemizedlist>
+				<listitem>
+					<para>Hardware: Desktop PC</para>
+				</listitem>
+				<listitem>
+					<para>Operating System: Linux</para>
+				</listitem>
+				<listitem>
+					<para>PostgreSQL version 8.1.x</para>
+				</listitem>
+				<listitem>
+					<para>libpqxx version 2.6.8</para>
+				</listitem>
+				<listitem>
+					<para>Postgis version 1.3.x</para>
+				</listitem>
+				<listitem>
+					<para>Boost 1.33.x</para>
+				</listitem>
+				<listitem>
+					<para>Log4Cpp version 1.0</para>
+				</listitem>
+				<listitem>
+					<para>GEOS version 3.0.0</para>
+				</listitem>
+			</itemizedlist>
+			
+		</sect2>
+		
+	</sect1>
+	
+	<sect1>
+		<title>System Architecture</title>
+		
+		<para>The following section describes the architecture of the StationLoad system.</para>
+		
+		<sect2>
+			<title>Components</title>
+			
+                        <para>The StationLoad system consists of three logical components. Each of these
+                                components handle one of the key sequences of the task. The main StationLoad
+                                program generally takes as an in-arguments to the program the connection
+                                parameters to the STINFOSYS database where stations meta-data are hosted.
+                                The STInfosysDatabseConnection will query all station records and forward
+                                them to the WDBDatabaseConnection object. Then the WDBDatabaseConnection
+                                object will check for new and station that should be updated.
+                                </para>
+			
+			<sect3>
+                                <title>Database object initialization</title>
+				
+                                <para>The main app will initialize connections towards STINFOSYS and WDB.</para>
+				
+			</sect3>
+			
+			<sect3>
+                                <title>Getting the stations from STINFOSYS</title>
+				
+                                <para>STInfosysDatabseConnection extracts records and fills container.
+                                      From cmd line we can limit this result based on the last update
+                                      date.</para>
+				
+			</sect3>
+			
+			<sect3>
+                                <title>Updating stations in WDB</title>
+				
+                                <para>The updateStations method of the WDBDatabaseConnection class takes the
+                                        container with STINFOSYS data, compares it with the WDB state and then
+                                        inserts new or updates existing records.</para>
+				
+			</sect3>
+			
+		</sect2>
+		
+		<sect2>
+			<title>Dependencies</title>
+			
+			<sect3>
+				<title>libPQXX</title>
+				
+				<para>The database API used in the StationLoad software is the libPQXX library
+				      for C++.</para>
+				
+			</sect3>
+						
+			<sect3>
+				<title>Log4cpp</title>
+				
+				<para>Log4cpp is library of C++ classes for flexible logging to files,
+				      syslog, IDSA and other destinations. It is modeled on the Log4j Java
+				      library. Log4cpp is used to handle logging from the StationLoad system.
+				      Log4cpp is encapsulated by the wdbLogHandler library.</para>
+				
+			</sect3>
+			
+			<sect3>
+				<title>wdbException</title>
+				
+				<para>WdbException is the default exception class for the WDB system based
+				      on std::exception. It is encapsulated in the wdbException
+				      library.</para>
+				
+			</sect3>
+			
+		</sect2>
+		
+		<sect2>
+			<title>Program Interface</title>
+			
+			<para>StationLoad is a command-line tool. Its primary functionality 
+                              is executed by writing the program name followed by the
+			      station source parameters, as follows:</para>
+			
+                        <para>wdb% bin/stationLoad --conf /etc/stationLoad.cfg</para>
+			
+                        <para>In addition to the base functionality, the StationLoad system offers a
+				number of additional options.</para>
+			
+			<itemizedlist>
+				<listitem>
+                                        <para>--dry-run</para>
+                                        <para>This option lists the SQL statements that would otherwise be executed.</para>
+				</listitem>
+				<listitem>
+                                        <para>--limit</para>
+                                        <para>Upper bound on how many stations ca be inserted/updated</para>
+				</listitem>
+                                <listitem>
+                                        <para>--after</para>
+                                        <para>Lower bound on edited_at value from STINFOSYS.station</para>
+                                </listitem>
+                                <listitem>
+                                        <para>--before</para>
+                                        <para>Upper bound on edited_at value from STINFOSYS.station</para>
+                                </listitem>
+			</itemizedlist>
+			
+		</sect2>
+		
+	</sect1>
+	
+	<sect1>
+		<title>Core Design</title>
+		
+		<para>The following section describes the core design of the StationLoad system.</para>
+		
+		<sect2>
+			<title>Database Design</title>
+			
+                        <para>The data from the forecast fields are stored in the place related tables</para>
+			
+		</sect2>
+		
+		<sect2>
+			<title>Classes and Functionality</title>
+			
+			<para><xref linkend="fig:stationload_class-diagram"/> is the class diagram of
+				the StationLoad system. It describes the classes in the system, as well as the
+				interrelationship of the classes with the various function sets.</para>
+			
+			<figure id="fig:stationload_class-diagram">
+				<title>Class diagram of the StationLoad system</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center"
+							fileref="gfx/stationload_class-diagram.png"
+							format="PNG"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+			
+			<para>This is not intended to be an exhaustive description of the classes and
+				functions in the program; for that, review the code documentation
+				generated using Doxygen.</para>
+			
+		</sect2>
+		
+		<sect2>
+			<title>Main Program Routine</title>
+			
+			<para>The functionality of the main program is as follows:</para>
+			
+			<itemizedlist>
+				<listitem>
+					<para>Parse the options from the command line</para>
+				</listitem>
+				<listitem>
+					<para>Connect to the STINFOSYS database</para>
+				</listitem>
+				<listitem>
+                                        <para>Read all STI stations records</para>
+				</listitem>
+				<listitem>
+                                        <para>Forward these record to WDBDatabaseConnection object</para>
+				</listitem>
+                                <listitem>
+                                        <para>call updateStations</para>
+                                </listitem>
+
+				<listitem>
+                                        <para>Close database connections</para>
+				</listitem>
+				<listitem>
+					<para>Terminate the program</para>
+				</listitem>
+			</itemizedlist>
+			
+		</sect2>
+		
+		<sect2>
+			<title>STIStationRecord</title>
+			
+                        <para>The STIStationRecord class encapsulates a single STINFOSYS record as defined in station table.
+                              It inherits pqxx::connection class.</para>
+		</sect2>
+		
+		<sect2>
+			<title>WDBStationRecord</title>
+
+			<para>The WDBStationRecord class encapsulates a single WDB palce point record.</para>
+		</sect2>
+
+		<sect2>
+                        <title>STInfosysDatabaseConnection</title>
+			
+                        <para>The STInfosysDatabase class encapsulates the STINFOSYS databse. Useful function:</para>
+			
+			<sect3>
+                                <title>getAllStations</title>
+				
+                                <para>Extracts stations from the station table. Takes out all stations that are still in operation and that have the newest edited_at value</para>
+				
+			</sect3>
+			
+		</sect2>
+		
+		<sect2>
+                        <title>WDBDatabaseConnection</title>
+			
+                        <para>The WDBDatabaseConnection class inherits pqxx::conection.
+                                Contains function calls for all the WDB database access.</para>
+			
+			<para>To maximize performance during loading, most SQL statements and cursors
+				are prepared and declared only once. The database must be indexed such that
+				all searches made occur using indexed search.</para>
+			
+                        <para>updateStations is the most important function. here we will loop through all
+                              the records from STINFOSYS and see if new station should be inserted. If some
+                              station already exists we will check if lon/lat or times have been changed.
+                              If so, we have to update it.</para>
+			
+                        <para>IMPORTANT-. WDB is using two placenamespaceids - default and 4365.
+                              In default we are using station.stationid as placename value.
+                              In 4365 we are using station.wmono as placename value.</para>
+
+			<sect3>
+                                <title>GetAllStations</title>
+
+                                <para></para>
+
+			</sect3>
+			
+			<sect3>
+                                <title>AddPlacePoint</title>
+
+                                <para></para>
+				
+			</sect3>
+			
+                        <sect3>
+                                <title>UpdatePlacePoint</title>
+				
+                                <para></para>
+
+			</sect3>
+			
+			<sect3>
+                                <title>getPlaceName</title>
+
+                                <para></para>
+
+                        </sect3>
+
+
+		</sect2>
+		
+		<sect2>
+			<title>Error Handling</title>
+			
+			<para>Errors in the StationLoad system are resolved through exception handling
+			      based on the WdbException base class. All errors are logged using the
+			      Log4cpp library for writing log files (encapsulated in wdbLog).</para>
+			
+		</sect2>
+		
+	</sect1>
+	
+</chapter>

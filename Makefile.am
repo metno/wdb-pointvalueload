@@ -23,14 +23,14 @@ bin_PROGRAMS = pointLoad
 
 # This is to be replaced by a "find wdb" macro:
 AM_CXXFLAGS =			-DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS)
-	
+
 pointLoad_LDADD = $(wdb_LIBS) \
                       -lfimex -lgrib_api -lwdbLoad -lwdbConfig -lwdbProj -lwdbExcept -lwdbLog -lwdbMath
 
 CLEANFILES =
 EXTRA_DIST =
 
-#include doc/doc.mk
+include doc/doc.mk
 include etc/etc.mk
 include src/src.mk
 #include test/test.mk

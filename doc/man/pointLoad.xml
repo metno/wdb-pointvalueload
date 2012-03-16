@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[ 
+	<!ENTITY % wdb.entities SYSTEM "../docbook/wdb_entities.ent">
+	%wdb.entities;
+]
+>
+
+<refentry id='stationLoad1'>
+	
+	<refmeta>
+		<refentrytitle>stationLoad</refentrytitle>
+		<manvolnum>1</manvolnum>
+	</refmeta>
+	
+	<refnamediv>
+		<refname>stationLoad</refname>
+                <refpurpose>Load weather stations location (and other meta-data) into the WDB database.
+                            It is a part of the WDB system.
+                </refpurpose>
+	</refnamediv>
+	
+	<refsynopsisdiv>
+		<cmdsynopsis>
+			<command>stationLoad</command>
+			<arg choice='opt'>OPTIONS</arg>
+		</cmdsynopsis>
+	</refsynopsisdiv>
+	
+	<refsect1>
+		<title>Description</title>
+		
+                <para>stationLoad loads meta-data of the weather station(s) into the wdb database.
+                      The WDB database must be up and running for this program to work, unless one of the options:
+                      --help or --list have been given on the command line.
+                </para>
+		
+		<para>The STINFOSYS (http://stinfosys) is considered as the authoritative source for weather stations
+                      at the met.no. STINFOSYS holds, among other things, information about stations position, their WMO number,
+                      internal ID, place name, validity dates and so on.
+                      Only internal ID is unique. WMO (synop) number is not defined for each station. Place names are not unique.
+                      The internal IDs are used as placename within default placenamespaceid.
+                      The WMO numbers are used as value for placename within 4356 placenamespaceid.
+                </para>
+		
+	</refsect1>
+	
+	<refsect1>
+		<title>Options</title>
+		
+		<variablelist>
+			<?dbfo list-presentation="blocks"?>
+			
+			<varlistentry>
+				<term>--help</term>
+				<listitem>
+					<para>Produces the help message and then exits.</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>--version</term>
+				<listitem>
+					<para>Produce version information and then exits.</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>--logfile FILENAME.LOG</term>
+				<listitem>
+					<para>Set output logfile. The default is to print to stdout</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>--loglevel LEVEL</term>
+				<listitem>
+					<para>Sets the logging level, from 1 (most) to 5 (least)</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+                                <term>--dry-run</term>
+				<listitem>
+                                        <para>
+                                              Dumps the list of SQL commands that would be sent to WDB.
+                                              No execution takes place. Useful for debugging.
+                                        </para>
+				</listitem>
+			</varlistentry>
+			
+                        <varlistentry>
+                                <term>--limit</term>
+                                <listitem>
+                                        <para>
+                                              Upper bound on the number of stations that will be inserted/updated.
+                                        </para>
+                                </listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+				<term>--after</term>
+				<listitem>
+                                        <para>Lower bound on the update date for stations.</para>
+				</listitem>
+			</varlistentry>
+			
+                        <varlistentry>
+                                <term>--buffer</term>
+                                <listitem>
+                                        <para>Upper bound on the update date for stations.</para>
+                                </listitem>
+                        </varlistentry>
+			
+			<varlistentry>
+				<term>-d DBNAME</term>
+				<term>--database=DBNAME</term>
+				<listitem>
+					<para>Specify the database name to connect to (e.g., wdb).</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>-h DBHOST</term>
+				<term>--host=DBHOST</term>
+				<listitem>
+					<para>Specify the database host to connect to (e.g., somehost.met.no).</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>-u DBUSER</term>
+				<term>--user=DBUSER</term>
+				<listitem>
+					<para>Specify the WDB user to connect as. The database user must have
+					      access to the wdb_grib role (this is will usually be the case if the
+					      stationLoad process is being run by the creator of the database).
+                                        </para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>-p DBPORT</term>
+				<term>--port=DBPORT</term>
+				<listitem>
+					<para>Specify the database port to connect to (e.g., 5432).</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>--stdatabase=STINFOSYS_DBNAME</term>
+				<listitem>
+					<para>Specify the STINFOSYS database name to connect to (e.g., stinfosys).</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+			        <term>--sthost=STINFOSYS_DBHOST</term>
+				<listitem>
+					<para>Specify the STINFOSYS host to connect to (e.g., somehost.met.no).</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>--stuser=STINFOSYS_DBUSER</term>
+				<listitem>
+					<para>Specify the STINFOSYS user to connect as.</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>--stport=STINFOSYS_PORT</term>
+				<listitem>
+					<para>Specify the STINFOSYS port to connect to (e.g., 5432).</para>
+				</listitem>
+			</varlistentry>
+		</variablelist>
+		
+	</refsect1>
+	
+	<refsect1>
+		<title>Exit Status</title>
+		
+		<para>stationLoad returns 0 to the shell if it finished normally and 1 if a fatal error
+		      occured during loading (out of memory, files not found, database not found,
+		      etc.).
+                </para>
+
+                <para>
+                      IMPORTANT:
+                          It has been noticed that STINFOSYS contains stations with different IDs
+                          but with same lon/lat. The WDB currently can't support such situation
+                          and will throw exception. The stationLoad tool will catch the exception,
+                          print out the message and continue to load other stations.
+                </para>
+		
+	</refsect1>
+	
+</refentry>
