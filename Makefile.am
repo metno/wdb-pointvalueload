@@ -15,7 +15,7 @@ sqldir = 		        $(wdbdatadir)/sql
 wdblibdir = 			$(libdir)/wdb
 
 pointloadbindir = $(bindir)
-etcpointloaddir = $(etcdir)
+etcpointloaddir = /usr/share/doc/wdb-pointload
 dist_etcpointload_DATA =
 
 # Setting Targets
