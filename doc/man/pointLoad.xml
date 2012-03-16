@@ -16,8 +16,9 @@
 	
 	<refnamediv>
 		<refname>pointLoad</refname>
-                <refpurpose>Load weather stations location (and other meta-data) into the WDB database.
-                            It is a part of the WDB system.
+                <refpurpose>Load point data from FELT/GRIB files into the WDB database.
+                            Points are given via template file.
+                            Loader is a part of the WDB system.
                 </refpurpose>
 	</refnamediv>
 	
@@ -31,17 +32,15 @@
 	<refsect1>
 		<title>Description</title>
 		
-                <para>pointLoad loads meta-data of the weather station(s) into the wdb database.
+                <para>
+                      pointLoad loads point data from FELT/GRIB files into the wdb database.
                       The WDB database must be up and running for this program to work, unless one of the options:
-                      --help or --list have been given on the command line.
+                      --help or --dry-run have been given on the command line.
                 </para>
 		
-		<para>The STINFOSYS (http://stinfosys) is considered as the authoritative source for weather stations
-                      at the met.no. STINFOSYS holds, among other things, information about stations position, their WMO number,
-                      internal ID, place name, validity dates and so on.
-                      Only internal ID is unique. WMO (synop) number is not defined for each station. Place names are not unique.
-                      The internal IDs are used as placename within default placenamespaceid.
-                      The WMO numbers are used as value for placename within 4356 placenamespaceid.
+		<para>
+                      The pointLoad is using libfimex to interpolate gridded data in requested points. 
+                      The template interpolation is based on input template file (given in NetCDF format).
                 </para>
 		
 	</refsect1>
@@ -58,61 +57,48 @@
 					<para>Produces the help message and then exits.</para>
 				</listitem>
 			</varlistentry>
-			
+
 			<varlistentry>
 				<term>--version</term>
 				<listitem>
-					<para>Produce version information and then exits.</para>
+					<para>Produces version information and then exit.</para>
 				</listitem>
 			</varlistentry>
-			
+
 			<varlistentry>
-				<term>--logfile FILENAME.LOG</term>
+				<term>--config</term>
 				<listitem>
-					<para>Set output logfile. The default is to print to stdout</para>
+					<para>
+                                              Specify main configuration file to run pointLoad.
+                                              (see example: /usr/share/doc/wdb-point/loadfelteps.cfg)
+                                        </para>
 				</listitem>
 			</varlistentry>
-			
+
 			<varlistentry>
-				<term>--loglevel LEVEL</term>
+				<term>--name</term>
 				<listitem>
-					<para>Sets the logging level, from 1 (most) to 5 (least)</para>
+					<para>Name of the file to be loaded.</para>
 				</listitem>
 			</varlistentry>
-			
+
+			<varlistentry>
+				<term>--type</term>
+				<listitem>
+					<para>Type of the file to be loaded (FELT/GRIB).</para>
+				</listitem>
+			</varlistentry>
+
 			<varlistentry>
                                 <term>--dry-run</term>
 				<listitem>
                                         <para>
-                                              Dumps the list of SQL commands that would be sent to WDB.
-                                              No execution takes place. Useful for debugging.
+                                              Dumps data in the format recognized by wdb-fastload (see wdb-fastload for further information).
+                                              The data is dumped to stdout, and nothing will be sent to wdb database.
                                         </para>
 				</listitem>
 			</varlistentry>
-			
-                        <varlistentry>
-                                <term>--limit</term>
-                                <listitem>
-                                        <para>
-                                              Upper bound on the number of stations that will be inserted/updated.
-                                        </para>
-                                </listitem>
-                        </varlistentry>
 
-                        <varlistentry>
-				<term>--after</term>
-				<listitem>
-                                        <para>Lower bound on the update date for stations.</para>
-				</listitem>
-			</varlistentry>
-			
-                        <varlistentry>
-                                <term>--buffer</term>
-                                <listitem>
-                                        <para>Upper bound on the update date for stations.</para>
-                                </listitem>
-                        </varlistentry>
-			
 			<varlistentry>
 				<term>-d DBNAME</term>
 				<term>--database=DBNAME</term>
@@ -147,36 +133,137 @@
 					<para>Specify the database port to connect to (e.g., 5432).</para>
 				</listitem>
 			</varlistentry>
-			
+
 			<varlistentry>
-				<term>--stdatabase=STINFOSYS_DBNAME</term>
+				<term>--placenamespaceid</term>
 				<listitem>
-					<para>Specify the STINFOSYS database name to connect to (e.g., stinfosys).</para>
+					<para>Specify the namespace in wdb database where to load the data (default 0).</para>
 				</listitem>
 			</varlistentry>
-			
+
 			<varlistentry>
-			        <term>--sthost=STINFOSYS_DBHOST</term>
+				<term>--validtime.config</term>
 				<listitem>
-					<para>Specify the STINFOSYS host to connect to (e.g., somehost.met.no).</para>
+					<para>
+                                              Specify path to validtime configuration file for [FELT/GRIB1].
+                                              For further information look documentation for feltLoad/gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/validtime.cfg)
+                                        </para>
 				</listitem>
 			</varlistentry>
-			
+
 			<varlistentry>
-				<term>--stuser=STINFOSYS_DBUSER</term>
+				<term>--dataprovider.config</term>
 				<listitem>
-					<para>Specify the STINFOSYS user to connect as.</para>
+					<para>
+                                              Specify path to dataprovider configuration file for [FELT/GRIB1].
+                                              For further information look documentation for feltLoad/gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/dataprovider.cfg)
+                                        </para>
 				</listitem>
 			</varlistentry>
-			
+
 			<varlistentry>
-				<term>--stport=STINFOSYS_PORT</term>
+				<term>--valueparameter.config</term>
 				<listitem>
-					<para>Specify the STINFOSYS port to connect to (e.g., 5432).</para>
+					<para>
+                                              Specify path to valueparameter configuration file for [FELT/GRIB1].
+                                              For further information look documentation for feltLoad/gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/valueparameter.cfg)
+                                        </para>
 				</listitem>
 			</varlistentry>
+
+			<varlistentry>
+				<term>--levelparameter.config</term>
+				<listitem>
+					<para>
+                                              Specify path to levelparameter configuration file for [FELT/GRIB1].
+                                              For further information look documentation for feltLoad/gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/levelparameter.cfg)
+                                        </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>--leveladditions.config</term>
+				<listitem>
+					<para>
+                                              Specify path to leveladditions configuration file for [FELT/GRIB1].
+                                              For further information look documentation for feltLoad/gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/leveladditions.cfg)
+                                        </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>--valueparameter2.config</term>
+				<listitem>
+					<para>
+                                              Specify path to valueparameter2 configuration file for [GRIB2].
+                                              For further information look documentation for gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/valueparameter2.cfg)
+                                        </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>--levelparameter2.config</term>
+				<listitem>
+					<para>
+                                              Specify path to levelparameter2 configuration file for [GRIB2].
+                                              For further information look documentation for gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/levelparameter2.cfg)
+                                        </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>--leveladditions2.config</term>
+				<listitem>
+					<para>
+                                              Specify path to leveladditions2 configuration file for [GRIB2].
+                                              For further information look documentation for gribLoad.
+                                              (see example: /usr/share/doc/wdb-point/leveladditions2.cfg)
+                                        </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>--fimex.config</term>
+				<listitem>
+					<para>
+                                              Specify path to fimex reader configuration file.
+                                              For further information look documentation for fimex.
+                                              (see example: /usr/share/doc/wdb-point/fimexreader.xml)
+                                        </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>--fimex.interpolate.template</term>
+				<listitem>
+					<para>
+                                              Specify path to file used in fimex template interpolation.
+                                              For further information look documentation for fimex.
+                                              (see example: /usr/share/doc/wdb-point/template.nc)
+                                        </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>--stations</term>
+				<listitem>
+					<para>
+                                              Filter for which stations(from template) the data will actuallty be loaded.
+                                              (example: --station '18700 1456')
+                                        </para>
+				</listitem>
+			</varlistentry>
+
 		</variablelist>
-		
+
+
 	</refsect1>
 	
 	<refsect1>
@@ -189,10 +276,6 @@
 
                 <para>
                       IMPORTANT:
-                          It has been noticed that STINFOSYS contains stations with different IDs
-                          but with same lon/lat. The WDB currently can't support such situation
-                          and will throw exception. The pointLoad tool will catch the exception,
-                          print out the message and continue to load other stations.
                 </para>
 		
 	</refsect1>
