@@ -22,10 +22,10 @@ from otherwise gridded data.
 
 Make sure that your development environment is properly set.
 If not, try using something like this:
-export WDB_LIBS=<some-local-path>
-export LIBRARY_PATH=$WDB_LIBS/lib
-export C_INCLUDE_PATH=$WDB_LIBS/include/
-export CPLUS_INCLUDE_PATH=$WDB_LIBS/include/
-export LD_LIBRARY_PATH=$WDB_LIBS/lib
-export wdbload_CFLAGS=-I$WDB_LIBS/include
+export LOCAL_PATH=<some-local-path>
+export LIBRARY_PATH=$LOCAL_PATH/lib
+export C_INCLUDE_PATH=$LOCAL_PATH/include/
+export CPLUS_INCLUDE_PATH=$LOCAL_PATH/include/
+export LD_LIBRARY_PATH=$LOCAL_PATH/lib
+export wdbload_CFLAGS=-I$LOCAL_PATH/include
 export wdbload_LIBS=-lwdbLoad
