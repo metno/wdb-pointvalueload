@@ -9,20 +9,21 @@
 
 <chapter id="cha:stationload_system-design-specification">
 	
-	<title>StationLoad - System Design Specification</title>
+	<title>PointLoad - System Design Specification</title>
 	
 	<sect1>
 		<title>Introduction</title>
 		
-		<para>This document is the System Design Specification of the WDB weather station Loading program.</para>
+		<para>This document is the System Design Specification of the WDB weather point data loading program.</para>
 		
 		<sect2>
 			<title>Purpose</title>
 			
 			<para>The system design specification provides a comprehensive overview of
 			      the design of the software system. This is used to ensure agreement between
-			      the developers of the WDB system. It is also intended to make it easier for new
-			      developers of WDB to become productive developing on the system.</para>
+			      the developers of the WDB and loader system. It is also intended to make it
+                              easier for new developers of WDB and its loaders to become productive 
+                              developing on the system.</para>
 			
 		</sect2>
 		
@@ -34,26 +35,25 @@
 		<sect2>
 			<title>Work Domain</title>
 			
-			<figure id="fig:stationload_work-domain">
-				<title>Work domain and work flow of the StationLoad system</title>
+			<figure id="fig:pointload_work-domain">
+				<title>Work domain and work flow of the PointLoad system</title>
 				<mediaobject>
 					<imageobject role="html">
 						<imagedata align="center"
-							fileref="gfx/stationload_work-domain.png" format="PNG"/>
+							fileref="gfx/pointload_work-domain.png" format="PNG"/>
 					</imageobject>
 				</mediaobject>
 			</figure>
 			
-			<para><xref linkend="fig:stationload_work-domain"/> provides an overview of
-				the work domain and the work flow of the WDB weather stations loading system.</para>
+			<para><xref linkend="fig:pointload_work-domain"/> provides an overview of
+				the work domain and the work flow of the WDB weather point data loading system.</para>
 			
 		</sect2>
 		
 		<sect2>
 			<title>Technical Platform</title>
 			
-			<para>The stations loading software requires the following operating
-				environment:</para>
+			<para>The stations loading software requires the following operating environment:</para>
 			
 			<itemizedlist>
 				<listitem>
@@ -69,16 +69,19 @@
 					<para>libpqxx version 2.6.8</para>
 				</listitem>
 				<listitem>
-					<para>Postgis version 1.3.x</para>
-				</listitem>
-				<listitem>
 					<para>Boost 1.33.x</para>
 				</listitem>
 				<listitem>
 					<para>Log4Cpp version 1.0</para>
 				</listitem>
 				<listitem>
-					<para>GEOS version 3.0.0</para>
+					<para>libfimex version 0.35.2</para>
+				</listitem>
+				<listitem>
+					<para>libfelt version 0.36.0</para>
+				</listitem>
+				<listitem>
+					<para>GRIB API version 1.9.9</para>
 				</listitem>
 			</itemizedlist>
 			
@@ -89,7 +92,7 @@
 	<sect1>
 		<title>System Architecture</title>
 		
-		<para>The following section describes the architecture of the StationLoad system.</para>
+		<para>The following section describes the architecture of the PointLoad system.</para>
 		
 		<sect2>
 			<title>Components</title>
@@ -136,17 +139,46 @@
 			<sect3>
 				<title>libPQXX</title>
 				
-				<para>The database API used in the StationLoad software is the libPQXX library
-				      for C++.</para>
+				<para>The database API used in the PointLoad software is the libPQXX library for C++.</para>
 				
 			</sect3>
-						
+				
+			<sect3>
+				<title>libfimex</title>
+				
+				<para>
+                                      libfimex is used to interpolate grided data in requested points.
+                                      The points are given as template file in NetCDF format.
+                                </para>
+
+			</sect3>
+		
+			<sect3>
+				<title>libfelt</title>
+				
+				<para>
+                                      libfelt is used to to directly read FELT files.
+                                      It is used to obtain header info about data fileds.
+                                </para>
+
+			</sect3>
+
+			<sect3>
+				<title>grib_api</title>
+				
+				<para>
+                                      grib_api is used to to directly read GRIB files.
+                                      It is used to obtain header info about data fileds.
+                                </para>
+
+			</sect3>
+
 			<sect3>
 				<title>Log4cpp</title>
 				
 				<para>Log4cpp is library of C++ classes for flexible logging to files,
 				      syslog, IDSA and other destinations. It is modeled on the Log4j Java
-				      library. Log4cpp is used to handle logging from the StationLoad system.
+				      library. Log4cpp is used to handle logging from the PointLoad system.
 				      Log4cpp is encapsulated by the wdbLogHandler library.</para>
 				
 			</sect3>
@@ -155,8 +187,7 @@
 				<title>wdbException</title>
 				
 				<para>WdbException is the default exception class for the WDB system based
-				      on std::exception. It is encapsulated in the wdbException
-				      library.</para>
+				      on std::exception. It is encapsulated in the wdbException library.</para>
 				
 			</sect3>
 			
@@ -165,32 +196,158 @@
 		<sect2>
 			<title>Program Interface</title>
 			
-			<para>StationLoad is a command-line tool. Its primary functionality 
+			<para>PointLoad is a command-line tool. Its primary functionality 
                               is executed by writing the program name followed by the
-			      station source parameters, as follows:</para>
+			      configuration file, file and file type to be loaded, as follows:</para>
 			
-                        <para>wdb% bin/stationLoad --conf /etc/stationLoad.cfg</para>
+                        <para>wdb% bin/pointLoad --config /etc/loadfelteps.cfg --name epsfeltfile.dat --type felt</para>
 			
-                        <para>In addition to the base functionality, the StationLoad system offers a
+                        <para>In addition to the base functionality, the PointLoad system offers a
 				number of additional options.</para>
-			
 			<itemizedlist>
 				<listitem>
-                                        <para>--dry-run</para>
-                                        <para>This option lists the SQL statements that would otherwise be executed.</para>
+                                        <para>--help</para>
+                                        <para>Produces the help message and then exits.</para>
 				</listitem>
 				<listitem>
-                                        <para>--limit</para>
-                                        <para>Upper bound on how many stations ca be inserted/updated</para>
+                                        <para>--version</para>
+                                        <para>Produces version information and then exit.</para>
 				</listitem>
                                 <listitem>
-                                        <para>--after</para>
-                                        <para>Lower bound on edited_at value from STINFOSYS.station</para>
-                                </listitem>
+                                        <para>--config</para>
+                                        <para>Specify main configuration file to run pointLoad.
+                                              (see example: /usr/share/doc/wdb-point/loadfelteps.cfg)</para>
+				</listitem>
                                 <listitem>
-                                        <para>--before</para>
-                                        <para>Upper bound on edited_at value from STINFOSYS.station</para>
+                                        <para>--name</para>
+                                        <para>Name of the file to be loaded.</para>
+				</listitem>
+                                <listitem>
+                                        <para>--type</para>
+                                        <para>Type of the file to be loaded (FELT/GRIB).</para>
+				</listitem>
+                                <listitem>
+                                        <para>--dry-run</para>
+                                        <para>Dumps data in the format recognized by wdb-fastload (see wdb-fastload for further
+                                              information). The data is dumped to stdout, and nothing will be sent to wdb database.
+                                        </para>
                                 </listitem>
+
+			<listitem>
+				<para>-d DBNAME</para>
+				<para>--database=DBNAME</para>
+				<para>Specify the database name to connect to (e.g., wdb).</para>
+			</listitem>
+			<listitem>
+				<para>-h DBHOST</para>
+				<para>--host=DBHOST</para>
+				<para>Specify the database host to connect to (e.g., somehost.met.no).</para>
+			</listitem>
+			<listitem>
+				<para>-u DBUSER</para>
+				<para>--user=DBUSER</para>
+				<para>Specify the WDB user to connect as. The database user must have
+					      access to the wdb_grib role (this is will usually be the case if the
+					      pointLoad process is being run by the creator of the database).
+                                </para>
+			</listitem>
+			<listitem>
+				<para>-p DBPORT</para>
+				<para>--port=DBPORT</para>
+              			<para>Specify the database port to connect to (e.g., 5432).</para>
+			</listitem>
+			<listitem>
+				<para>--placenamespaceid</para>
+				<para>Specify the namespace in wdb database where to load the data (default 0).</para>
+			</listitem>
+			<listitem>
+				<para>--validtime.config</para>
+				<para>
+                                      Specify path to validtime configuration file for [FELT/GRIB1].
+                                      For further information look documentation for feltLoad/gribLoad.
+                                      (see example: /usr/share/doc/wdb-point/validtime.cfg)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--dataprovider.config</para>
+				<para>
+                                      Specify path to dataprovider configuration file for [FELT/GRIB1].
+                                      For further information look documentation for feltLoad/gribLoad.
+                                      (see example: /usr/share/doc/wdb-point/dataprovider.cfg)
+                                 </para>
+			</listitem>
+			<listitem>
+				<para>--valueparameter.config</para>
+			        <para>
+                                      Specify path to valueparameter configuration file for [FELT/GRIB1].
+                                      For further information look documentation for feltLoad/gribLoad.
+                                      (see example: /usr/share/doc/wdb-point/valueparameter.cfg)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--levelparameter.config</para>
+				<para>
+                                      Specify path to levelparameter configuration file for [FELT/GRIB1].
+                                      For further information look documentation for feltLoad/gribLoad.
+                                      (see example: /usr/share/doc/wdb-point/levelparameter.cfg)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--leveladditions.config</para>
+			         <para>
+                                       Specify path to leveladditions configuration file for [FELT/GRIB1].
+                                       For further information look documentation for feltLoad/gribLoad.
+                                       (see example: /usr/share/doc/wdb-point/leveladditions.cfg)
+                                 </para>
+			</listitem>
+			<listitem>
+				<para>--valueparameter2.config</para>
+				<para>
+                                      Specify path to valueparameter2 configuration file for [GRIB2].
+                                       For further information look documentation for gribLoad.
+                                       (see example: /usr/share/doc/wdb-point/valueparameter2.cfg)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--levelparameter2.config</para>
+				<para>
+                                      Specify path to levelparameter2 configuration file for [GRIB2].
+                                      For further information look documentation for gribLoad.
+                                      (see example: /usr/share/doc/wdb-point/levelparameter2.cfg)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--leveladditions2.config</para>
+				<para>
+                                      Specify path to leveladditions2 configuration file for [GRIB2].
+                                      For further information look documentation for gribLoad.
+                                      (see example: /usr/share/doc/wdb-point/leveladditions2.cfg)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--fimex.config</para>
+				<para>
+                                      Specify path to fimex reader configuration file.
+                                      For further information look documentation for fimex.
+                                      (see example: /usr/share/doc/wdb-point/fimexreader.xml)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--fimex.interpolate.template</para>
+				<para>
+                                      Specify path to file used in fimex template interpolation.
+                                      For further information look documentation for fimex.
+                                      (see example: /usr/share/doc/wdb-point/template.nc)
+                                </para>
+			</listitem>
+			<listitem>
+				<para>--stations</para>
+				<para>
+                                      Filter for which stations(from template) the data will actuallty be loaded.
+                                      (example: --station '18700 1456')
+                                </para>
+			</listitem>
+
 			</itemizedlist>
 			
 		</sect2>
@@ -200,7 +357,7 @@
 	<sect1>
 		<title>Core Design</title>
 		
-		<para>The following section describes the core design of the StationLoad system.</para>
+		<para>The following section describes the core design of the PointLoad system.</para>
 		
 		<sect2>
 			<title>Database Design</title>
