@@ -280,7 +280,7 @@ namespace wdb { namespace load { namespace point {
             epsDim = &cdmRef.getDimension(epsVariableName);
             epsLength = epsDim->getLength();
             realizations = cdmData_->getData(epsVariableName)->asInt();
-            epsMaxVersion = realizations[epsLength-1];
+            epsMaxVersion = realizations[epsLength - 1];
         }
 
         const MetNoFimex::CDMDimension* unlimited = cdmRef.getUnlimitedDim();
@@ -296,7 +296,6 @@ namespace wdb { namespace load { namespace point {
             times_.push_back(boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t(uValues[u])) + "+00");
         }
 
-        long long inserts = 0;
         std::map<std::string, EntryToLoad> entries;
         for(felt::FeltFile::const_iterator it = file.begin(); it != file.end(); ++it)
         {
@@ -328,11 +327,11 @@ namespace wdb { namespace load { namespace point {
 
 
             } catch ( wdb::ignore_value &e ) {
-                std::cerr << e.what() << " Data field not loaded.";
+                std::cerr << e.what() << " Data field not loaded." << std::endl;
             } catch ( std::out_of_range &e ) {
-                std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << std::endl;
             } catch ( std::exception & e ) {
-                std::cerr << e.what() << " Data field not loaded.";
+                std::cerr << e.what() << " Data field not loaded." << std::endl;
             }
         }
 
@@ -344,8 +343,11 @@ namespace wdb { namespace load { namespace point {
                 std::string wdbUnit = entry.unit_;
                 if(dataprovider != entry.provider_) {
                     dataprovider = entry.provider_;
-                    std::cout << dataprovider << std::endl;
+                    std::cout << dataprovider<<'\t'<<"88,"<<options_.loading().nameSpace<<",88"<<'\n';
                 }
+
+                std::cerr << " LOADING param: " << entry.name_ << " in units: "<<entry.unit_<<std::endl;
+
                 std::string standardName = entry.name_;
                 std::string strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
 
@@ -353,10 +355,10 @@ namespace wdb { namespace load { namespace point {
                 boost::algorithm::replace_all(cfname, " ", "_");
                 std::vector<std::string> variables = cdmRef.findVariables("standard_name", cfname);
                 if(variables.empty()) {
-//                    std::cerr << "cant find vars for cfname: " << cfname << std::endl;
+                    std::cerr << "cant find vars for cfname: " << cfname << std::endl;
                     continue;
                 } else if(variables.size() > 1) {
-//                    std::cerr << "several vars for cfname: " << cfname << std::endl;
+                    std::cerr << "several vars for cfname: " << cfname << std::endl;
                     continue;
                 }
 
@@ -380,6 +382,7 @@ namespace wdb { namespace load { namespace point {
                 // we deal only with variable that are time dependant
                 std::list<std::string> dims(fimexVar.getShape().begin(), fimexVar.getShape().end());
                 if(std::find(dims.begin(), dims.end(), unlimited->getName()) == dims.end()) {
+                    std::cerr << "not time dependent: " << cfname << std::endl;
                     continue;
                 }
 
@@ -480,7 +483,8 @@ namespace wdb { namespace load { namespace point {
                                                       << wdbLevel         << "\t"
                                                       << wdbLevel         << "\t"
                                                       << version          << "\t"
-                                                      << epsMaxVersion    << std::endl;
+                                                      << epsMaxVersion
+                                                      << std::endl;
 
                                         } else {
 
@@ -502,11 +506,11 @@ namespace wdb { namespace load { namespace point {
                                         }
 
                                     } catch ( wdb::ignore_value &e ) {
-                                        std::cerr << e.what() << " Data field not loaded.";
+                                        std::cerr << e.what() << " Data field not loaded."<< std::endl;
                                     } catch ( std::out_of_range &e ) {
-                                        std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                                        std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << std::endl;
                                     } catch ( std::exception & e ) {
-                                        std::cerr << e.what() << " Data field not loaded.";
+                                        std::cerr << e.what() << " Data field not loaded." << std::endl;
                                     }
                             } // time slices end
                         } // eps slices
@@ -683,7 +687,12 @@ namespace wdb { namespace load { namespace point {
             log.debugStream() << "No additional levels found.";
         }
         if(levels.size() == 0) {
-            throw wdb::ignore_value( "No valid level key values found." );
+            stringstream key;
+            key << field.parameter() << ", "
+                << field.verticalCoordinate() << ", "
+                << field.level1() << ", "
+                << field.level2();
+            throw wdb::ignore_value( "No valid level key values found for " + key.str());
         }
     }
 

@@ -120,9 +120,9 @@ namespace wdb { namespace load { namespace point {
         double eastBound_;
 
         /// point ids found in cdm template
-		std::set<std::string> ids2load_;
+        std::set<std::string>             ids2load_;
+        std::vector<std::string>          placenames_;
         boost::shared_array<unsigned int> pointids_;
-        std::vector<std::string>  placenames_;
 
         /// precalculate to string time axis
         std::vector<std::string> times_;
