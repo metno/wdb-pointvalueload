@@ -81,7 +81,6 @@ void Loader::load()
             if(options_.input().type == "felt") {
                 felt::FeltFile feltFile(*it);
                 felt_->load(feltFile);
-				std::cerr << __FUNCTION__ <<" "<< __LINE__ << std::endl;
             } else if(options_.input().type == "grib") {
                 GribFile gribFile(it->native_file_string());
                 grib_->load(gribFile);

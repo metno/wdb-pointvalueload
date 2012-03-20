@@ -72,7 +72,7 @@ namespace wdb { namespace load { namespace point {
     {
         fileName_ = fileName;
         ifstream file( fileName.c_str() );
-        if (!file)
+        if(!file)
             throw std::invalid_argument( string("Could not open file " + fileName) );
         while( !file.eof() )
         {
@@ -112,12 +112,6 @@ namespace wdb { namespace load { namespace point {
                     specification.erase( commentPos );
             }
             if (specification.length() == 0) return;
-
-            // Needs to be case-sensitive due to units. :/
-            // specification -> lowercase
-            // typedef int ( *f_lower ) ( int );
-            // f_lower lower = tolower;
-            // transform( specification.begin(), specification.end(), specification.begin(), lower );
 
             // check for 'don't load'
             bool loadValue = true;
