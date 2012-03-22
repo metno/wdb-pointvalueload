@@ -42,7 +42,7 @@ namespace
         options_description input("Input");
         input.add_options()
         ( "type", value( & out.type ), "File type to be loaded [felt/grib]" )
-        ( "name", value( & out.file ), "Name of file to process" )
+        ( "name", value<vector<string> >(&out.file)->multitoken(), "Name of file to process" )
         ;
 
         return input;
@@ -73,6 +73,7 @@ namespace
         ( "leveladditions2.config", value(& out.leveladditions2Config), "Specify path to leveladditiond [GRIB2] configuration file")
         ( "fimex.config", value(& out.fimexConfig), "Path to fimex reader configuration file" )
         ( "fimex.interpolate.template", value(& out.fimexTemplate), "Path to template file tha fimex reader will use for point interpolation" )
+        ( "fimex.interpolate.method", value(& out.fimexInterpolateMethod), "Interpolation method [nearestneighbor, bilinear, bicubic, coord_nearestneighbor, coord_kdtree, forward_max, forward_mean, forward_median or forward_sum]" )
         ( "stations", value(& out.stations), "station ids to be selected from template (between qoutes '18700 1456') " )
 //    ( "fimex.reduceToBoundingBox.south", value<std::string>( & out.fimexReduceSouth), "geographical bounding-box in degree" )
 //    ( "fimex.reduceToBoundingBox.north", value<std::string>( & out.fimexReduceNorth), "geographical bounding-box in degree" )

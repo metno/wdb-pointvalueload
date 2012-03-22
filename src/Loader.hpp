@@ -33,6 +33,19 @@
 #include "CmdLine.hpp"
 #include "WdbConnection.hpp"
 
+// libfimex
+#include <fimex/CDMInterpolator.h>
+
+// boost
+#include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
+
+// std
+#include <set>
+#include <vector>
+#include <string>
+
+using namespace std;
 
 namespace wdb { namespace load { namespace point {
 
@@ -47,9 +60,36 @@ namespace wdb { namespace load { namespace point {
 
         void load();
 
+        const CmdLine& options() { return options_; }
+        WdbConnection& wdbConnection() {  return wdbConnection_;  }
+        boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return cdmTemplate_; }
+        const vector<string>& placenames() { return placenames_; }
+        const set<string>& stations2load() { return ids2load_; }
+        const size_t interpolatemethod() { return interpolateMethod_; }
     private:
+
+        bool openTemplateCDM(const std::string& fileName);
+        bool extractBounds();
+        bool extractPointIds();
+
         const CmdLine& options_;
         WdbConnection wdbConnection_;
+
+        size_t interpolateMethod_;
+
+        // CDMReader for template used in interpolation
+        boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate_;
+
+        // point ids found in cdm template
+        set<string>                       ids2load_;
+        vector<string>                    placenames_;
+        boost::shared_array<unsigned int> pointids_;
+
+        double northBound_;
+        double southBound_;
+        double westBound_;
+        double eastBound_;
+
         boost::shared_ptr<FeltLoader> felt_;
         boost::shared_ptr<GribLoader> grib_;
     };

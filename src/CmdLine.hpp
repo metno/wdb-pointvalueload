@@ -70,6 +70,7 @@ namespace wdb { namespace load { namespace point {
             std::string leveladditions2Config;
             std::string fimexConfig;
             std::string fimexTemplate;
+            std::string fimexInterpolateMethod;
             std::string stations;
 //            std::string fimexReduceSouth;
 //            std::string fimexReduceNorth;

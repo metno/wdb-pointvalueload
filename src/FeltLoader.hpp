@@ -62,23 +62,27 @@ namespace MetNoFimex {
 
 namespace wdb { namespace load { namespace point {
 
+    class Loader;
+
     class FeltLoader
     {
     public:
-        FeltLoader(WdbConnection& connection, const CmdLine& cmdLine);
+        FeltLoader(Loader& controller);
         ~FeltLoader();
 
         void load(const felt::FeltFile& feltFile);
 
     private:
 
-        bool openTemplateCDM(const std::string& fileName);
-        bool openDataCDM(const std::string& fileName, const std::string& fimexCfgFileName);
-        bool interpolate(const std::string& templateFileName);
-        bool extractBounds();
-        bool extractPointIds();
-        bool extractData();
+        bool openDataCDM(const std::string& file, const std::string& fimexCfg);
+        bool interpolate(const std::string& templateFile);
         void loadInterpolated(const felt::FeltFile& feltFile);
+
+        const CmdLine& options() { return controller_.options(); }
+        WdbConnection& wdbConnection() {  return controller_.wdbConnection();  }
+        boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return controller_.cdmTemplate(); }
+        const vector<string>& placenames() { return controller_.placenames(); }
+        const set<string>& stations2load() { return controller_.stations2load(); }
 
         std::string dataProviderName(const felt::FeltField& field);
         boost::posix_time::ptime referenceTime(const felt::FeltField & field);
@@ -89,11 +93,15 @@ namespace wdb { namespace load { namespace point {
         void levelValues( std::vector<wdb::load::Level>& levels, const felt::FeltField& field);
         int dataVersion(const felt::FeltField & field);
 
-	/// The Database Connection
-        WdbConnection& connection_;
+        Loader& controller_;
 
-        /// The Loader cmd line options
-        const CmdLine& options_;
+        // CDMReader for data that will be interpolated
+        boost::shared_ptr<MetNoFimex::CDMReader> cdmData_;
+
+        // format time to string
+        std::vector<std::string> times_;
+        bool time2string();
+        const std::vector<std::string>& times() { return times_;}
 
 	/// Conversion Hash Map - Dataprovider Name
         CfgFileReader point2DataProviderName_;
@@ -107,25 +115,6 @@ namespace wdb { namespace load { namespace point {
         CfgFileReader point2LevelAdditions_;
         /// Conversion Hash Map - ID -> (lon lat)
         CfgFileReader point2StationAdditions_;
-
-        /// CDMReader for template used in interpolation
-        boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate_;
-        /// CDMReader for data that will be interpolated
-        boost::shared_ptr<MetNoFimex::CDMReader> cdmData_;
-
-        /// bounds used in to limit interpolation
-        double northBound_;
-        double southBound_;
-        double westBound_;
-        double eastBound_;
-
-        /// point ids found in cdm template
-        std::set<std::string>             ids2load_;
-        std::vector<std::string>          placenames_;
-        boost::shared_array<unsigned int> pointids_;
-
-        /// precalculate to string time axis
-        std::vector<std::string> times_;
     };
 
 } } }  // end namepsaces
