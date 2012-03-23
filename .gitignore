@@ -32,3 +32,17 @@ wdb-pointload_1.0.0-ubuntu1_amd64.deb
 doc/man/pointLoad.1
 doc/developer/pointload_system-design-specification.html
 doc/developer/pointload_system-test-specification.html
+pointload-1.0.2/
+pointload-1.0.3/
+wdb-pointload_1.0.2-ubuntu1.dsc
+wdb-pointload_1.0.2-ubuntu1.orig.tar.gz
+wdb-pointload_1.0.2-ubuntu1.tar.gz
+wdb-pointload_1.0.2-ubuntu1_amd64.changes
+wdb-pointload_1.0.2-ubuntu1_amd64.deb
+wdb-pointload_1.0.2-ubuntu1_amd64.upload
+wdb-pointload_1.0.3-ubuntu1.dsc
+wdb-pointload_1.0.3-ubuntu1.orig.tar.gz
+wdb-pointload_1.0.3-ubuntu1.tar.gz
+wdb-pointload_1.0.3-ubuntu1_amd64.changes
+wdb-pointload_1.0.3-ubuntu1_amd64.deb
+wdb-pointload_1.0.3-ubuntu1_amd64.upload
