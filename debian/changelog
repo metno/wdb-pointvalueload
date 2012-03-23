@@ -1,3 +1,14 @@
+wdb-pointload (1.0.3-ubuntu1) experimental lucid; urgency=low
+
+  * fimex.interpolate.method cmd arg added
+  * some classes have been refactored
+
+ -- Aleksandar Babic <aleksandarb@met.no> Tue, 22 Mar 2012 10:00:00 +0100
+wdb-pointload (1.0.2-ubuntu1) experimental lucid; urgency=low
+
+  * man page added, and new fastload dataprovider format supported
+
+ -- Aleksandar Babic <aleksandarb@met.no> Tue, 20 Mar 2012 10:00:00 +0100
 wdb-pointload (1.0.0-ubuntu1) experimental lucid; urgency=low
 
   * Initial build
