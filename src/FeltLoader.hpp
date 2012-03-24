@@ -30,6 +30,8 @@
 #define POINTFELTLOADER_H_
 
 // project
+#include "Loader.hpp"
+#include "FileLoader.hpp"
 #include "CmdLine.hpp"
 #include "CfgFileReader.hpp"
 #include "WdbConnection.hpp"
@@ -47,14 +49,17 @@
 #include <felt/FeltConstants.h>
 
 // libfimex
-#include <fimex/CDMInterpolator.h>
+#include <fimex/CDMReader.h>
 
 // boost
+#include <boost/shared_array.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
 // std
 #include <vector>
 #include <tr1/unordered_map>
+
+using namespace std;
 
 namespace MetNoFimex {
     class CDMReader;
@@ -64,25 +69,15 @@ namespace wdb { namespace load { namespace point {
 
     class Loader;
 
-    class FeltLoader
+    class FeltLoader : public FileLoader
     {
     public:
         FeltLoader(Loader& controller);
         ~FeltLoader();
 
-        void load(const felt::FeltFile& feltFile);
-
     private:
 
-        bool openDataCDM(const std::string& file, const std::string& fimexCfg);
-        bool interpolate(const std::string& templateFile);
-        void loadInterpolated(const felt::FeltFile& feltFile);
-
-        const CmdLine& options() { return controller_.options(); }
-        WdbConnection& wdbConnection() {  return controller_.wdbConnection();  }
-        boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return controller_.cdmTemplate(); }
-        const vector<string>& placenames() { return controller_.placenames(); }
-        const set<string>& stations2load() { return controller_.stations2load(); }
+        void loadInterpolated(const string& fileName);
 
         std::string dataProviderName(const felt::FeltField& field);
         boost::posix_time::ptime referenceTime(const felt::FeltField & field);
@@ -93,29 +88,9 @@ namespace wdb { namespace load { namespace point {
         void levelValues( std::vector<wdb::load::Level>& levels, const felt::FeltField& field);
         int dataVersion(const felt::FeltField & field);
 
-        Loader& controller_;
-
-        // CDMReader for data that will be interpolated
-        boost::shared_ptr<MetNoFimex::CDMReader> cdmData_;
-
-        // format time to string
-        std::vector<std::string> times_;
-        bool time2string();
-        const std::vector<std::string>& times() { return times_;}
-
-	/// Conversion Hash Map - Dataprovider Name
-        CfgFileReader point2DataProviderName_;
-	/// Conversion Hash Map - Value Parameter
+        // Conversion Hash Map - Value Parameter
         CfgFileReader point2ValidTime_;
-	/// Conversion Hash Map - Value Parameter
-        CfgFileReader point2ValueParameter_;
-	/// Conversion Hash Map - Level Parameter
-        CfgFileReader point2LevelParameter_;
-	/// Conversion Hash Map - Level Additions
-        CfgFileReader point2LevelAdditions_;
-        /// Conversion Hash Map - ID -> (lon lat)
-        CfgFileReader point2StationAdditions_;
     };
 
-} } }  // end namepsaces
+} } }  // end namespaces
 #endif /*POINTFELTLOADER_H_*/

@@ -24,7 +24,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  MA  02110-1301, USA
- */
+*/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -99,34 +99,14 @@ namespace {
 
 namespace wdb { namespace load { namespace point {
 
-    struct EntryToLoad {
-        std::string name_;
-        std::string unit_;
-        std::string provider_;
-        std::string levelname_;
-        std::set<double> levels_;
-    };
-
     FeltLoader::FeltLoader(Loader& controller)
-        : controller_(controller)
+        : FileLoader(controller)
     {
 
         if(options().loading().validtimeConfig.empty())
             throw std::runtime_error("Can't open validtime.config file [empty string?]");
-        if(options().loading().dataproviderConfig.empty())
-            throw std::runtime_error("Can't open dataprovider.config file [empty string?]");
-        if(options().loading().valueparameterConfig.empty())
-            throw std::runtime_error("Can't open valueparameter.config file [empty string?]");
-        if(options().loading().levelparameterConfig.empty())
-            throw std::runtime_error("Can't open levelparameter.config file [empty string?]");
-        if(options().loading().leveladditionsConfig.empty())
-            throw std::runtime_error("Can't open leveladditions.config file [empty string?]");
 
         point2ValidTime_.open(getConfigFile(options().loading().validtimeConfig).file_string());
-        point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).file_string());
-        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
-        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
-        point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
     }
 
     FeltLoader::~FeltLoader()
@@ -134,75 +114,10 @@ namespace wdb { namespace load { namespace point {
         // NOOP
     }
 
-    bool FeltLoader::openDataCDM(const std::string& fileName, const std::string& fimexCfgFileName)
+    void FeltLoader::loadInterpolated(const string& fileName)
     {
-        if(fimexCfgFileName.empty())
-            throw std::runtime_error(" Can't open fimex reader configuration file!");
+        felt::FeltFile file(fileName);
 
-        if(!boost::filesystem::exists(fimexCfgFileName))
-            throw std::runtime_error(" Fimex configuration file: " + fimexCfgFileName + " doesn't exist!");
-
-        cdmData_ =
-                MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_FELT, fileName, fimexCfgFileName);
-
-        //        cdmReader_->getCDM().toXMLStream(std::cerr);
-        return true;
-    }
-
-    bool FeltLoader::interpolate(const std::string& templateFile)
-    {
-        if(templateFile.empty())
-            return false;
-        if(not cdmTemplate().get())
-            return false;
-        if(not cdmData_.get())
-            return false;
-
-        boost::shared_ptr<MetNoFimex::CDMInterpolator> interpolator =
-                boost::shared_ptr<MetNoFimex::CDMInterpolator>(new MetNoFimex::CDMInterpolator(cdmData_));
-
-        interpolator->changeProjection(controller_.interpolatemethod(), templateFile);
-
-        cdmData_ = interpolator;
-
-        return true;
-    }
-
-    bool FeltLoader::time2string()
-    {
-        const MetNoFimex::CDM& cdmRef = cdmData_->getCDM();
-        const MetNoFimex::CDMDimension* unlimited = cdmRef.getUnlimitedDim();
-        if(unlimited == 0)
-            return false;
-
-        size_t uDim = unlimited->getLength();
-
-        boost::shared_array<unsigned long long> uValues =
-                cdmData_->getScaledDataInUnit(unlimited->getName(), "seconds since 1970-01-01 00:00:00 +00:00")->asUInt64();
-
-        for(size_t u = 0; u < uDim; ++u) {
-            times_.push_back(boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t(uValues[u])) + "+00");
-        }
-
-    }
-
-    void FeltLoader::load(const felt::FeltFile& file)
-    {
-        std::string feltFile = file.fileName().native_file_string();
-        std::string templateFile = options().loading().fimexTemplate;
-        std::string fimexFeltConfig = options().loading().fimexConfig;
-
-        openDataCDM(feltFile, fimexFeltConfig);
-
-        time2string();
-
-        assert(interpolate(templateFile));
-
-        loadInterpolated(file);
-    }
-
-    void FeltLoader::loadInterpolated(const felt::FeltFile& file)
-    {
         const MetNoFimex::CDM& cdmRef = cdmData_->getCDM();
 
 //        cdmRef.toXMLStream(std::cerr);
@@ -230,15 +145,14 @@ namespace wdb { namespace load { namespace point {
         for(felt::FeltFile::const_iterator it = file.begin(); it != file.end(); ++it)
         {
             try{
-
                 std::map<std::string, EntryToLoad>::iterator eIt;
 
-                const felt::FeltField& flt(**it);
-                std::string name = valueParameterName(flt);
-                std::string unit = valueParameterUnit(flt);
-                std::string provider = dataProviderName(flt);
+                const felt::FeltField& field(**it);
+                std::string name = valueParameterName(field);
+                std::string unit = valueParameterUnit(field);
+                std::string provider = dataProviderName(field);
                 std::vector<Level> levels;
-                levelValues(levels, **it);
+                levelValues(levels, field);
 
                 if(entries.find(name) == entries.end()) {
                     EntryToLoad entry;
@@ -271,8 +185,7 @@ namespace wdb { namespace load { namespace point {
                 std::string wdbUnit = entry.unit_;
                 if(dataprovider != entry.provider_) {
                     dataprovider = entry.provider_;
-//                    std::cout<<dataprovider<<'\t'<<"88,"<<options().loading().nameSpace<<",88"<<'\n';
-                    std::cout<<dataprovider<<std::endl;
+                    std::cout << dataprovider<<std::endl;
                 }
 
                 std::cerr << " LOADING param: " << entry.name_ << " in units: "<<entry.unit_<<std::endl;
@@ -314,7 +227,6 @@ namespace wdb { namespace load { namespace point {
                     std::cerr << "not time dependent: " << cfname << std::endl;
                     continue;
                 }
-
 
                 for(size_t i = 0; i < yDim.getLength(); ++i) {
                     for(size_t j = 0; j < xDim.getLength(); ++j){

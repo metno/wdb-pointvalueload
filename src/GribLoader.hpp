@@ -30,18 +30,25 @@
 #define POINTGRIBLOADER_H_
 
 // project
+#include "Loader.hpp"
+#include "FileLoader.hpp"
 #include "CmdLine.hpp"
 #include "CfgFileReader.hpp"
 #include "WdbConnection.hpp"
 
 // wdb
+#include <wdbLogHandler.h>
 #include <wdb/WdbLevel.h>
 #include <WdbConfigFile.h>
-#include <wdbLogHandler.h>
+#include <wdb/LoaderConfiguration.h>
 #include <wdb/LoaderDatabaseConnection.h>
 
+// libfelt
+#include <felt/FeltFile.h>
+#include <felt/FeltField.h>
+#include <felt/FeltConstants.h>
+
 // libfimex
-//
 #include <fimex/CDMReader.h>
 
 // boost
@@ -50,89 +57,50 @@
 
 // std
 #include <vector>
+#include <tr1/unordered_map>
+
+using namespace std;
+
+namespace MetNoFimex {
+    class CDMReader;
+}
 
 namespace wdb { namespace load { namespace point {
 
+    class Loader;
     class WdbLogHandler;
     class GribFile;
     class GribField;
 
-    class GribLoader
+    class GribLoader : public FileLoader
     {
     public:
-        GribLoader(WdbConnection& wdbConnection, const CmdLine& cmdLine); //, WdbLogHandler& logHandler);
+        GribLoader(Loader& controller);
         ~GribLoader( );
-
-        void load(GribFile& gribFile);
-//        void load(const GribField& field, int fieldNumber = 0);
-//        int loadFromTemplate(GribFile& file, boost::shared_ptr<MetNoFimex::CDMReader> cdmreader, const std::string& tmplFileName);
 
     private:
 
-        bool openTemplateCDM(const std::string& fileName);
-        bool openDataCDM(const std::string& fileName, const std::string& fimexCfgFileName);
-        bool interpolate(const std::string& templateFileName);
-        bool extractBounds();
-        bool extractPointIds();
-        bool extractData();
+        void loadInterpolated(const string& fileName);
 
-        void loadInterpolated(GribFile& gribFile);
-
+        int editionNumber(const GribField & field) const;
         std::string dataProviderName(const GribField& field) const;
         std::string valueParameterName( const GribField & field ) const;
         std::string valueParameterUnit( const GribField & field ) const;
-        void levelValues( std::vector<wdb::load::Level> & levels, const GribField & field ) const;
+        void levelValues( std::vector<wdb::load::Level> & levels, const GribField & field );
         int dataVersion(const GribField & field) const;
         int confidenceCode(const GribField & field) const;
 
-        /// GRIB Edition Number
+        // GRIB Edition Number
         int editionNumber_;
-        /// The Database Connection
-        WdbConnection& connection_;
-        /// The GribLoad Configuration
-        const CmdLine& options_;
-        /// The GribLoad Logger
-//        WdbLogHandler& logHandler_;
 
-        /// Conversion Hash Map - Dataprovider Name
-        CfgFileReader point2DataProviderName_;
-        /// Conversion Hash Map - Value Parameter
-        CfgFileReader point2ValueParameter1_;
-        /// Conversion Hash Map - Value Parameter
+        /// Conversion Hash Map - Value Parameter GRIB2
         CfgFileReader point2ValueParameter2_;
-        /// Conversion Hash Map - Level Parameter
-        CfgFileReader point2LevelParameter1_;
-        /// Conversion Hash Map - Level Additions
-        CfgFileReader point2LevelAdditions1_;
-        /// Conversion Hash Map - Level Parameter
+        /// Conversion Hash Map - Level Parameter GRIB2
         CfgFileReader point2LevelParameter2_;
-        /// Conversion Hash Map - Level Additions
+        /// Conversion Hash Map - Level Additions GRIB2
         CfgFileReader point2LevelAdditions2_;
-
-        /** Retrieve the edition number of the GRIB field
-          * @param	field	The GRIB field to be loaded
-          * @returns			The version number
-          */
-        int editionNumber(const GribField & field) const;
-        /// CDMReader for template used in interpolation
-        boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate_;
-        /// CDMReader for data that will be interpolated
-        boost::shared_ptr<MetNoFimex::CDMReader> cdmData_;
-
-        /// bounds used in to limit interpolation
-        double northBound_;
-        double southBound_;
-        double westBound_;
-        double eastBound_;
-
-        /// point ids found in cdm template
-        boost::shared_array<unsigned int> pointids_;
-        std::vector<std::string>  placenames_;
-
-        /// precalculate to string time axis
-        std::vector<std::string> times_;
-
 };
+
 
 } } } // end namespaces
 

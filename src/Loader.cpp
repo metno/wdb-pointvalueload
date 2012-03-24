@@ -114,7 +114,7 @@ void Loader::load()
     if(options_.input().type == "felt") {
         felt_ = boost::shared_ptr<FeltLoader>(new FeltLoader(*this));
     } else if(options_.input().type == "grib") {
-        grib_ = boost::shared_ptr<GribLoader>(new GribLoader(wdbConnection_, options_));
+        grib_ = boost::shared_ptr<GribLoader>(new GribLoader(*this));
     }
 
     vector<boost::filesystem::path> files;
@@ -131,11 +131,9 @@ void Loader::load()
     {
         try {
             if(options_.input().type == "felt") {
-                felt::FeltFile feltFile(*it);
-                felt_->load(feltFile);
+                felt_->load(it->native_file_string());
             } else if(options_.input().type == "grib") {
-                GribFile gribFile(it->native_file_string());
-                grib_->load(gribFile);
+                grib_->load(it->native_file_string());
             }
 
         } catch (std::exception& e) {

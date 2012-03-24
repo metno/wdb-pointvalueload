@@ -36,15 +36,12 @@
 #include "GribLoader.hpp"
 
 // wdb
-//
 #include <GridGeometry.h>
 
 // libfelt
-//
 #include <felt/FeltFile.h>
 
 // libfimex
-//
 #include <fimex/CDM.h>
 #include <fimex/CDMReader.h>
 #include <fimex/CDMExtractor.h>
@@ -55,30 +52,25 @@
 #include <fimex/CDMInterpolator.h>
 #include <fimex/CDMFileReaderFactory.h>
 
-//#include <fimex/NetCDF_CDMReader.h>
-
 // libpqxx
-//
 #include <pqxx/util>
 
 // boost
-//
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 // std
-//
 #include <algorithm>
 #include <functional>
 #include <cmath>
 #include <sstream>
 
 using namespace std;
-using namespace wdb;
-using namespace wdb::load;
 using namespace boost::posix_time;
 using namespace boost::filesystem;
 
@@ -105,43 +97,20 @@ namespace {
 
 namespace wdb { namespace load { namespace point {
 
-    struct EntryToLoad {
-        std::string name_;
-        std::string unit_;
-        std::string provider_;
-        std::string levelname_;
-        std::set<double> levels_;
-    };
-
-    GribLoader::GribLoader(WdbConnection& wdbConnection, const CmdLine& cmdLine) //, WdbLogHandler& logHandler)
-        : connection_(wdbConnection), options_(cmdLine) //, logHandler_(logHandler)
+    GribLoader::GribLoader(Loader& controller)
+        : FileLoader(controller)
     {
-
-        if(cmdLine.loading().validtimeConfig.empty())
-            throw std::runtime_error("Can't open validtime.config file [empty string?]");
-        if(cmdLine.loading().dataproviderConfig.empty())
-            throw std::runtime_error("Can't open dataprovider.config file [empty string?]");
-        if(cmdLine.loading().valueparameterConfig.empty())
-            throw std::runtime_error("Can't open valueparameter.config file [empty string?]");
-        if(cmdLine.loading().levelparameterConfig.empty())
-            throw std::runtime_error("Can't open levelparameter.config file [empty string?]");
-        if(cmdLine.loading().leveladditionsConfig.empty())
-            throw std::runtime_error("Can't open leveladditions.config file [empty string?]");
-        if(cmdLine.loading().valueparameter2Config.empty())
+        if(options().loading().valueparameter2Config.empty())
             throw std::runtime_error("Can't open valueparameter2.config file [empty string?]");
-        if(cmdLine.loading().levelparameter2Config.empty())
+        if(options().loading().levelparameter2Config.empty())
             throw std::runtime_error("Can't open levelparameter2.config file [empty string?]");
-        if(cmdLine.loading().leveladditions2Config.empty())
+        if(options().loading().leveladditions2Config.empty())
             throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
 
-        point2DataProviderName_.open(getConfigFile(cmdLine.loading().dataproviderConfig).file_string());
-        point2ValueParameter1_.open(getConfigFile(cmdLine.loading().valueparameterConfig).file_string());
-        point2LevelParameter1_.open(getConfigFile(cmdLine.loading().levelparameterConfig).file_string());
-        point2LevelAdditions1_.open(getConfigFile(cmdLine.loading().leveladditionsConfig).file_string());
-        point2ValueParameter2_.open(getConfigFile(cmdLine.loading().valueparameter2Config).file_string());
-        point2LevelParameter2_.open(getConfigFile(cmdLine.loading().levelparameter2Config).file_string());
-        point2LevelAdditions2_.open(getConfigFile(cmdLine.loading().leveladditions2Config).file_string());
-
+        // load GRIB2 metadata
+        point2ValueParameter2_.open(getConfigFile(options().loading().valueparameter2Config).file_string());
+        point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).file_string());
+        point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).file_string());
     }
 
     GribLoader::~GribLoader()
@@ -149,131 +118,15 @@ namespace wdb { namespace load { namespace point {
         // NOOP
     }
 
-    bool GribLoader::openTemplateCDM(const std::string& fileName)
+    void GribLoader::loadInterpolated(const string& fileName)
     {
-        if(fileName.empty())
-            throw std::runtime_error(" Can't open template interpolation file! ");
+        GribFile file(fileName);
 
-        cdmTemplate_ =
-                MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
-
-        assert(extractPointIds());
-
-//        cdmTemplate_->getCDM().toXMLStream(std::cerr);
-        return true;
-    }
-
-    bool GribLoader::openDataCDM(const std::string& fileName, const std::string& fimexCfgFileName)
-    {
-        if(fimexCfgFileName.empty())
-            throw std::runtime_error(" Can't open fimex reader configuration file!");
-
-        cdmData_ =
-                MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_GRIB, fileName, fimexCfgFileName);
-
-//        cdmReader_->getCDM().toXMLStream(std::cerr);
-        return true;
-    }
-
-    bool GribLoader::extractPointIds()
-    {
-        if(not cdmTemplate_.get())
-            return false;
-
-        const MetNoFimex::CDM& cdmRef = cdmTemplate_->getCDM();
-        const std::string stationIdVarName("stationid");
-
-        assert(cdmRef.hasVariable(stationIdVarName));
-
-        pointids_ = cdmTemplate_->getData(stationIdVarName)->asUInt();
-        unsigned int* sIt = &pointids_[0];
-        unsigned int* eIt = &pointids_[cdmTemplate_->getData(stationIdVarName)->size()];
-        for(; sIt!=eIt; ++sIt)
-            placenames_.push_back(boost::lexical_cast<std::string>(*sIt));
-
-        return true;
-    }
-
-    bool GribLoader::extractBounds()
-    {
-        if(not cdmTemplate_.get())
-            return false;
-
-        const MetNoFimex::CDM& cdmRef = cdmTemplate_->getCDM();
-
-        assert(cdmRef.hasVariable("latitude"));
-        assert(cdmRef.hasVariable("longitude"));
-
-
-        boost::shared_array<double> lats = cdmTemplate_->getData("latitude")->asDouble();
-        northBound_ = *(std::max_element(&lats[0], &lats[cdmTemplate_->getData("latitude")->size()]));
-        southBound_ = *(std::min_element(&lats[0], &lats[cdmTemplate_->getData("latitude")->size()]));
-
-        boost::shared_array<double> lons = cdmTemplate_->getData("longitude")->asDouble();
-        eastBound_ = *(std::max_element(&lons[0], &lons[cdmTemplate_->getData("longitude")->size()]));
-        westBound_ = *(std::min_element(&lons[0], &lons[cdmTemplate_->getData("longitude")->size()]));
-
-        return true;
-    }
-
-    bool GribLoader::extractData()
-    {
-        extractBounds();
-
-        boost::shared_ptr<MetNoFimex::CDMExtractor>
-                extractor(new MetNoFimex::CDMExtractor(cdmData_));
-        extractor->reduceLatLonBoundingBox(southBound_, northBound_, westBound_, eastBound_);
-
-        cdmData_ = extractor;
-
-//        cdmReader_->getCDM().toXMLStream(std::cerr);
-        return true;
-    }
-
-    bool GribLoader::interpolate(const std::string& templateFileName)
-    {
-        if(templateFileName.empty())
-            return false;
-        if(not cdmTemplate_.get())
-            return false;
-        if(not cdmData_.get())
-            return false;
-
-        boost::shared_ptr<MetNoFimex::CDMInterpolator> interpolator =
-                boost::shared_ptr<MetNoFimex::CDMInterpolator>(new MetNoFimex::CDMInterpolator(cdmData_));
-
-        interpolator->changeProjection(MIFI_INTERPOL_BICUBIC, templateFileName);
-
-        cdmData_ = interpolator;
-
-        return true;
-    }
-
-    void GribLoader::load(GribFile& file)
-    {
-        std::string gribFileName = file.fileName();
-        std::string tmplFileName = options_.loading().fimexTemplate;
-        std::string fimexCfgFileName = options_.loading().fimexConfig;
-
-        openTemplateCDM(tmplFileName);
-
-        openDataCDM(gribFileName, fimexCfgFileName);
-
-//        extractData();
-
-        assert(interpolate(tmplFileName));
-
-        loadInterpolated(file);
-    }
-
-    void GribLoader::loadInterpolated(GribFile& file)
-    {
         const MetNoFimex::CDM& cdmRef = cdmData_->getCDM();
-
-//        cdmRef.toXMLStream(std::cerr);
 
         // eps - realization variable
         size_t epsLength = 1;
+        size_t epsMaxVersion = 0;
         std::string epsVariableName;
         std::string epsCFName = "realization";
 
@@ -284,20 +137,11 @@ namespace wdb { namespace load { namespace point {
             epsDim = &cdmRef.getDimension(epsVariableName);
             epsLength = epsDim->getLength();
             realizations = cdmData_->getData(epsVariableName)->asInt();
+            epsMaxVersion = realizations[epsLength - 1];
         }
 
-        const MetNoFimex::CDMDimension* unlimited = cdmRef.getUnlimitedDim();
-        if(unlimited == 0)
+        if(times_.size() == 0)
             return;
-
-        size_t uDim = unlimited->getLength();
-
-        boost::shared_array<unsigned long long> uValues =
-                cdmData_->getScaledDataInUnit(unlimited->getName(), "seconds since 1970-01-01 00:00:00 +00:00")->asUInt64();
-
-        for(size_t u = 0; u < uDim; ++u) {
-            times_.push_back(boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t(uValues[u])) + "+00");
-        }
 
         // Get first field, and check if it exists
         GribFile::Field gribField = file.next();
@@ -308,27 +152,16 @@ namespace wdb { namespace load { namespace point {
             throw std::runtime_error( errorMessage );
         }
 
-//        int failCount = 0;
-//        int fieldNumber = -1;
-        long long inserts = 0;
         std::map<std::string, EntryToLoad> entries;
 
         for( ; gribField; gribField = file.next())
         {
-//            logHandler_.setObjectNumber(fieldNumber);
             try{
                 std::map<std::string, EntryToLoad>::iterator eIt;
 
                 const GribField& field = *gribField;
-                std::cerr << field.toString() << std::endl;
                 editionNumber_ = editionNumber(field);
                 std::string name = valueParameterName(field);
-                if(name == "snow density") {
-                    std::string unit = valueParameterUnit(field);
-                    std::string provider = dataProviderName(field);
-                    std::vector<Level> levels;
-                    levelValues(levels, field);
-                }
                 std::string unit = valueParameterUnit(field);
                 std::string provider = dataProviderName(field);
                 std::vector<Level> levels;
@@ -349,36 +182,35 @@ namespace wdb { namespace load { namespace point {
                 }
 
             } catch ( wdb::ignore_value &e ) {
-                WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
-                log.infoStream() << e.what() << " Data field not loaded.";
-            } catch ( wdb::missing_metadata &e ) {
-                WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
-                log.warnStream() << e.what() << " Data field not loaded.";
+                std::cerr << e.what() << " Data field not loaded." << std::endl;
+            } catch ( std::out_of_range &e ) {
+                std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << std::endl;
             } catch ( std::exception & e ) {
-                WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
-                log.errorStream() << e.what() << " Data field not loaded.";
+                std::cerr << e.what() << " Data field not loaded." << std::endl;
             }
         }
 
+        std::string dataprovider;
+
         for(std::map<std::string, EntryToLoad>::const_iterator it = entries.begin(); it != entries.end(); ++it)
         {
-//            std::cerr<<flt.information()<<std::endl;
-
                 const EntryToLoad& entry(it->second);
                 std::string wdbUnit = entry.unit_;
-                std::string dataProvider = entry.provider_;
+                if(dataprovider != entry.provider_) {
+                    dataprovider = entry.provider_;
+                    std::cout << dataprovider<<'\t'<<"88,"<<options().loading().nameSpace<<",88"<<'\n';
+                }
+
+                std::cerr << " LOADING param: " << entry.name_ << " in units: "<<entry.unit_<<std::endl;
+
                 std::string standardName = entry.name_;
                 std::string strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
-
-//                std::string strReferenceTime = toString(referenceTime(**it));
-//                std::string strValidTimeFrom = toString(validTimeFrom(**it));
-//                std::string strValidTimeTo = toString(validTimeTo(**it));
 
                 std::string cfname(standardName);
                 boost::algorithm::replace_all(cfname, " ", "_");
                 std::vector<std::string> variables = cdmRef.findVariables("standard_name", cfname);
                 if(variables.empty()) {
-//                    std::cerr << "cant find vars for cfname: " << cfname << std::endl;
+                    std::cerr << "cant find vars for cfname: " << cfname << std::endl;
                     continue;
                 } else if(variables.size() > 1) {
                     std::cerr << "several vars for cfname: " << cfname << std::endl;
@@ -404,22 +236,23 @@ namespace wdb { namespace load { namespace point {
 
                 // we deal only with variable that are time dependant
                 std::list<std::string> dims(fimexVar.getShape().begin(), fimexVar.getShape().end());
-                if(std::find(dims.begin(), dims.end(), unlimited->getName()) == dims.end()) {
+                if(std::find(dims.begin(), dims.end(), "time") == dims.end()) {
+                    std::cerr << "not time dependent: " << cfname << std::endl;
                     continue;
                 }
 
                 for(size_t i = 0; i < yDim.getLength(); ++i) {
                     for(size_t j = 0; j < xDim.getLength(); ++j){
-                        // do point by point for same value parameter
-//                        std::cerr << "LEVELS SIZE .... "<< levels.size() << std::endl;
-                        for(std::set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
-//                            std::cerr<<"x= "<<j<<"   "<<"y= "<<i<<"   "<<"z= "<<l<<std::endl;
-//                           std::cerr << " LEVEL NAME: " << levels[l].levelParameter_ << " LEVEL FROM:" << levels[l].levelFrom_ << " LEVEL TO:" << levels[l].levelTo_ << std::endl;
-                            size_t wdbLevel = *lIt;
 
+                        std::string placename = placenames()[i * xDim.getLength() + j];
+                        if(!stations2load().empty() and stations2load().find(placename) == stations2load().end() ) {
+                            continue;
+                        }
+
+                        for(std::set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
+                            size_t wdbLevel = *lIt;
                             size_t fimexLevelIndex = 0;
                             size_t fimexLevelLength = 1;
-
                             std::string fimexLevelName = cdmRef.getVerticalAxis(fimexVar.getName());
                             if(!fimexLevelName.empty()) {
                                 // match wdbIndex to index in fimex data
@@ -447,10 +280,11 @@ namespace wdb { namespace load { namespace point {
                                 epsLength = 1;
                             }
 
-                            // time by time slice
+                            // eps members
                             for(size_t e = 0; e < epsLength; ++e)
                             {
-                                for(size_t u = 0; u < uDim; ++u)
+                                // time by time slice
+                                for(size_t u = 0; u < times().size(); ++u)
                                 {
                                     double value;
 
@@ -471,66 +305,73 @@ namespace wdb { namespace load { namespace point {
                                                 + i * xDim.getLength() + j); // jump to right x,y coordinate
                                     }
 
-                                    std::string varname = fimexVar.getName();
-                                    std::string placename = placenames_[i * xDim.getLength() + j];
-                                    std::string validtime = times_[u];
+                                    std::string validtime = times()[u];
 
                                     try {
 
-                                        if(options_.output().dry_run) {
-                                            std::cerr << ++inserts << std::endl;
-                                            std::cerr<<"*";
-                                            std::cerr << " VAR NAME: "<< varname
-                                                      << " CF NAME: " << standardName
-                                                      << " DATA PROVIDER: " << dataProvider
-                                                      << " PLACENAME: " << placename
-                                                      << " REF TIME:" << strReferenceTime
-                                                      << " VALID FROM:" << validtime
-                                                      << " VALID TO:" << validtime
-                                                      << " LEVEL NAME: " << entry.levelname_
-                                                      << " LEVEL FROM:" << wdbLevel
-                                                      << " LEVEL TO:" << wdbLevel
-                                                      << " VERSION: " << version
-                                                         //                                              << " DATA VERSION:" << dataVersion(**it)
-                                                         //                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
-                                                      << " VALUE: " << value << ""
+                                        if(options().output().dry_run) {
+//                                            std::cerr << " VAR NAME: "<< varname
+//                                                      << " CF NAME: " << standardName
+//                                                      << " DATA PROVIDER: " << dataprovider
+//                                                      << " PLACENAME: " << placename
+//                                                      << " REF TIME:" << strReferenceTime
+//                                                      << " VALID FROM:" << validtime
+//                                                      << " VALID TO:" << validtime
+//                                                      << " LEVEL NAME: " << entry.levelname_
+//                                                      << " LEVEL FROM:" << wdbLevel
+//                                                      << " LEVEL TO:" << wdbLevel
+//                                                      << " VERSION: " << version
+////                                              << " DATA VERSION:" << dataVersion(**it)
+////                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
+//                                                      << " VALUE: " << value
+//                                                      << std::endl;
+
+                                            std::cout << value            << "\t"
+                                                      << placename        << "\t"
+                                                      << strReferenceTime << "\t"
+                                                      << validtime        << "\t"
+                                                      << validtime        << "\t"
+                                                      << standardName     << "\t"
+                                                      << entry.levelname_ << "\t"
+                                                      << wdbLevel         << "\t"
+                                                      << wdbLevel         << "\t"
+                                                      << version          << "\t"
+                                                      << epsMaxVersion
                                                       << std::endl;
+
                                         } else {
 
-                                            connection_.write(
-                                                              value,
-                                                              dataProvider,
-                                                              placename,
-                                                              strReferenceTime,
-                                                              validtime,
-                                                              validtime,
-                                                              standardName,
-                                                              entry.levelname_,
-                                                              wdbLevel,
-                                                              wdbLevel,
-                                                              version
-                                                             );
+                                            std::cerr<<"*";
+                                            wdbConnection().write(
+                                                                  value,
+                                                                  dataprovider,
+                                                                  placename,
+                                                                  strReferenceTime,
+                                                                  validtime,
+                                                                  validtime,
+                                                                  standardName,
+                                                                  entry.levelname_,
+                                                                  wdbLevel,
+                                                                  wdbLevel,
+                                                                  version
+                                                                 );
 
                                         }
 
                                     } catch ( wdb::ignore_value &e ) {
-//                                        std::cerr << e.what() << " Data field not loaded.";
+                                        std::cerr << e.what() << " Data field not loaded."<< std::endl;
                                     } catch ( std::out_of_range &e ) {
-//                                        std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                                        std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << std::endl;
                                     } catch ( std::exception & e ) {
-//                                        std::cerr << e.what() << " Data field not loaded.";
+                                        std::cerr << e.what() << " Data field not loaded." << std::endl;
                                     }
-
-                                }
-                            }
-                        }
-                    }
-                }
-
+                            } // time slices end
+                        } // eps slices
+                    } // z slices
+                } // x slices
+            } // y slices
 
         }
-
-//         std::cerr<<"Num of INSERTS: "<<inserts<<std::endl;
     }
 
     std::string GribLoader::dataProviderName(const GribField & field) const
@@ -561,7 +402,7 @@ namespace wdb { namespace load { namespace point {
                    << field.getTimeRange() << ", "
                    << "0, 0, 0, 0"; // Default values for thresholds
             try {
-                ret = point2ValueParameter1_[keyStr.str()];
+                ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
                 WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
@@ -597,7 +438,7 @@ namespace wdb { namespace load { namespace point {
                    << field.getTimeRange() << ", "
                    << "0, 0, 0, 0"; // Default values for thresholds
             try {
-                ret = point2ValueParameter1_[keyStr.str()];
+                ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
                 WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
@@ -622,7 +463,7 @@ namespace wdb { namespace load { namespace point {
         return ret;
     }
 
-    void GribLoader::levelValues( std::vector<wdb::load::Level> & levels, const GribField & field ) const
+    void GribLoader::levelValues( std::vector<wdb::load::Level> & levels, const GribField & field )
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
         bool ignored = false;
@@ -632,7 +473,7 @@ namespace wdb { namespace load { namespace point {
             if (editionNumber_ == 1) {
                 keyStr << field.getLevelParameter1();
                 std::cerr << __FUNCTION__ << " field.getLevelParameter1() "<<keyStr.str() << std::endl;
-                ret = point2LevelParameter1_[keyStr.str()];
+                ret = point2LevelParameter_[keyStr.str()];
             }
             else {
                 keyStr << field.getLevelParameter2();
@@ -645,7 +486,7 @@ namespace wdb { namespace load { namespace point {
             boost::trim( levelUnit );
             float coeff = 1.0;
             float term = 0.0;
-            connection_.readUnit( levelUnit, &coeff, &term );
+            wdbConnection().readUnit( levelUnit, &coeff, &term );
             float lev1 = field.getLevelFrom();
             float lev2 = field.getLevelTo();
             if ( ( coeff != 1.0 )&&( term != 0.0) ) {
@@ -674,7 +515,7 @@ namespace wdb { namespace load { namespace point {
                        << field.getTimeRange() << ", "
                        << "0, 0, 0, 0, "
                        << field.getLevelParameter1(); // Default values for thresholds
-                ret = point2LevelAdditions1_[keyStr.str()];
+                ret = point2LevelAdditions_[keyStr.str()];
             }
             else {
                 keyStr << field.getParameter2();
@@ -714,4 +555,5 @@ namespace wdb { namespace load { namespace point {
     {
         return field.getEditionNumber();
     }
+
 } } } // end namespaces
