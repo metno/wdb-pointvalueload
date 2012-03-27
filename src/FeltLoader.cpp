@@ -71,8 +71,6 @@
 #include <sstream>
 
 using namespace std;
-using namespace wdb;
-using namespace wdb::load;
 using namespace boost::posix_time;
 using namespace boost::filesystem;
 
@@ -119,8 +117,6 @@ namespace wdb { namespace load { namespace point {
         felt::FeltFile file(fileName);
 
         const MetNoFimex::CDM& cdmRef = cdmData_->getCDM();
-
-//        cdmRef.toXMLStream(std::cerr);
 
         // eps - realization variable
         size_t epsLength = 1;
