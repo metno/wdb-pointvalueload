@@ -141,6 +141,8 @@ namespace wdb { namespace load { namespace point {
         if(times_.size() == 0)
             return;
 
+        std::string strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
+
         std::map<std::string, EntryToLoad> entries;
         for(felt::FeltFile::const_iterator it = file.begin(); it != file.end(); ++it)
         {
@@ -191,7 +193,6 @@ namespace wdb { namespace load { namespace point {
                 std::cerr << " LOADING param: " << entry.name_ << " in units: "<<entry.unit_<<std::endl;
 
                 std::string standardName = entry.name_;
-                std::string strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
 
                 std::string cfname(standardName);
                 boost::algorithm::replace_all(cfname, " ", "_");
@@ -220,12 +221,45 @@ namespace wdb { namespace load { namespace point {
                     continue;
 
                 boost::shared_array<double> data4places = raw->asDouble();
-
+                boost::shared_array<double> uwinddata;
+                boost::shared_array<double> vwinddata;
                 // we deal only with variable that are time dependant
                 std::list<std::string> dims(fimexVar.getShape().begin(), fimexVar.getShape().end());
                 if(std::find(dims.begin(), dims.end(), "time") == dims.end()) {
                     std::cerr << "not time dependent: " << cfname << std::endl;
                     continue;
+                }
+
+                // winds
+                string uWind;
+                string vWind;
+                int position = -1;
+                if(find(uwinds().begin(), uwinds().end(), fimexVar.getName()) != uwinds().end()) {
+                    uWind = fimexVar.getName();
+                    position = find(uwinds().begin(), uwinds().end(), uWind) - uwinds().begin();
+                    if(position >= uwinds().size())
+                        throw runtime_error("can't find U wind component");
+
+                    vWind = vwinds()[position];
+                    uwinddata = data4places;
+                    vwinddata = cdmData_->getScaledDataInUnit(vWind, wdbUnit)->asDouble();
+                } else if(find(vwinds().begin(), vwinds().end(), fimexVar.getName()) != vwinds().end()) {
+                    vWind = fimexVar.getName();
+                    position = find(vwinds().begin(), vwinds().end(), vWind) - vwinds().begin();
+                    if(position >= vwinds().size())
+                        throw runtime_error("can't find V wind component");
+
+                    uWind = uwinds()[position];
+                    uwinddata = cdmData_->getScaledDataInUnit(uWind, wdbUnit)->asDouble();
+                    vwinddata = data4places;
+                }
+
+                if(!uWind.empty() || !vWind.empty()) {
+                    vector<string>::iterator it;
+                    it = find(uwinds().begin(), uwinds().end(), uWind);
+                    uwinds().erase(it);
+                    it = find(vwinds().begin(), vwinds().end(), vWind);
+                    vwinds().erase(it);
                 }
 
                 for(size_t i = 0; i < yDim.getLength(); ++i) {
@@ -274,75 +308,178 @@ namespace wdb { namespace load { namespace point {
                                 for(size_t u = 0; u < times().size(); ++u)
                                 {
                                     double value;
+                                    double uvalue = 0;
+                                    double vvalue = 0;
+                                    double windspeed = 0;
+                                    double windfromdirection = 0;
 
                                     if(hasEpsAsDim) {
                                         version = realizations[e];
+
                                         value = *
                                                 (data4places.get() // jump to data start
                                                 + u*(epsLength * fimexLevelLength * xDim.getLength() * yDim.getLength() ) // jump to u-th time slice
                                                 + e * fimexLevelLength * xDim.getLength() * yDim.getLength() // jump to e-th realization-slice
                                                 + fimexLevelIndex * xDim.getLength() * yDim.getLength() // jump to right level
                                                 + i * xDim.getLength() + j); // jump to right x,y coordinate
+
+                                        if(uwinddata.get() != 0 && vwinddata.get() != 0) {
+                                            uvalue = *
+                                                    (uwinddata.get() // jump to data start
+                                                    + u*(epsLength * fimexLevelLength * xDim.getLength() * yDim.getLength() ) // jump to u-th time slice
+                                                    + e * fimexLevelLength * xDim.getLength() * yDim.getLength() // jump to e-th realization-slice
+                                                    + fimexLevelIndex * xDim.getLength() * yDim.getLength() // jump to right level
+                                                    + i * xDim.getLength() + j); // jump to right x,y coordinate
+                                            vvalue = *
+                                                    (vwinddata.get() // jump to data start
+                                                    + u*(epsLength * fimexLevelLength * xDim.getLength() * yDim.getLength() ) // jump to u-th time slice
+                                                    + e * fimexLevelLength * xDim.getLength() * yDim.getLength() // jump to e-th realization-slice
+                                                    + fimexLevelIndex * xDim.getLength() * yDim.getLength() // jump to right level
+                                                    + i * xDim.getLength() + j); // jump to right x,y coordinate
+                                        }
                                     } else {
                                         version = 0;
+
                                         value = *
                                                 (data4places.get() // jump to data start
                                                 + u*(fimexLevelLength * xDim.getLength() * yDim.getLength() ) // jump to u-th time slice
                                                 + fimexLevelIndex * xDim.getLength() * yDim.getLength() // jump to right level
                                                 + i * xDim.getLength() + j); // jump to right x,y coordinate
+
+                                        if(uwinddata.get() != 0 && vwinddata.get() != 0) {
+                                            uvalue = *
+                                                    (uwinddata.get() // jump to data start
+                                                    + u*(fimexLevelLength * xDim.getLength() * yDim.getLength() ) // jump to u-th time slice
+                                                    + fimexLevelIndex * xDim.getLength() * yDim.getLength() // jump to right level
+                                                    + i * xDim.getLength() + j); // jump to right x,y coordinate
+                                            vvalue = *
+                                                    (vwinddata.get() // jump to data start
+                                                    + u*(fimexLevelLength * xDim.getLength() * yDim.getLength() ) // jump to u-th time slice
+                                                    + fimexLevelIndex * xDim.getLength() * yDim.getLength() // jump to right level
+                                                    + i * xDim.getLength() + j); // jump to right x,y coordinate
+
+                                        }
                                     }
 
                                     std::string validtime = times()[u];
+                                    if(uwinddata.get() != 0 && vwinddata.get() != 0) {
+                                        windspeed = std::sqrt(uvalue*uvalue + vvalue*vvalue);
+                                        windfromdirection = 270.0 - std::atan2(vvalue, uvalue) * 180 / 3.14159265;
+                                        windfromdirection = windfromdirection - (static_cast<int>(windfromdirection) / static_cast<int>(360)) * 360;
+                                    }
 
                                     try {
 
                                         if(options().output().dry_run) {
-//                                            std::cerr << " VAR NAME: "<< varname
-//                                                      << " CF NAME: " << standardName
-//                                                      << " DATA PROVIDER: " << dataprovider
-//                                                      << " PLACENAME: " << placename
-//                                                      << " REF TIME:" << strReferenceTime
-//                                                      << " VALID FROM:" << validtime
-//                                                      << " VALID TO:" << validtime
-//                                                      << " LEVEL NAME: " << entry.levelname_
-//                                                      << " LEVEL FROM:" << wdbLevel
-//                                                      << " LEVEL TO:" << wdbLevel
-//                                                      << " VERSION: " << version
-////                                              << " DATA VERSION:" << dataVersion(**it)
-////                                              << " CONFIDENCE CODE: " << confidenceCode(**it)
-//                                                      << " VALUE: " << value
-//                                                      << std::endl;
+                                            if(uwinddata.get() != 0 && vwinddata.get() != 0) {
+//                                                std::cout << uvalue        << "\t"
+//                                                          << placename        << "\t"
+//                                                          << strReferenceTime << "\t"
+//                                                          << validtime        << "\t"
+//                                                          << validtime        << "\t"
+//                                                          << uWind     << "\t"
+//                                                          << entry.levelname_ << "\t"
+//                                                          << wdbLevel         << "\t"
+//                                                          << wdbLevel         << "\t"
+//                                                          << version          << "\t"
+//                                                          << epsMaxVersion
+//                                                          << std::endl;
 
-                                            std::cout << value            << "\t"
-                                                      << placename        << "\t"
-                                                      << strReferenceTime << "\t"
-                                                      << validtime        << "\t"
-                                                      << validtime        << "\t"
-                                                      << standardName     << "\t"
-                                                      << entry.levelname_ << "\t"
-                                                      << wdbLevel         << "\t"
-                                                      << wdbLevel         << "\t"
-                                                      << version          << "\t"
-                                                      << epsMaxVersion
-                                                      << std::endl;
+//                                                std::cout << vvalue        << "\t"
+//                                                          << placename        << "\t"
+//                                                          << strReferenceTime << "\t"
+//                                                          << validtime        << "\t"
+//                                                          << validtime        << "\t"
+//                                                          << vWind     << "\t"
+//                                                          << entry.levelname_ << "\t"
+//                                                          << wdbLevel         << "\t"
+//                                                          << wdbLevel         << "\t"
+//                                                          << version          << "\t"
+//                                                          << epsMaxVersion
+//                                                          << std::endl;
+
+                                                std::cout << windspeed        << "\t"
+                                                          << placename        << "\t"
+                                                          << strReferenceTime << "\t"
+                                                          << validtime        << "\t"
+                                                          << validtime        << "\t"
+                                                          << "wind speed"     << "\t"
+                                                          << entry.levelname_ << "\t"
+                                                          << wdbLevel         << "\t"
+                                                          << wdbLevel         << "\t"
+                                                          << version          << "\t"
+                                                          << epsMaxVersion
+                                                          << std::endl;
+                                                std::cout << windfromdirection       << "\t"
+                                                          << placename        << "\t"
+                                                          << strReferenceTime << "\t"
+                                                          << validtime        << "\t"
+                                                          << validtime        << "\t"
+                                                          << "wind from direction"     << "\t"
+                                                          << entry.levelname_ << "\t"
+                                                          << wdbLevel         << "\t"
+                                                          << wdbLevel         << "\t"
+                                                          << version          << "\t"
+                                                          << epsMaxVersion
+                                                          << std::endl;
+                                            } else {
+                                                std::cout << value            << "\t"
+                                                          << placename        << "\t"
+                                                          << strReferenceTime << "\t"
+                                                          << validtime        << "\t"
+                                                          << validtime        << "\t"
+                                                          << standardName     << "\t"
+                                                          << entry.levelname_ << "\t"
+                                                          << wdbLevel         << "\t"
+                                                          << wdbLevel         << "\t"
+                                                          << version          << "\t"
+                                                          << epsMaxVersion
+                                                          << std::endl;
+                                            }
 
                                         } else {
-
-                                            std::cerr<<"*";
-                                            wdbConnection().write(
-                                                                  value,
-                                                                  dataprovider,
-                                                                  placename,
-                                                                  strReferenceTime,
-                                                                  validtime,
-                                                                  validtime,
-                                                                  standardName,
-                                                                  entry.levelname_,
-                                                                  wdbLevel,
-                                                                  wdbLevel,
-                                                                  version
-                                                                 );
-
+                                            if(uwinddata.get() != 0 && vwinddata.get() != 0) {
+                                                wdbConnection().write(
+                                                                      windspeed,
+                                                                      dataprovider,
+                                                                      placename,
+                                                                      strReferenceTime,
+                                                                      validtime,
+                                                                      validtime,
+                                                                      "wind speed",
+                                                                      entry.levelname_,
+                                                                      wdbLevel,
+                                                                      wdbLevel,
+                                                                      version
+                                                                     );
+                                                wdbConnection().write(
+                                                                      windfromdirection,
+                                                                      dataprovider,
+                                                                      placename,
+                                                                      strReferenceTime,
+                                                                      validtime,
+                                                                      validtime,
+                                                                      "wind from direction",
+                                                                      entry.levelname_,
+                                                                      wdbLevel,
+                                                                      wdbLevel,
+                                                                      version
+                                                                     );
+                                            } else {
+                                                wdbConnection().write(
+                                                                      value,
+                                                                      dataprovider,
+                                                                      placename,
+                                                                      strReferenceTime,
+                                                                      validtime,
+                                                                      validtime,
+                                                                      standardName,
+                                                                      entry.levelname_,
+                                                                      wdbLevel,
+                                                                      wdbLevel,
+                                                                      version
+                                                                     );
+                                            }
                                         }
 
                                     } catch ( wdb::ignore_value &e ) {
