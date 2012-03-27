@@ -71,6 +71,8 @@ namespace wdb { namespace load { namespace point {
             std::string fimexConfig;
             std::string fimexTemplate;
             std::string fimexInterpolateMethod;
+            std::string fimexProcessRotateVectorToLatLonX;
+            std::string fimexProcessRotateVectorToLatLonY;
             std::string stations;
 //            std::string fimexReduceSouth;
 //            std::string fimexReduceNorth;

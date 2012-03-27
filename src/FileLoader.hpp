@@ -59,8 +59,10 @@ namespace wdb { namespace load { namespace point {
 
     protected:
         virtual void loadInterpolated(const string& fileName) = 0;
-        virtual bool openDataCDM(const std::string& file);
-        virtual bool interpolate();
+        virtual bool openCDM(const std::string& file);
+        virtual bool timeFromCDM();
+        virtual bool processCDM();
+        virtual bool interpolateCDM();
 
         const CmdLine& options() { return controller_.options(); }
         WdbConnection& wdbConnection() {  return controller_.wdbConnection();  }
@@ -69,15 +71,14 @@ namespace wdb { namespace load { namespace point {
         const set<string>& stations2load() { return controller_.stations2load(); }
 
         int editionNumber(const GribField & field) const;
-        std::string dataProviderName(const GribField& field) const;
-        std::string valueParameterName( const GribField & field ) const;
-        std::string valueParameterUnit( const GribField & field ) const;
-        void levelValues( std::vector<wdb::load::Level> & levels, const GribField & field );
+        string dataProviderName(const GribField& field) const;
+        string valueParameterName( const GribField & field ) const;
+        string valueParameterUnit( const GribField & field ) const;
+        void levelValues(vector<wdb::load::Level> & levels, const GribField & field );
         int dataVersion(const GribField & field) const;
         int confidenceCode(const GribField & field) const;
-
-        // GRIB Edition Number
-        int editionNumber_;
+        vector<string>& uwinds() { return uWinds_; }
+        vector<string>& vwinds() { return vWinds_; }
 
         Loader& controller_;
 
@@ -85,10 +86,8 @@ namespace wdb { namespace load { namespace point {
         boost::shared_ptr<MetNoFimex::CDMReader> cdmData_;
 
         // format time to string
-        std::vector<std::string> times_;
-        bool time2string();
-        const std::vector<std::string>& times() { return times_;}
-
+        vector<string> times_;
+        const vector<string>& times() { return times_;}
 
         /// Conversion Hash Map - Dataprovider Name
         CfgFileReader point2DataProviderName_;
@@ -99,6 +98,8 @@ namespace wdb { namespace load { namespace point {
         /// Conversion Hash Map - Level Additions
         CfgFileReader point2LevelAdditions_;
 
+        vector<string> uWinds_;
+        vector<string> vWinds_;
     };
 
     struct EntryToLoad {

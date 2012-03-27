@@ -37,6 +37,7 @@
 #include <fimex/CDM.h>
 #include <fimex/CDMReader.h>
 #include <fimex/CDMExtractor.h>
+#include <fimex/CDMProcessor.h>
 #include <fimex/CDMException.h>
 #include <fimex/CDMconstants.h>
 #include <fimex/CDMDimension.h>
@@ -106,7 +107,7 @@ namespace wdb { namespace load { namespace point {
         // NOOP
     }
 
-    bool FileLoader::openDataCDM(const std::string& fileName)
+    bool FileLoader::openCDM(const std::string& fileName)
     {
         std::string fType = options().input().type;
         std::string fimexConfig = options().loading().fimexConfig;
@@ -128,7 +129,7 @@ namespace wdb { namespace load { namespace point {
         return true;
     }
 
-    bool FileLoader::interpolate()
+    bool FileLoader::interpolateCDM()
     {
         std::string templateFile = options().loading().fimexTemplate;
 
@@ -148,7 +149,7 @@ namespace wdb { namespace load { namespace point {
         return true;
     }
 
-    bool FileLoader::time2string()
+    bool FileLoader::timeFromCDM()
     {
         const CDM& cdmRef = cdmData_->getCDM();
         const CDMDimension* unlimited = cdmRef.getUnlimitedDim();
@@ -163,15 +164,43 @@ namespace wdb { namespace load { namespace point {
         for(size_t u = 0; u < uDim; ++u) {
             times_.push_back(boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t(uValues[u])) + "+00");
         }
+
+        return true;
+    }
+
+    bool FileLoader::processCDM()
+    {
+        uwinds().clear();
+        vwinds().clear();
+
+        if(options().loading().fimexProcessRotateVectorToLatLonX.empty()
+                && options().loading().fimexProcessRotateVectorToLatLonY.empty())
+            return true;
+
+        boost::shared_ptr<CDMProcessor> processor(new CDMProcessor(cdmData_));
+
+        boost::split(uwinds(), options().loading().fimexProcessRotateVectorToLatLonX, boost::is_any_of(" ,"));
+        boost::split(vwinds(), options().loading().fimexProcessRotateVectorToLatLonY, boost::is_any_of(" ,"));
+
+        if(uwinds().size() != vwinds().size())
+            throw std::runtime_error("not the same number of x and y wind components");
+
+        processor->rotateVectorToLatLon(uwinds(), vwinds());
+
+        cdmData_ = processor;
+
+        return true;
     }
 
     void FileLoader::load(const string& fileName)
     {
-        openDataCDM(fileName);
+        openCDM(fileName);
 
-        time2string();
+        processCDM();
 
-        interpolate();
+        interpolateCDM();
+
+        timeFromCDM();
 
         loadInterpolated(fileName);
     }
