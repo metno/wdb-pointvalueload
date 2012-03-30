@@ -49,6 +49,20 @@ namespace wdb { namespace load { namespace point {
     class GribFile;
     class GribField;
 
+    struct EntryToLoad {
+        string name_;
+        string unit_;
+        string provider_;
+        string levelname_;
+        set<double> levels_;
+        size_t fimexXDimLength;
+        size_t fimexYDimLength;
+        string fimexName;
+        string fimexLevelName;
+        vector<string> fimexShape;
+        boost::shared_array<double> data_;
+    };
+
     class FileLoader
     {
     public:
@@ -59,6 +73,8 @@ namespace wdb { namespace load { namespace point {
 
     protected:
         virtual void loadInterpolated(const string& fileName) = 0;
+        virtual void loadEntries();
+        virtual void loadWindEntries();
         virtual bool openCDM(const std::string& file);
         virtual bool timeFromCDM();
         virtual bool processCDM();
@@ -69,6 +85,7 @@ namespace wdb { namespace load { namespace point {
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return controller_.cdmTemplate(); }
         const vector<string>& placenames() { return controller_.placenames(); }
         const set<string>& stations2load() { return controller_.stations2load(); }
+        std::map<std::string, EntryToLoad>& entries2load()  {return entries2Load_; }
 
         int editionNumber(const GribField & field) const;
         string dataProviderName(const GribField& field) const;
@@ -100,15 +117,10 @@ namespace wdb { namespace load { namespace point {
 
         vector<string> uWinds_;
         vector<string> vWinds_;
+
+        map<string, EntryToLoad> entries2Load_;
     };
 
-    struct EntryToLoad {
-        std::string name_;
-        std::string unit_;
-        std::string provider_;
-        std::string levelname_;
-        std::set<double> levels_;
-    };
 } } } // end namespaces
 
 #endif // FILELOADER_HPP
