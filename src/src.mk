@@ -13,7 +13,8 @@ pointLoad_SOURCES =  src/main.cpp \
 					 src/GribFile.cpp \
 					 src/GribHandleReader.cpp \
 					 src/WdbConnection.cpp \
-                                         src/FileLoader.cpp \
+                     src/FileLoader.cpp \
+					 src/NetCDFLoader.cpp \
 					 src/CmdLine.hpp \
 					 src/CfgFileReader.hpp \
 				     src/FeltLoader.hpp \
@@ -25,6 +26,7 @@ pointLoad_SOURCES =  src/main.cpp \
 					 src/GribHandleReader.hpp \
 					 src/WciTransactors.hpp \
 					 src/WdbConnection.hpp \
-                                         src/FileLoader.hpp
+                     src/FileLoader.hpp \
+					 src/NetCDFLoader.hpp
 
 EXTRA_DIST +=		src/src.mk

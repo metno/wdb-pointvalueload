@@ -31,6 +31,7 @@
 #include "FeltLoader.hpp"
 #include "GribFile.hpp"
 #include "GribLoader.hpp"
+#include "NetCDFLoader.hpp"
 
 // libfimex
 #include <fimex/CDM.h>
@@ -106,7 +107,7 @@ void Loader::load()
         return;
     }
 
-    if(options_.input().type != "felt" and options_.input().type !="grib") {
+    if(options_.input().type != "felt" and options_.input().type !="grib" and options_.input().type !="netcdf") {
         std::cerr << "Unrecognized input file type"<<std::endl;
         return;
     }
@@ -115,6 +116,8 @@ void Loader::load()
         felt_ = boost::shared_ptr<FeltLoader>(new FeltLoader(*this));
     } else if(options_.input().type == "grib") {
         grib_ = boost::shared_ptr<GribLoader>(new GribLoader(*this));
+    } else if(options_.input().type == "netcdf") {
+        netcdf_ = boost::shared_ptr<NetCDFLoader>(new NetCDFLoader(*this));
     }
 
     vector<boost::filesystem::path> files;
@@ -134,8 +137,9 @@ void Loader::load()
                 felt_->load(it->native_file_string());
             } else if(options_.input().type == "grib") {
                 grib_->load(it->native_file_string());
+            } else if(options_.input().type == "netcdf") {
+                netcdf_->load(it->native_file_string());
             }
-
         } catch (std::exception& e) {
             std::cerr << "Unable to load file " << it->native_file_string();
             std::cerr << "Reason: " << e.what();
@@ -203,7 +207,6 @@ void Loader::load()
 
         assert(cdmRef.hasVariable("latitude"));
         assert(cdmRef.hasVariable("longitude"));
-
 
         boost::shared_array<double> lats = cdmTemplate_->getData("latitude")->asDouble();
         northBound_ = *(std::max_element(&lats[0], &lats[cdmTemplate_->getData("latitude")->size()]));

@@ -51,6 +51,7 @@ namespace wdb { namespace load { namespace point {
 
     class FeltLoader;
     class GribLoader;
+    class NetCDFLoader;
 
     class Loader
     {
@@ -90,8 +91,9 @@ namespace wdb { namespace load { namespace point {
         double westBound_;
         double eastBound_;
 
-        boost::shared_ptr<FeltLoader> felt_;
-        boost::shared_ptr<GribLoader> grib_;
+        boost::shared_ptr<FeltLoader>   felt_;
+        boost::shared_ptr<GribLoader>   grib_;
+        boost::shared_ptr<NetCDFLoader> netcdf_;
     };
 
 } } } // end namespaces

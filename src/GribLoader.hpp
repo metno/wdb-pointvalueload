@@ -82,13 +82,12 @@ namespace wdb { namespace load { namespace point {
 
         void loadInterpolated(const string& fileName);
 
+        void setup();
         int editionNumber(const GribField & field) const;
-        std::string dataProviderName(const GribField& field) const;
-        std::string valueParameterName( const GribField & field ) const;
-        std::string valueParameterUnit( const GribField & field ) const;
-        void levelValues( std::vector<wdb::load::Level> & levels, const GribField & field );
-        int dataVersion(const GribField & field) const;
-        int confidenceCode(const GribField & field) const;
+        string dataProviderName(const GribField& field) const;
+        string valueParameterName(const GribField & field) const;
+        string valueParameterUnit(const GribField & field) const;
+        void levelValues(vector<wdb::load::Level>& levels, const GribField& field);
 
         // GRIB Edition Number
         int editionNumber_;

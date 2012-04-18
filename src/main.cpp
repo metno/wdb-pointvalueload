@@ -70,7 +70,7 @@ namespace
       */
     void version( ostream & out )
     {
-        out << PACKAGE_STRING << endl;
+        out << "PACKAGE_STRING" << endl;
     }
 
     /**

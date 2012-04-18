@@ -38,6 +38,8 @@
 // std
 #include <string>
 
+using namespace std;
+
 namespace wdb { namespace load { namespace point {
 
     class CmdLine : public WdbConfiguration
@@ -53,27 +55,28 @@ namespace wdb { namespace load { namespace point {
 
         struct InputOptions
         {
-            std::string type;
-            std::vector<std::string> file;
+            string type;
+            vector<string> file;
         };
 
         struct LoadingOptions
         {
-            std::string nameSpace;
-            std::string validtimeConfig;
-            std::string dataproviderConfig;
-            std::string valueparameterConfig;
-            std::string levelparameterConfig;
-            std::string leveladditionsConfig;
-            std::string valueparameter2Config;
-            std::string levelparameter2Config;
-            std::string leveladditions2Config;
-            std::string fimexConfig;
-            std::string fimexTemplate;
-            std::string fimexInterpolateMethod;
-            std::string fimexProcessRotateVectorToLatLonX;
-            std::string fimexProcessRotateVectorToLatLonY;
-            std::string stations;
+            string nameSpace;
+            string dataProviderName;
+            string validtimeConfig;
+            string dataproviderConfig;
+            string valueparameterConfig;
+            string levelparameterConfig;
+            string leveladditionsConfig;
+            string valueparameter2Config;
+            string levelparameter2Config;
+            string leveladditions2Config;
+            string fimexConfig;
+            string fimexTemplate;
+            string fimexInterpolateMethod;
+            string fimexProcessRotateVectorToLatLonX;
+            string fimexProcessRotateVectorToLatLonY;
+            string stations;
 //            std::string fimexReduceSouth;
 //            std::string fimexReduceNorth;
 //            std::string fimexReduceEast;

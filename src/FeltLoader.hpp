@@ -80,16 +80,9 @@ namespace wdb { namespace load { namespace point {
         void loadInterpolated(const string& fileName);
 
         std::string dataProviderName(const felt::FeltField& field);
-        boost::posix_time::ptime referenceTime(const felt::FeltField & field);
-        boost::posix_time::ptime validTimeFrom(const felt::FeltField & field);
-        boost::posix_time::ptime validTimeTo(const felt::FeltField & field);
         std::string valueParameterName(const felt::FeltField & field);
         std::string valueParameterUnit(const felt::FeltField & field);
         void levelValues( std::vector<wdb::load::Level>& levels, const felt::FeltField& field);
-        int dataVersion(const felt::FeltField & field);
-
-        // Conversion Hash Map - Value Parameter
-        CfgFileReader point2ValidTime_;
     };
 
 } } }  // end namespaces

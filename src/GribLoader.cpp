@@ -100,6 +100,18 @@ namespace wdb { namespace load { namespace point {
     GribLoader::GribLoader(Loader& controller)
         : FileLoader(controller)
     {
+        setup();
+    }
+
+    GribLoader::~GribLoader()
+    {
+        // NOOP
+    }
+
+    void GribLoader::setup()
+    {
+        FileLoader::setup();
+
         if(options().loading().valueparameter2Config.empty())
             throw std::runtime_error("Can't open valueparameter2.config file [empty string?]");
         if(options().loading().levelparameter2Config.empty())
@@ -111,11 +123,6 @@ namespace wdb { namespace load { namespace point {
         point2ValueParameter2_.open(getConfigFile(options().loading().valueparameter2Config).file_string());
         point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).file_string());
         point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).file_string());
-    }
-
-    GribLoader::~GribLoader()
-    {
-        // NOOP
     }
 
     void GribLoader::loadInterpolated(const string& fileName)
@@ -175,7 +182,7 @@ namespace wdb { namespace load { namespace point {
         loadWindEntries();
     }
 
-    std::string GribLoader::dataProviderName(const GribField & field) const
+    string GribLoader::dataProviderName(const GribField & field) const
     {
         stringstream keyStr;
         keyStr << field.getGeneratingCenter() << ", "
@@ -192,7 +199,7 @@ namespace wdb { namespace load { namespace point {
         }
     }
 
-    std::string GribLoader::valueParameterName(const GribField & field) const
+    string GribLoader::valueParameterName(const GribField & field) const
     {
         stringstream keyStr;
         std::string ret;
@@ -228,7 +235,7 @@ namespace wdb { namespace load { namespace point {
         return ret;
     }
 
-    std::string GribLoader::valueParameterUnit(const GribField & field) const
+    string GribLoader::valueParameterUnit(const GribField & field) const
     {
         stringstream keyStr;
         std::string ret;

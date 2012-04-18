@@ -73,6 +73,7 @@ namespace wdb { namespace load { namespace point {
 
     protected:
         virtual void loadInterpolated(const string& fileName) = 0;
+        virtual void setup();
         virtual void loadEntries();
         virtual void loadWindEntries();
         virtual bool openCDM(const std::string& file);

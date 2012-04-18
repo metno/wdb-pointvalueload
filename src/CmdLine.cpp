@@ -63,6 +63,7 @@ namespace
         options_description input("Point Loading");
         input.add_options()
         ( "placenamespaceid", value(& out.nameSpace), "Specify a non-default namespace. ")
+        ( "dataprovidername", value(& out.dataProviderName), "Specify a non-default namespace. ")
         ( "validtime.config", value(& out.validtimeConfig), "Specify path to validtime configuration file")
         ( "dataprovider.config", value(& out.dataproviderConfig), "Specify path to dataprovider configuration file")
         ( "valueparameter.config", value(& out.valueparameterConfig), "Specify path to valueparameter [FELT/GRIB1] configuration file")

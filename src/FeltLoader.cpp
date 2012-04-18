@@ -100,11 +100,7 @@ namespace wdb { namespace load { namespace point {
     FeltLoader::FeltLoader(Loader& controller)
         : FileLoader(controller)
     {
-
-        if(options().loading().validtimeConfig.empty())
-            throw std::runtime_error("Can't open validtime.config file [empty string?]");
-
-        point2ValidTime_.open(getConfigFile(options().loading().validtimeConfig).file_string());
+        setup();
     }
 
     FeltLoader::~FeltLoader()
@@ -167,59 +163,7 @@ namespace wdb { namespace load { namespace point {
         return ret;
     }
 
-    boost::posix_time::ptime FeltLoader::referenceTime(const felt::FeltField & field)
-    {
-        return field.referenceTime();
-    }
-
-    boost::posix_time::ptime FeltLoader::validTimeFrom(const felt::FeltField & field)
-    {
-        stringstream keyStr;
-        keyStr << field.parameter();
-        std::string modifier;
-        try {
-            modifier = point2ValidTime_[keyStr.str()];
-        } catch ( std::out_of_range & e ) {
-            return field.validTime();
-        }
-        // Infinite Duration
-        if( modifier == "infinite" ) {
-            return boost::posix_time::neg_infin;
-        } else {
-            if( modifier == "referencetime" ) {
-                return field.referenceTime();
-            } else {
-                std::istringstream duration(modifier);
-                int hour, minute, second;
-                char dummy;
-                duration >> hour >> dummy >> minute >> dummy >> second;
-                boost::posix_time::time_duration period(hour, minute, second);
-                boost::posix_time::ptime ret = field.validTime() + period;
-                return ret;
-            }
-        }
-    }
-
-    boost::posix_time::ptime FeltLoader::validTimeTo(const felt::FeltField & field)
-    {
-        stringstream keyStr;
-        keyStr << field.parameter();
-        std::string modifier;
-        try {
-            modifier = point2ValidTime_[ keyStr.str() ];
-        } catch ( std::out_of_range & e ) {
-            return field.validTime();
-        }
-        // Infinite Duration
-        if ( modifier == "infinite" ) {
-            return boost::posix_time::pos_infin;
-        } else {
-            // For everything else...
-            return field.validTime();
-        }
-    }
-
-    std::string FeltLoader::valueParameterName(const felt::FeltField & field)
+    string FeltLoader::valueParameterName(const felt::FeltField & field)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointFeltLoader.valueparametername" );
         stringstream keyStr;
@@ -240,7 +184,7 @@ namespace wdb { namespace load { namespace point {
         return ret;
     }
 
-    std::string FeltLoader::valueParameterUnit(const felt::FeltField & field)
+    string FeltLoader::valueParameterUnit(const felt::FeltField & field)
     {
         stringstream keyStr;
         keyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << field.level1();
@@ -333,11 +277,5 @@ namespace wdb { namespace load { namespace point {
             throw wdb::ignore_value( "No valid level key values found for " + key.str());
         }
     }
-
-    int FeltLoader::dataVersion(const felt::FeltField & field)
-    {
-        return field.dataVersion();
-    }
-
 
 } } } // end namespaces

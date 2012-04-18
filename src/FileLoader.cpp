@@ -90,6 +90,16 @@ namespace wdb { namespace load { namespace point {
     FileLoader::FileLoader(Loader& controller)
         : controller_(controller)
     {
+
+    }
+
+    FileLoader::~FileLoader()
+    {
+        // NOOP
+    }
+
+    void FileLoader::setup()
+    {
         if(options().loading().validtimeConfig.empty())
             throw runtime_error("Can't open validtime.config file [empty string?]");
         if(options().loading().dataproviderConfig.empty())
@@ -107,26 +117,24 @@ namespace wdb { namespace load { namespace point {
         point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
     }
 
-    FileLoader::~FileLoader()
-    {
-        // NOOP
-    }
-
     bool FileLoader::openCDM(const string& fileName)
     {
         string fType = options().input().type;
         string fimexConfig = options().loading().fimexConfig;
 
-        if(fimexConfig.empty())
-            throw runtime_error(" Can't open fimex reader configuration file!");
-
-        if(!boost::filesystem::exists(fimexConfig))
-            throw runtime_error(" Fimex configuration file: " + fimexConfig + " doesn't exist!");
+        if(fType == "felt" or fType == "grib") {
+            if(fimexConfig.empty())
+                throw runtime_error(" Can't open fimex reader configuration file (must have for FELT/GRIB formats)!");
+            if(!boost::filesystem::exists(fimexConfig))
+                throw runtime_error(" Fimex configuration file: " + fimexConfig + " doesn't exist!");
+        }
 
         if(fType == "felt")
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_FELT, fileName, fimexConfig);
         else if(fType == "grib")
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_GRIB, fileName, fimexConfig);
+        else if(fType == "netcdf")
+            cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
         else
             throw runtime_error("Unknow file type!");
 
@@ -430,7 +438,8 @@ namespace wdb { namespace load { namespace point {
                                 // match wdbIndex to index in fimex data
                                 MetNoFimex::CDMVariable fimexLevelVar = cdmRef.getVariable(fimexlevelname);
                                 fimexLevelLength = cdmRef.getDimension(fimexlevelname).getLength();
-                                boost::shared_array<double> fimexLevels = fimexLevelVar.getData()->asDouble();
+                                boost::shared_ptr<Data> levelData = cdmData_->getData(fimexLevelVar.getName());
+                                boost::shared_array<double> fimexLevels = levelData->asDouble();
                                 for(size_t index = 0; index < fimexLevelLength; ++ index) {
                                     if(wdbLevel == fimexLevels[index]) {
                                         fimexLevelIndex = index;
