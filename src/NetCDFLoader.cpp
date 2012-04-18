@@ -134,7 +134,7 @@ namespace wdb { namespace load { namespace point {
             keyStr << "any" << ", " << "any";
             ret = point2DataProviderName_[keyStr.str()];
         } else {
-            ret = options().loading().dataProviderName.empty();
+            ret = options().loading().dataProviderName;
         }
 
         return ret;
