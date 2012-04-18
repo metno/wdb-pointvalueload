@@ -1,15 +1,41 @@
-wdb-pointload (1.0.3-ubuntu1) experimental lucid; urgency=low
+wdb-pointload (1.0.6-ubuntu1)  lucid; urgency=low
+
+  * Fixing changelog
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Mon, 16 Apr 2012 12:00:00 +0100
+wdb-pointload (1.0.5-ubuntu1)  lucid; urgency=low
+
+  * cmd line argument --version works properly
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Mon, 16 Apr 2012 11:00:00 +0100
+wdb-pointload (1.0.4-ubuntu1)  lucid; urgency=low
+
+  * lots of common code from Felt/GribLoader moved to FileLoader
+
+  * winds are handled properly and in radians (SI units)
+
+  * calculating wind speed and wind from direction for GRIB files
+
+  * wind speed and wind from direction are loaded in wdb
+
+  * instead of respective u and v componenets in FELT files
+
+  * winds are rotated to zonal and meridian velocity
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Mon, 16 Apr 2012 10:00:00 +0100
+wdb-pointload (1.0.3-ubuntu1)  lucid; urgency=low
 
   * fimex.interpolate.method cmd arg added
+
   * some classes have been refactored
 
- -- Aleksandar Babic <aleksandarb@met.no> Tue, 22 Mar 2012 10:00:00 +0100
-wdb-pointload (1.0.2-ubuntu1) experimental lucid; urgency=low
+ -- Aleksandar Babic <aleksandarb@met.no>  Tue, 22 Mar 2012 10:00:00 +0100
+wdb-pointload (1.0.2-ubuntu1)  lucid; urgency=low
 
   * man page added, and new fastload dataprovider format supported
 
- -- Aleksandar Babic <aleksandarb@met.no> Tue, 20 Mar 2012 10:00:00 +0100
-wdb-pointload (1.0.0-ubuntu1) experimental lucid; urgency=low
+ -- Aleksandar Babic <aleksandarb@met.no>  Tue, 20 Mar 2012 10:00:00 +0100
+wdb-pointload (1.0.0-ubuntu1)  lucid; urgency=low
 
   * Initial build
 
