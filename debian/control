@@ -2,14 +2,14 @@ Source: wdb-pointload
 Section: science
 Priority: optional
 Maintainer: Norwegian Meteorological Institute <aleksandarb@met.no>
-Build-Depends: debhelper (>=7.0.50~), autotools-dev, libfimex-dev, libgrib-api-dev, libwdbload1
+Build-Depends: debhelper (>=7.0.50~), autotools-dev
 Build-Conflicts: autoconf2.13, automake1.4
 Standards-Version: 3.9.1
 Homepage: http://www.met.no
 
 Package: wdb-pointload
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libfimex-dev, libgrib-api-dev, libwdbload1
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Load point data from FELT/GRIB files into wdb
  A loader program for transferring forecasts for pints (not gridded data) 
  from FELT/GRIB files into a wdb database
