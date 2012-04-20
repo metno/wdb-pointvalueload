@@ -46,8 +46,6 @@ namespace wdb { namespace load { namespace point {
 
     class Loader;
     class WdbLogHandler;
-    class GribFile;
-    class GribField;
 
     struct EntryToLoad {
         string name_;
@@ -88,13 +86,6 @@ namespace wdb { namespace load { namespace point {
         const set<string>& stations2load() { return controller_.stations2load(); }
         std::map<std::string, EntryToLoad>& entries2load()  {return entries2Load_; }
 
-        int editionNumber(const GribField & field) const;
-        string dataProviderName(const GribField& field) const;
-        string valueParameterName( const GribField & field ) const;
-        string valueParameterUnit( const GribField & field ) const;
-        void levelValues(vector<wdb::load::Level> & levels, const GribField & field );
-        int dataVersion(const GribField & field) const;
-        int confidenceCode(const GribField & field) const;
         vector<string>& uwinds() { return uWinds_; }
         vector<string>& vwinds() { return vWinds_; }
 
