@@ -107,11 +107,25 @@ namespace wdb { namespace load { namespace point {
             throw runtime_error("Can't open levelparameter.config file [empty string?]");
         if(options().loading().leveladditionsConfig.empty())
             throw runtime_error("Can't open leveladditions.config file [empty string?]");
+        if(options().loading().unitsConfig.empty())
+            throw runtime_error("Can't open units.config file [empty string?]");
 
         point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).file_string());
         point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
         point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
         point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
+        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
+    }
+
+    void FileLoader::readUnit(const string& unitname, float& coeff, float& term)
+    {
+        string ret = point2ValueParameter_[unitname];
+
+        vector<string> strs;
+        boost::split(strs, ret, boost::is_any_of(","));
+
+        coeff = boost::lexical_cast<float>(strs.at(0));
+        term = boost::lexical_cast<float>(strs.at(1));
     }
 
     bool FileLoader::openCDM(const string& fileName)
@@ -490,37 +504,19 @@ namespace wdb { namespace load { namespace point {
                                     string validtime = times()[u];
 
                                     try {
+                                        cout << value            << "\t"
+                                             << placename        << "\t"
+                                             << strReferenceTime << "\t"
+                                             << validtime        << "\t"
+                                             << validtime        << "\t"
+                                             << wdbstandardname     << "\t"
+                                             << entry.levelname_ << "\t"
+                                             << wdbLevel         << "\t"
+                                             << wdbLevel         << "\t"
+                                             << version          << "\t"
+                                             << epsMaxVersion
+                                             << endl;
 
-                                        if(options().output().dry_run) {
-                                                cout << value            << "\t"
-                                                          << placename        << "\t"
-                                                          << strReferenceTime << "\t"
-                                                          << validtime        << "\t"
-                                                          << validtime        << "\t"
-                                                          << wdbstandardname     << "\t"
-                                                          << entry.levelname_ << "\t"
-                                                          << wdbLevel         << "\t"
-                                                          << wdbLevel         << "\t"
-                                                          << version          << "\t"
-                                                          << epsMaxVersion
-                                                          << endl;
-
-                                        } else {
-
-                                                wdbConnection().write(
-                                                                      value,
-                                                                      dataprovider,
-                                                                      placename,
-                                                                      strReferenceTime,
-                                                                      validtime,
-                                                                      validtime,
-                                                                      wdbstandardname,
-                                                                      entry.levelname_,
-                                                                      wdbLevel,
-                                                                      wdbLevel,
-                                                                      version
-                                                                     );
-                                        }
 
                                     } catch ( exception & e ) {
                                         cerr << e.what() << " Data field not loaded." << endl;
