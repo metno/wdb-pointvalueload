@@ -45,7 +45,6 @@
 #include <fimex/CDMFileReaderFactory.h>
 
 // wdb
-#include <wdbLogHandler.h>
 #include <wdb/LoaderConfiguration.h>
 
 // boost
@@ -109,31 +108,11 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    wdb::WdbLogHandler logHandler(cmdLine.logging().loglevel, cmdLine.logging().logfile);
-    WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.main" );
-    log.debug( "Starting feltLoad" );
-
-    // Get list of files
-//    const vector<string> & file = cmdLine.input().file;
-//    vector<boost::filesystem::path> files;
-//    copy(file.begin(), file.end(), back_inserter(files));
+    std::cout << "Starting feltLoad" << std::endl;
 
     try {
-//        wdb::load::point::DBConnection dbConnection(cmdLine);
-//        wdb::load::point::FeltLoader loader(dbConnection, cmdLine);
         wdb::load::point::Loader loader(cmdLine);
         loader.load();
-//        for(vector<boost::filesystem::path>::const_iterator it = files.begin(); it != files.end(); ++ it)
-//        {
-//            try {
-//                felt::FeltFile feltFile(* it);
-//                loader.load(feltFile);
-//                std::cerr<<__FILE__<<"|"<<__FUNCTION__<<"|"<<__LINE__<<": CHECK"<<std::endl;
-//            } catch (exception& e) {
-//                std::cerr << "Unable to load file " << it->native_file_string();
-//                std::cerr << "Reason: " << e.what();
-//            }
-//        }
     } catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;
