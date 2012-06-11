@@ -12,7 +12,6 @@ pointLoad_SOURCES =  src/main.cpp \
 					 src/GribGridDefinition.cpp \
 					 src/GribFile.cpp \
 					 src/GribHandleReader.cpp \
-					 src/WdbConnection.cpp \
                      src/FileLoader.cpp \
 					 src/NetCDFLoader.cpp \
 					 src/CmdLine.hpp \
@@ -24,8 +23,6 @@ pointLoad_SOURCES =  src/main.cpp \
 					 src/GribGridDefinition.hpp \
 					 src/GribFile.hpp \
 					 src/GribHandleReader.hpp \
-					 src/WciTransactors.hpp \
-					 src/WdbConnection.hpp \
                      src/FileLoader.hpp \
 					 src/NetCDFLoader.hpp
 
