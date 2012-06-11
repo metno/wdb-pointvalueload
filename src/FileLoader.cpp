@@ -45,9 +45,6 @@
 #include <fimex/CDMInterpolator.h>
 #include <fimex/CDMFileReaderFactory.h>
 
-// wdb
-#include <wdbException.h>
-
 // boost
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -525,10 +522,6 @@ namespace wdb { namespace load { namespace point {
                                                                      );
                                         }
 
-                                    } catch ( wdb::ignore_value &e ) {
-                                        cerr << e.what() << " Data field not loaded."<< endl;
-                                    } catch ( out_of_range &e ) {
-                                        cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << endl;
                                     } catch ( exception & e ) {
                                         cerr << e.what() << " Data field not loaded." << endl;
                                     }
