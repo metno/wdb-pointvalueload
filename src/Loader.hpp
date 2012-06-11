@@ -29,6 +29,10 @@
 #ifndef POINTLOADER_H_
 #define POINTLOADER_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // project
 #include "CmdLine.hpp"
 #include "WdbConnection.hpp"
