@@ -32,7 +32,6 @@
 
 // wdb
 #include <wdbException.h>
-#include <wdbLogHandler.h>
 
 // libpqxx
 #include <pqxx/transactor>
@@ -75,8 +74,7 @@ public:
 
         query << ')';
         pqxx::result R = T.exec(query.str());
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.load.beginwci" );
-        log.infoStream() << query.str();
+        std::clog << query.str() << std::endl;
     }
 
     /**
@@ -84,8 +82,7 @@ public:
       */
     void on_commit()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.load.beginwci" );
-        log.infoStream() << "wci.begin call complete";
+        std::clog << "wci.begin call complete" << std::endl;
     }
 
     /**
@@ -94,9 +91,7 @@ public:
       */
     void on_abort(const char Reason[]) throw ()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.load.beginwci" );
-        log.errorStream() << "Transaction " << Name() << " failed "
-                          << Reason;
+        std::cerr << "Transaction " << Name() << " failed " << Reason << std::endl;
     }
 
     /**
@@ -105,8 +100,7 @@ public:
       */
     void on_doubt() throw ()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.load.beginwci" );
-        log.errorStream() << "Transaction " << Name() << " in indeterminate state";
+        std::cerr << "Transaction " << Name() << " in indeterminate state" << std::endl;
     }
 
 private:
@@ -195,9 +189,7 @@ public:
       */
     virtual void on_commit()
     {
-        // Log
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.baseload" );
-        log.infoStream() << "Value inserted in database";
+        std::clog << "Value inserted in database" << std::endl;
     }
 
     /**
@@ -206,8 +198,7 @@ public:
       */
     virtual void on_abort(const char Reason[]) throw ()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.baseload" );
-        log.warnStream()  << "Transaction " << Name()
+        std::clog  << "Transaction " << Name()
                           << " failed while trying wci.write ( "
                           << value_ <<", "
                           << placeName_ << ", "
@@ -218,7 +209,7 @@ public:
                           << levelParameterName_ << ", "
                           << levelFrom_ << ", "
                           << levelTo_ << ")"
-                          << "   Reason    " << Reason;
+                          << "   Reason    " << Reason << std::endl;
     }
 
     /**
@@ -227,8 +218,7 @@ public:
       */
     virtual void on_doubt() throw ()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.baseload" );
-        log.warnStream() << "Transaction " << Name() << " in indeterminate state";
+        std::clog << "Transaction " << Name() << " in indeterminate state" << std::endl;
     }
 
 protected:
@@ -294,8 +284,8 @@ protected:
           */
         virtual void on_abort(const char Reason[]) throw ()
         {
-            WDB_LOG & log = WDB_LOG::getInstance( "wdb.baseload" );
-            log.warnStream()  << "Transaction " << Name()
+
+            std::clog  << "Transaction " << Name()
                               << " failed while trying wci.write ( "
                               << value_ <<", "
                               << dataProvider_<<", "
@@ -308,7 +298,7 @@ protected:
                               << levelFrom_ << ", "
                               << levelTo_ << ", "
                               << dataVersion_ << ")"
-                              << "   Reason    " << Reason;
+                              << "   Reason    " << Reason << std::endl;
         }
         void operator()(argument_type &T)
         {
@@ -358,13 +348,12 @@ protected:
              */
             void operator()(argument_type &T)
             {
-                    WDB_LOG & log = WDB_LOG::getInstance( "wdb.loaderBase.unit" );
-                    log.debugStream() << "Checking unit conversion information for: " << unit_;
+                    std::clog << "Checking unit conversion information for: " << unit_ << std::endl;
                     R = T.prepared("InfoParameterUnit")
                                               (unit_).exec();
                     if ( R.size() == 1 ) {
                             if ( R.at(0).at(4).is_null() ) {
-                                    log.debugStream() << "Did not find any conversion data for " << unit_ ;
+                                    std::clog << "Did not find any conversion data for " << unit_ << std::endl;
                             }
                             else {
                                     R.at(0).at(4).to( *coeff_ );
@@ -372,7 +361,7 @@ protected:
                             }
                     }
                     if ( R.size() != 1 ) {
-                            log.errorStream() << "Problem finding unit data for " << unit_ << ". " << R.size() << " rows returned";
+                            std::cerr << "Problem finding unit data for " << unit_ << ". " << R.size() << " rows returned" << std::endl;
                     throw std::runtime_error("Transaction InfoParameterUnit did not return correct number of values. This suggests an error in the metadata.");
                     }
             }
@@ -391,9 +380,7 @@ protected:
              */
             void on_abort(const char Reason[]) throw ()
             {
-                    WDB_LOG & log = WDB_LOG::getInstance( "wdb.loaderBase.unit" );
-                    log.errorStream() << "Transaction " << Name() << " failed "
-                                                      << Reason;
+                    std::cerr << "Transaction " << Name() << " failed " << Reason << std::endl;
             }
 
             /**
@@ -402,8 +389,7 @@ protected:
              */
             void on_doubt() throw ()
             {
-                    WDB_LOG & log = WDB_LOG::getInstance( "wdb.loaderBase.unit" );
-                    log.errorStream() << "Transaction " << Name() << " in indeterminate state";
+                std::cerr << "Transaction " << Name() << " in indeterminate state" << std::endl;
             }
 
     private:
@@ -412,7 +398,7 @@ protected:
             // Term
             float * term_;
             /// The result returned by the query
-        pqxx::result R;
+            pqxx::result R;
             /// Value unit
             std::string unit_;
 

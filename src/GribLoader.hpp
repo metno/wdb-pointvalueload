@@ -37,7 +37,6 @@
 #include "WdbConnection.hpp"
 
 // wdb
-#include <wdbLogHandler.h>
 #include <wdb/WdbLevel.h>
 #include <WdbConfigFile.h>
 #include <wdb/LoaderConfiguration.h>
@@ -68,7 +67,6 @@ namespace MetNoFimex {
 namespace wdb { namespace load { namespace point {
 
     class Loader;
-    class WdbLogHandler;
     class GribFile;
     class GribField;
 

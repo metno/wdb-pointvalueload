@@ -33,10 +33,6 @@
 // project
 #include "CfgFileReader.hpp"
 
-// wdb 
-#include <wdbLogHandler.h>
-#include <wdbException.h>
-
 // SYSTEM INCLUDES
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/regex.hpp>
@@ -87,11 +83,10 @@ namespace wdb { namespace load { namespace point {
     {
             if ( configTable_.end() != configTable_.find( key ) ) {
                     return configTable_.find( key )->second;
-            }
-            else {
+            } else {
                     std::string notkey = "! " + key;
                     if ( configTable_.end() != configTable_.find( notkey ) ) {
-                            throw wdb::ignore_value( std::string("Key value " + key + " is ignored." ) );
+                            throw std::runtime_error( std::string("Key value " + key + " is ignored." ) );
                     }
                     else {
                             throw std::out_of_range( std::string("Key value " + key + " is not defined in configuration file." ) );
