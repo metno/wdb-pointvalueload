@@ -445,6 +445,9 @@ namespace wdb { namespace load { namespace point {
                             continue;
                         }
 
+                        std:stringstream wkt;
+                        wkt <<  "point" << "(" << controller_.longitudes()[i * fimexXDimLength + j] << " " << controller_.latitudes()[i * fimexXDimLength + j] << ")";
+
                         for(set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
                             size_t wdbLevel = *lIt;
                             size_t fimexLevelIndex = 0;
@@ -510,7 +513,7 @@ namespace wdb { namespace load { namespace point {
                                     try {
 
                                                 cout << value            << "\t"
-                                                          << placename        << "\t"
+                                                          << wkt.str()        << "\t"
                                                           << strReferenceTime << "\t"
                                                           << validtime        << "\t"
                                                           << validtime        << "\t"

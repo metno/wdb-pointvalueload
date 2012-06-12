@@ -182,14 +182,29 @@ void Loader::load()
 
         const MetNoFimex::CDM& cdmRef = cdmTemplate_->getCDM();
         const std::string stationIdVarName("stationid");
-
+        const std::string latVarName("latitude");
+        const std::string lonVarName("longitude");
         assert(cdmRef.hasVariable(stationIdVarName));
+        assert(cdmRef.hasVariable(latVarName));
+        assert(cdmRef.hasVariable(lonVarName));
 
         pointids_ = cdmTemplate_->getData(stationIdVarName)->asUInt();
         unsigned int* sIt = &pointids_[0];
         unsigned int* eIt = &pointids_[cdmTemplate_->getData(stationIdVarName)->size()];
         for(; sIt!=eIt; ++sIt)
             placenames_.push_back(boost::lexical_cast<std::string>(*sIt));
+
+        boost::shared_array<float> lats_ = cdmTemplate_->getData(latVarName)->asFloat();
+        float* fsIt = &lats_[0];
+        float* feIt = &lats_[cdmTemplate_->getData(latVarName)->size()];
+        for(; fsIt!=feIt; ++fsIt)
+            latitudes_.push_back(*fsIt);
+
+        boost::shared_array<float> lons_ = cdmTemplate_->getData(lonVarName)->asFloat();
+        fsIt = &lons_[0];
+        feIt = &lons_[cdmTemplate_->getData(lonVarName)->size()];
+        for(; fsIt!=feIt; ++fsIt)
+            longitudes_.push_back(*fsIt);
 
         if(!options().loading().stations.empty()) {
             // there are selected stations to load
