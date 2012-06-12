@@ -52,7 +52,6 @@ namespace
     {
         options_description output( "Output" );
         output.add_options()
-        ( "dry-run", bool_switch(& out.dry_run), "List SQL commands instead of inserting into database" )
         ;
 
         return output;

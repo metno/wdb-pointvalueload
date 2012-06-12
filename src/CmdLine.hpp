@@ -50,7 +50,6 @@ namespace wdb { namespace load { namespace point {
 
         struct OutputOptions
         {
-            bool dry_run;
         };
 
         struct InputOptions
