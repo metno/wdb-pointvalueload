@@ -110,12 +110,27 @@ namespace wdb { namespace load { namespace point {
             throw runtime_error("Can't open levelparameter.config file [empty string?]");
         if(options().loading().leveladditionsConfig.empty())
             throw runtime_error("Can't open leveladditions.config file [empty string?]");
+        if(options().loading().unitsConfig.empty())
+            throw runtime_error("Can't open units.config file [empty string?]");
 
         point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).file_string());
         point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
         point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
         point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
+        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
     }
+
+    void FileLoader::readUnit(const string& unitname, float& coeff, float& term)
+    {
+        string ret = point2Units_[unitname];
+        vector<string> strs;
+        boost::split(strs, ret, boost::is_any_of("|"));
+        string c = strs.at(0); boost::algorithm::trim(c);
+        string t = strs.at(1); boost::algorithm::trim(t);
+        coeff = boost::lexical_cast<float>(c);
+        term = boost::lexical_cast<float>(t);
+     }
+
 
     bool FileLoader::openCDM(const string& fileName)
     {

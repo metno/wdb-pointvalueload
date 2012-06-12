@@ -78,6 +78,7 @@ namespace wdb { namespace load { namespace point {
         virtual bool processCDM();
         virtual bool interpolateCDM();
 
+        void readUnit(const string& unitname, float& coeff, float& term);
         const CmdLine& options() { return controller_.options(); }
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return controller_.cdmTemplate(); }
         const vector<string>& placenames() { return controller_.placenames(); }
@@ -104,6 +105,7 @@ namespace wdb { namespace load { namespace point {
         CfgFileReader point2LevelParameter_;
         /// Conversion Hash Map - Level Additions
         CfgFileReader point2LevelAdditions_;
+        CfgFileReader point2Units_;
 
         vector<string> uWinds_;
         vector<string> vWinds_;
