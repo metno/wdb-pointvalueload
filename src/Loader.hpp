@@ -31,7 +31,6 @@
 
 // project
 #include "CmdLine.hpp"
-#include "WdbConnection.hpp"
 
 // libfimex
 #include <fimex/CDMInterpolator.h>
@@ -62,7 +61,6 @@ namespace wdb { namespace load { namespace point {
         void load();
 
         const CmdLine& options() { return options_; }
-        WdbConnection& wdbConnection() {  return wdbConnection_;  }
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return cdmTemplate_; }
         const vector<string>& placenames() { return placenames_; }
         const set<string>& stations2load() { return ids2load_; }
@@ -74,7 +72,6 @@ namespace wdb { namespace load { namespace point {
         bool extractPointIds();
 
         const CmdLine& options_;
-        WdbConnection wdbConnection_;
 
         size_t interpolateMethod_;
 

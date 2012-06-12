@@ -50,7 +50,6 @@ namespace wdb { namespace load { namespace point {
 
         struct OutputOptions
         {
-            bool dry_run;
         };
 
         struct InputOptions
@@ -71,6 +70,7 @@ namespace wdb { namespace load { namespace point {
             string valueparameter2Config;
             string levelparameter2Config;
             string leveladditions2Config;
+            string unitsConfig;
             string fimexConfig;
             string fimexTemplate;
             string fimexInterpolateMethod;
