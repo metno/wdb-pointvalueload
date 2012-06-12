@@ -40,11 +40,10 @@
 #include "GribHandleReader.hpp"
 
 // wdb
+#include <wdbLogHandler.h>
 #include <WdbProjection.h>
 #include <GridGeometry.h>
-
 // SYSTEM INCLUDES
-#include <stdexcept>
 #include <boost/assign/list_of.hpp>
 #include <sstream>
 #include <iostream>
@@ -148,14 +147,14 @@ void GribGridDefinition::setup()
         throw std::runtime_error( errMsg.str() );
         break;
     }
-    
-    std::clog << "Creating geometry with ("
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.gribLoad.gribGridDefinition" );
+    log.debugStream() << "Creating geometry with ("
                                           << iNumber << ", "
                                           << jNumber << ", "
                                           << iIncrement << ", "
                                           << jIncrement << ", "
                                           << startI << ", "
-                                          << startJ << ")" << std::endl;
+                                          << startJ << ")";
     geometry_ = new GridGeometry(sridProj, o, iNumber, jNumber, iIncrement, jIncrement, startI, startJ );
 }
 
@@ -243,8 +242,9 @@ wmo::codeTable::ScanMode GribGridDefinition::getScanMode() const
 
 GribGridDefinition::grid_type GribGridDefinition::getGridType() const
 {
-    std::string gridType = gribHandleReader_.getString("gridType");
-    std::clog << "GridType is " << gridType << std::endl;
+        std::string gridType = gribHandleReader_.getString("gridType");
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.gribLoad.gribGridDefinition" );
+    log.debugStream() << "GridType is " << gridType;
 
     if (gridType == "regular_ll")
         return REGULAR_LONLAT;
@@ -258,7 +258,7 @@ GribGridDefinition::grid_type GribGridDefinition::getGridType() const
     if (gridType == "regular_gg")
         return REGULAR_GAUSSIAN;
 
-    std::clog << "Could not identify gridType: " << gridType << std::endl;
+    log.warnStream() << "Could not identify gridType: " << gridType;
     return UNDEFINED_GRID;
 }
 

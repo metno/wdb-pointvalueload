@@ -193,7 +193,8 @@ namespace wdb { namespace load { namespace point {
             return ret;
         }
         catch ( std::out_of_range &e ) {
-            std::cerr << "Could not identify the data provider." << std::endl;
+            WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
+            log.errorStream() << "Could not identify the data provider.";
             throw;
         }
     }
@@ -212,7 +213,8 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter." << std::endl;
+                WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
+                log.errorStream() << "Could not identify the value parameter.";
                 throw;
             }
         }
@@ -223,7 +225,8 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter2_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter." << std::endl;
+                WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
+                log.errorStream() << "Could not identify the value parameter.";
                 throw;
             }
         }
@@ -246,7 +249,8 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter identified by " << keyStr.str() << std::endl;
+                WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
+                log.errorStream() << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
@@ -257,7 +261,8 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter2_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter identified by " << keyStr.str() << std::endl;
+                WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
+                log.errorStream() << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
@@ -268,6 +273,7 @@ namespace wdb { namespace load { namespace point {
 
     void GribLoader::levelValues( std::vector<wdb::load::Level> & levels, const GribField & field )
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.grib.gribloader" );
         bool ignored = false;
         stringstream keyStr;
         std::string ret;
@@ -300,11 +306,11 @@ namespace wdb { namespace load { namespace point {
         }
         catch ( wdb::ignore_value &e )
         {
-            std::clog << e.what() << std::endl;
+            log.infoStream() << e.what();
             ignored = true;
         }
         catch ( std::out_of_range &e ) {
-            std::cerr << "Could not identify the level parameter identified by " << keyStr.str() << std::endl;
+            log.errorStream() << "Could not identify the level parameter identified by " << keyStr.str();
         }
         // Find additional level
         try {
@@ -339,7 +345,7 @@ namespace wdb { namespace load { namespace point {
         }
         catch ( wdb::ignore_value &e )
         {
-            std::clog << e.what() << std::endl;
+            log.infoStream() << e.what();
         }
         catch ( std::out_of_range &e )
         {
