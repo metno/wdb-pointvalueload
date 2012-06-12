@@ -189,7 +189,7 @@ namespace wdb { namespace load { namespace point {
             boost::trim(levelUnit);
             float coeff = 1.0;
             float term = 0.0;
-            wdbConnection().readUnit( levelUnit, &coeff, &term );
+            //wdbConnection().readUnit( levelUnit, &coeff, &term );
         } catch ( wdb::ignore_value &e ) {
             cerr<< e.what()<<endl;
         }

@@ -294,7 +294,7 @@ namespace wdb { namespace load { namespace point {
             boost::trim( levelUnit );
             float coeff = 1.0;
             float term = 0.0;
-            wdbConnection().readUnit( levelUnit, &coeff, &term );
+            //wdbConnection().readUnit( levelUnit, &coeff, &term );
             float lev1 = field.getLevelFrom();
             float lev2 = field.getLevelTo();
             if ( ( coeff != 1.0 )&&( term != 0.0) ) {

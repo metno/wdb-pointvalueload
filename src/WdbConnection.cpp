@@ -94,16 +94,6 @@ namespace wdb { namespace load { namespace point {
         perform(wdb::load::point::WciBegin(dataProvider), 1);
     }
 
-    void WdbConnection::readUnit(const std::string & unit, float * coeff, float * term)
-    {
-        try {
-            perform(InfoParameterUnit( coeff, term, unit ), 1);
-        } catch (const std::exception &e) {
-            // All exceptions thrown by libpqxx are derived from std::exception
-            throw e;
-        }
-    }
-
     void WdbConnection::setup_()
     {
         prepare("InfoParameterUnit",

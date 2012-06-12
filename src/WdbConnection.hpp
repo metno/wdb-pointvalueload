@@ -45,8 +45,6 @@ namespace wdb { namespace load { namespace point {
 
         void wcibegin(const std::string& dataProvider);
 
-        void readUnit( const std::string & unit, float * coeff, float * term );
-
         void write(
                 const float value,
                 const std::string& placeName,
