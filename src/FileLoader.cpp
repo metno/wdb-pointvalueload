@@ -494,7 +494,6 @@ namespace wdb { namespace load { namespace point {
 
                                     try {
 
-                                        if(options().output().dry_run) {
                                                 cout << value            << "\t"
                                                           << placename        << "\t"
                                                           << strReferenceTime << "\t"
@@ -507,23 +506,6 @@ namespace wdb { namespace load { namespace point {
                                                           << version          << "\t"
                                                           << epsMaxVersion
                                                           << endl;
-
-                                        } else {
-
-                                                wdbConnection().write(
-                                                                      value,
-                                                                      dataprovider,
-                                                                      placename,
-                                                                      strReferenceTime,
-                                                                      validtime,
-                                                                      validtime,
-                                                                      wdbstandardname,
-                                                                      entry.levelname_,
-                                                                      wdbLevel,
-                                                                      wdbLevel,
-                                                                      version
-                                                                     );
-                                        }
 
                                     } catch ( wdb::ignore_value &e ) {
                                         cerr << e.what() << " Data field not loaded."<< endl;

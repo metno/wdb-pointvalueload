@@ -34,7 +34,6 @@
 #include "FileLoader.hpp"
 #include "CmdLine.hpp"
 #include "CfgFileReader.hpp"
-#include "WdbConnection.hpp"
 
 // wdb
 #include <wdbLogHandler.h>

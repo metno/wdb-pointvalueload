@@ -34,7 +34,6 @@
 #include "FileLoader.hpp"
 #include "CmdLine.hpp"
 #include "CfgFileReader.hpp"
-#include "WdbConnection.hpp"
 
 using namespace std;
 
@@ -80,7 +79,6 @@ namespace wdb { namespace load { namespace point {
         virtual bool interpolateCDM();
 
         const CmdLine& options() { return controller_.options(); }
-        WdbConnection& wdbConnection() {  return controller_.wdbConnection();  }
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return controller_.cdmTemplate(); }
         const vector<string>& placenames() { return controller_.placenames(); }
         const set<string>& stations2load() { return controller_.stations2load(); }

@@ -32,7 +32,6 @@
 
 // project
 #include "NetCDFLoader.hpp"
-#include "WciTransactors.hpp"
 
 // wdb
 #include <GridGeometry.h>

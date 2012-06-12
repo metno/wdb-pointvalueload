@@ -64,7 +64,7 @@ using namespace std;
 namespace wdb { namespace load { namespace point {
 
 Loader::Loader(const CmdLine& cmdLine)
-    : options_(cmdLine), wdbConnection_(cmdLine, cmdLine.loading().nameSpace),
+    : options_(cmdLine),
       northBound_(90.0), southBound_(-90.0), westBound_(-180.0), eastBound_(180.0)
 {
     // check interpolation method

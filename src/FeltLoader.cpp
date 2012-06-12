@@ -33,7 +33,6 @@
 // project
 #include "Loader.hpp"
 #include "FeltLoader.hpp"
-//#include "WciTransactors.hpp"
 
 // wdb
 #include <GridGeometry.h>
