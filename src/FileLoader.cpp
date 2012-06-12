@@ -33,6 +33,9 @@
 // project
 #include "FileLoader.hpp"
 
+// wdb
+#include <wdbException.h>
+
 // libfimex
 #include <fimex/CDM.h>
 #include <fimex/CDMReader.h>
@@ -119,13 +122,18 @@ namespace wdb { namespace load { namespace point {
 
     void FileLoader::readUnit(const string& unitname, float& coeff, float& term)
     {
-        string ret = point2ValueParameter_[unitname];
-
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
+        string ret = point2Units_[unitname];
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
         vector<string> strs;
-        boost::split(strs, ret, boost::is_any_of(","));
-
-        coeff = boost::lexical_cast<float>(strs.at(0));
-        term = boost::lexical_cast<float>(strs.at(1));
+        boost::split(strs, ret, boost::is_any_of("|"));
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << " CHECK POINT " << "strs.at(0): " << strs.at(0) << std::endl;
+//        coeff = boost::lexical_cast<float>(strs.at(0));
+        coeff = 1;
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << " CHECK POINT " << "strs.at(1): " << strs.at(1) << std::endl;
+        //term = boost::lexical_cast<float>(strs.at(1));
+        term = 0;
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
     }
 
     bool FileLoader::openCDM(const string& fileName)
@@ -358,16 +366,20 @@ namespace wdb { namespace load { namespace point {
             epsMaxVersion = realizations[epsLength - 1];
         }
 
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
         const string strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
 
         for(map<string, EntryToLoad>::const_iterator it = entries2load().begin(); it != entries2load().end(); ++it)
         {
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
             const EntryToLoad& entry(it->second);
             string wdbUnit = entry.unit_;
             if(dataprovider != entry.provider_) {
                 dataprovider = entry.provider_;
                 cout << dataprovider<<endl;
             }
+
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
 
             cerr << " LOADING param: " << entry.name_ << " in units: "<<entry.unit_<<endl;
 
@@ -380,14 +392,18 @@ namespace wdb { namespace load { namespace point {
                 string fimexstandardname(entry.name_);
                 string wdbstandardname(entry.name_);
 
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
+
                 if(entry.data_.get() == 0) {
                     boost::algorithm::replace_all(fimexstandardname, " ", "_");
                     vector<string> variables = cdmRef.findVariables("standard_name", fimexstandardname);
                     if(variables.empty()) {
                         cerr << "cant find vars for fimexstandardname: " << fimexstandardname << endl;
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
                         continue;
                     } else if(variables.size() > 1) {
                         cerr << "several vars for fimexstandardname: " << fimexstandardname << endl;
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
                         continue;
                     }
                     const MetNoFimex::CDMVariable fimexVar = cdmRef.getVariable(variables[0]);
@@ -410,8 +426,10 @@ namespace wdb { namespace load { namespace point {
                        throw runtime_error("lat and lon not defined for fimexvarname");
 
                     boost::shared_ptr<MetNoFimex::Data> raw = cdmData_->getScaledDataInUnit(fimexVar.getName(), wdbUnit);
-                    if(raw->size() == 0)
+                    if(raw->size() == 0) {
                         continue;
+        std::cerr << __FUNCTION__ << "  " << __LINE__ << "CHECK POINT" << std::endl;
+                    }
 
                     values = raw->asDouble();
 
@@ -518,6 +536,10 @@ namespace wdb { namespace load { namespace point {
                                              << endl;
 
 
+                                    } catch ( wdb::ignore_value &e ) {
+                                        cerr << e.what() << " Data field not loaded."<< endl;
+                                    } catch ( out_of_range &e ) {
+                                        cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << endl;
                                     } catch ( exception & e ) {
                                         cerr << e.what() << " Data field not loaded." << endl;
                                     }
