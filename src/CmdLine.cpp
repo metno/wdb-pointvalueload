@@ -71,6 +71,7 @@ namespace
         ( "valueparameter2.config", value(& out.valueparameter2Config), "Specify path to valueparameter [GRIB2] configuration file")
         ( "levelparameter2.config", value(& out.levelparameter2Config), "Specify path to levelparameter [GRIB2] configuration file")
         ( "leveladditions2.config", value(& out.leveladditions2Config), "Specify path to leveladditiond [GRIB2] configuration file")
+        ( "units.config", value(& out.unitsConfig), "Specify path to units configuration file")
         ( "fimex.config", value(& out.fimexConfig), "Path to fimex reader configuration file" )
         ( "fimex.process.rotateVectorToLatLonX", value(&out.fimexProcessRotateVectorToLatLonX), "Rotate X wind component to lat/lon" )
         ( "fimex.process.rotateVectorToLatLonY", value(&out.fimexProcessRotateVectorToLatLonY), "Rotate Y wind component to lat/lon" )
