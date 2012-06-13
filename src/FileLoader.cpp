@@ -213,7 +213,7 @@ namespace wdb { namespace load { namespace point {
         if(uwinds().size() != vwinds().size())
             throw runtime_error("not the same number of x and y wind components");
 
-        processor->rotateVectorToLatLon(uwinds(), vwinds());
+        processor->rotateVectorToLatLon(true, uwinds(), vwinds());
 
         cdmData_ = processor;
 
