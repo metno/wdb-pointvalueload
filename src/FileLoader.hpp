@@ -44,7 +44,6 @@ namespace MetNoFimex {
 namespace wdb { namespace load { namespace point {
 
     class Loader;
-    class WdbLogHandler;
 
     struct EntryToLoad {
         string name_;

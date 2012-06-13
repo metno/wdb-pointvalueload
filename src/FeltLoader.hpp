@@ -36,7 +36,6 @@
 #include "CfgFileReader.hpp"
 
 // wdb
-#include <wdbLogHandler.h>
 #include <wdb/WdbLevel.h>
 #include <WdbConfigFile.h>
 #include <wdb/LoaderConfiguration.h>

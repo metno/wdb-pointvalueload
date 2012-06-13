@@ -34,7 +34,6 @@
 #include "CfgFileReader.hpp"
 
 // wdb 
-#include <wdbLogHandler.h>
 #include <wdbException.h>
 
 // SYSTEM INCLUDES

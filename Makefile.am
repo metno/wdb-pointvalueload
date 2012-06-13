@@ -25,7 +25,7 @@ bin_PROGRAMS = pointLoad
 AM_CXXFLAGS =			-DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS)
 
 pointLoad_LDADD = $(wdb_LIBS) \
-                      -lfimex -lgrib_api -lwdbLoad -lwdbConfig -lwdbProj -lwdbExcept -lwdbLog -lwdbMath
+                      -lfimex -lgrib_api -lwdbLoad -lwdbConfig -lwdbProj -lwdbExcept -lwdbMath
 
 CLEANFILES =
 EXTRA_DIST =

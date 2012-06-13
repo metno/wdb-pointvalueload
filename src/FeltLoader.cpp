@@ -164,7 +164,6 @@ namespace wdb { namespace load { namespace point {
 
     string FeltLoader::valueParameterName(const felt::FeltField & field)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointFeltLoader.valueparametername" );
         stringstream keyStr;
         keyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << field.level1();
         std::string ret;
@@ -174,12 +173,12 @@ namespace wdb { namespace load { namespace point {
             // Check if we match on any (level1)
             stringstream akeyStr;
             akeyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << "any";
-            log.debugStream() << "Did not find " << keyStr.str() << ". Trying to find " << akeyStr.str();
+            std::clog << "Did not find " << keyStr.str() << ". Trying to find " << akeyStr.str() << std::endl;
             ret = point2ValueParameter_[akeyStr.str()];
         }
         ret = ret.substr( 0, ret.find(',') );
         boost::trim( ret );
-        log.debugStream() << "Value parameter " << ret << " found.";
+        std::clog << "Value parameter " << ret << " found." << std::endl;
         return ret;
     }
 
@@ -204,7 +203,6 @@ namespace wdb { namespace load { namespace point {
 
     void FeltLoader::levelValues( std::vector<wdb::load::Level> & levels, const felt::FeltField & field )
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointFeltLoader.levelValues" );
         try {
             stringstream keyStr;
             keyStr << field.verticalCoordinate() << ", " << field.level1();
@@ -240,7 +238,7 @@ namespace wdb { namespace load { namespace point {
             wdb::load::Level baseLevel( levelParameter, lev1, lev2 );
             levels.push_back( baseLevel );
         } catch ( wdb::ignore_value &e ) {
-            log.infoStream() << e.what();
+            std::clog << e.what() << std::endl;
         }
         // Find additional level
         try {
@@ -249,7 +247,7 @@ namespace wdb { namespace load { namespace point {
                    << field.verticalCoordinate() << ", "
                    << field.level1() << ", "
                    << field.level2();
-            log.debugStream() << "Looking for levels matching " << keyStr.str();
+            std::clog << "Looking for levels matching " << keyStr.str() << std::endl;
             std::string ret = point2LevelAdditions_[ keyStr.str() ];
             std::string levelParameter = ret.substr( 0, ret.find(',') );
             boost::trim( levelParameter );
@@ -257,15 +255,15 @@ namespace wdb { namespace load { namespace point {
             boost::trim( levFrom );
             string levTo = ret.substr( ret.find_last_of(',') + 1 );
             boost::trim( levTo );
-            log.debugStream() << "Found levels from " << levFrom << " to " << levTo;
+            std::clog << "Found levels from " << levFrom << " to " << levTo << std::endl;
             float levelFrom = boost::lexical_cast<float>( levFrom );
             float levelTo = boost::lexical_cast<float>( levTo );
             wdb::load::Level level( levelParameter, levelFrom, levelTo );
             levels.push_back( level );
         } catch ( wdb::ignore_value &e ) {
-            log.infoStream() << e.what();
+            std::clog << e.what() << std::endl;
         } catch ( std::out_of_range &e ) {
-            log.debugStream() << "No additional levels found.";
+            std::clog << "No additional levels found." << std::endl;
         }
         if(levels.size() == 0) {
             stringstream key;

@@ -30,9 +30,6 @@
 #include "GribFile.hpp"
 #include "GribField.hpp"
 
-// wdb
-#include <wdbLogHandler.h>
-
 // grib
 #include <grib_api.h>
 
@@ -44,8 +41,7 @@ namespace wdb { namespace load { namespace point {
     GribFile::GribFile(const std::string & fileName)
         : fileName_(fileName), gribFile_(0)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.gribLoad.openGrib" );
-        log.debugStream() << "Attempting to open GRIB file " << fileName_;
+        std::clog << "Attempting to open GRIB file " << fileName_ << std::endl;
 
         grib_multi_support_on(0);
 
@@ -54,11 +50,11 @@ namespace wdb { namespace load { namespace point {
         if ( ! gribFile_ ) {
             std::ostringstream errorMessage;
             errorMessage << "Could not open the GRIB file " << fileName_;
-            log.errorStream() << errorMessage.str();
+            std::cerr << errorMessage.str() <<  std::endl;
             throw std::runtime_error( errorMessage.str() );
         }
 
-        log.debugStream() << "Opened GRIB file successfully";
+        std::clog << "Opened GRIB file successfully" << std::endl;
     }
 
     GribFile::~GribFile()
