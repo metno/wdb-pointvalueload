@@ -64,6 +64,13 @@ AC_CXX_REQUIRE_STL
 # Module Checks
 #-----------------------------------------------------------------------------
 
+# Fimex
+WDB_REQUIRE_FIMEX
+WDB_REQUIRE_FIMEX_VERSION(0.37.0)
+AC_SUBST(fimex_LIBS)
+AC_SUBST(fimex_LDFLAGS)
+AC_SUBST(fimex_CPPFLAGS)
+
 # BOOST
 WDB_BOOST_CHECK(1.33.1)
 
@@ -81,6 +88,7 @@ WDB_LIBWDBLOAD_CHECK
 
 WDB_CPPUNIT
 
+WDB_CHECK
 #-----------------------------------------------------------------------------
 # documentation
 #-----------------------------------------------------------------------------
