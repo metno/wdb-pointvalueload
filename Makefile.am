@@ -22,9 +22,9 @@ dist_etcpointload_DATA =
 bin_PROGRAMS = pointLoad
 
 # This is to be replaced by a "find wdb" macro:
-AM_CXXFLAGS =			-DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS)
+AM_CXXFLAGS =			-DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS) $(fimex_CPPFLAGS) $(grib_api_CPPFLAGS)
 
-pointLoad_LDADD = -lgrib_api $(wdb_LIBS) $(fimex_LDFLAGS) $(fimex_LIBS)
+pointLoad_LDADD = $(wdb_LIBS) $(fimex_LDFLAGS) $(fimex_LIBS) $(grib_api_LDFLAGS) $(grib_api_LIBS)
 
 CLEANFILES =
 EXTRA_DIST =
