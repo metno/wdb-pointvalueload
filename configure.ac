@@ -17,6 +17,7 @@ AC_CONFIG_MACRO_DIR([config/m4])
 
 AC_PROG_LIBTOOL
 
+AC_DEFINE(BOOST_FILESYSTEM_VERSION, 2, [makes thing compilable under precise pangolin])
 #-----------------------------------------------------------------------------
 # Source & Build Directories
 #-----------------------------------------------------------------------------
