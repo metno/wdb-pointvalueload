@@ -185,18 +185,10 @@ void Loader::load()
             return false;
 
         const MetNoFimex::CDM& cdmRef = cdmTemplate_->getCDM();
-        const std::string stationIdVarName("stationid");
         const std::string latVarName("latitude");
         const std::string lonVarName("longitude");
-        assert(cdmRef.hasVariable(stationIdVarName));
         assert(cdmRef.hasVariable(latVarName));
         assert(cdmRef.hasVariable(lonVarName));
-
-        pointids_ = cdmTemplate_->getData(stationIdVarName)->asUInt();
-        unsigned int* sIt = &pointids_[0];
-        unsigned int* eIt = &pointids_[cdmTemplate_->getData(stationIdVarName)->size()];
-        for(; sIt!=eIt; ++sIt)
-            placenames_.push_back(boost::lexical_cast<std::string>(*sIt));
 
         boost::shared_array<float> lats_ = cdmTemplate_->getData(latVarName)->asFloat();
         float* fsIt = &lats_[0];
@@ -210,10 +202,6 @@ void Loader::load()
         for(; fsIt!=feIt; ++fsIt)
             longitudes_.push_back(*fsIt);
 
-        if(!options().loading().stations.empty()) {
-            // there are selected stations to load
-            boost::split(ids2load_, options().loading().stations, boost::is_any_of(" "));
-        }
         return true;
     }
 

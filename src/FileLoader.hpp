@@ -80,8 +80,6 @@ namespace wdb { namespace load { namespace point {
         void readUnit(const string& unitname, float& coeff, float& term);
         const CmdLine& options() { return controller_.options(); }
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return controller_.cdmTemplate(); }
-        const vector<string>& placenames() { return controller_.placenames(); }
-        const set<string>& stations2load() { return controller_.stations2load(); }
         std::map<std::string, EntryToLoad>& entries2load()  {return entries2Load_; }
 
         vector<string>& uwinds() { return uWinds_; }

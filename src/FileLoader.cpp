@@ -440,12 +440,7 @@ namespace wdb { namespace load { namespace point {
                 for(size_t i = 0; i < fimexYDimLength; ++i) {
                     for(size_t j = 0; j < fimexXDimLength; ++j){
 
-                        string placename = placenames()[i * fimexXDimLength + j];
-                        if(!stations2load().empty() and stations2load().find(placename) == stations2load().end() ) {
-                            continue;
-                        }
-
-                        std:stringstream wkt;
+                        stringstream wkt;
                         wkt <<  "point" << "(" << controller_.longitudes()[i * fimexXDimLength + j] << " " << controller_.latitudes()[i * fimexXDimLength + j] << ")";
 
                         for(set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
@@ -511,8 +506,9 @@ namespace wdb { namespace load { namespace point {
                                     string validtime = times()[u];
 
                                     try {
+											stringstream cmd;
 
-                                                cout << value            << "\t"
+                                                cmd << value            << "\t"
                                                           << wkt.str()        << "\t"
                                                           << strReferenceTime << "\t"
                                                           << validtime        << "\t"
@@ -524,6 +520,14 @@ namespace wdb { namespace load { namespace point {
                                                           << version          << "\t"
                                                           << epsMaxVersion
                                                           << endl;
+
+                                               if(value != value) {
+		                                           // IEEE way tom test for NaN
+												   cerr << cmd.str();
+												   continue;
+											   } else {
+											      cout << cmd.str();
+											   }
 
                                     } catch ( wdb::ignore_value &e ) {
                                         cerr << e.what() << " Data field not loaded."<< endl;

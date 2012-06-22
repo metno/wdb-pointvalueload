@@ -62,10 +62,8 @@ namespace wdb { namespace load { namespace point {
 
         const CmdLine& options() { return options_; }
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return cdmTemplate_; }
-        const vector<string>& placenames() { return placenames_; }
         const vector<float>& latitudes() { return latitudes_; }
         const vector<float>& longitudes() { return longitudes_; }
-        const set<string>& stations2load() { return ids2load_; }
         const size_t interpolatemethod() { return interpolateMethod_; }
     private:
 
@@ -81,11 +79,8 @@ namespace wdb { namespace load { namespace point {
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate_;
 
         // point ids found in cdm template
-        set<string>                       ids2load_;
-        vector<string>                    placenames_;
         vector<float>                     latitudes_;
         vector<float>                     longitudes_;
-        boost::shared_array<unsigned int> pointids_;
 
         double northBound_;
         double southBound_;
