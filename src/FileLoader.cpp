@@ -370,7 +370,7 @@ namespace wdb { namespace load { namespace point {
             string wdbUnit = entry.unit_;
             if(dataprovider != entry.provider_) {
                 dataprovider = entry.provider_;
-                cout << dataprovider<<endl;
+                cout << endl << dataprovider<< '\t' << "88,0,88" <<endl;
             }
 
             cerr << " LOADING param: " << entry.name_ << " in units: "<<entry.unit_<<endl;
