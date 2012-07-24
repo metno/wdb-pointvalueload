@@ -41,7 +41,7 @@ namespace
     {
         options_description input("Input");
         input.add_options()
-        ( "type", value( & out.type ), "File type to be loaded [felt/grib]" )
+        ( "type", value( & out.type ), "File type to be loaded [felt/grib/netcdf]" )
         ( "name", value<vector<string> >(&out.file)->multitoken(), "Name of file to process" )
         ;
 
@@ -61,12 +61,12 @@ namespace
     {
         options_description input("Point Loading");
         input.add_options()
-        ( "placenamespaceid", value(& out.nameSpace), "Specify a non-default namespace. ")
-        ( "dataprovidername", value(& out.dataProviderName), "Specify a non-default namespace. ")
+        ( "placenamespaceid", value(& out.nameSpace), "Specify a non-default namespace ")
+        ( "dataprovidername", value(& out.dataProviderName), "Specify a non-default namespace [Must have for NetCDF] ")
         ( "validtime.config", value(& out.validtimeConfig), "Specify path to validtime configuration file")
         ( "dataprovider.config", value(& out.dataproviderConfig), "Specify path to dataprovider configuration file")
-        ( "valueparameter.config", value(& out.valueparameterConfig), "Specify path to valueparameter [FELT/GRIB1] configuration file")
-        ( "levelparameter.config", value(& out.levelparameterConfig), "Specify path to levelparameter [FELT/GRIB1] configuration file")
+        ( "valueparameter.config", value(& out.valueparameterConfig), "Specify path to valueparameter [FELT/GRIB1/NetCDF] configuration file")
+        ( "levelparameter.config", value(& out.levelparameterConfig), "Specify path to levelparameter [FELT/GRIB1/NetCDF] configuration file")
         ( "leveladditions.config", value(& out.leveladditionsConfig), "Specify path to leveladditiond [FELT/GRIB1] configuration file")
         ( "valueparameter2.config", value(& out.valueparameter2Config), "Specify path to valueparameter [GRIB2] configuration file")
         ( "levelparameter2.config", value(& out.levelparameter2Config), "Specify path to levelparameter [GRIB2] configuration file")

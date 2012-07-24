@@ -1,3 +1,9 @@
+wdb-pointload (1.1.5-1-ubuntu1) lucid; urgency=low
+
+  * NetCDF files supported
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Fri, 20 Jul 2012 16:00:00 +0100
+
 wdb-pointload (1.1.4-1-ubuntu1) lucid; urgency=low
 
   * stationid not needed - using long / lat

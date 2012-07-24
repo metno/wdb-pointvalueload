@@ -108,7 +108,7 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    std::clog <<  "Starting feltLoad" << std::endl;
+    std::clog <<  "Starting pointLoad" << std::endl;
 
     try {
         wdb::load::point::Loader loader(cmdLine);
