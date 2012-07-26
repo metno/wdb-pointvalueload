@@ -63,18 +63,18 @@ namespace wdb { namespace load { namespace point {
 //        return get( key );
 //    }
 
-    void CfgFileReader::open( std::string fileName )
+    void CfgXmlFileReader::open( std::string fileName )
     {
         fileName_ = fileName;
         ifstream file( fileName.c_str() );
         if(!file)
             throw std::invalid_argument( string("Could not open file " + fileName) );
-        while( !file.eof() )
-        {
-            std::string input;
-            getline( file, input );
-            parse( input );
-        }
+//        while( !file.eof() )
+//        {
+//            std::string input;
+//            getline( file, input );
+//            parse( input );
+//        }
         file.close();
     }
 
@@ -99,7 +99,7 @@ namespace wdb { namespace load { namespace point {
 //        return configKeys_;
 //    }
 
-    void CfgFileReader::parse( std::string specification )
+/*    void CfgXmlFileReader::parse( std::string specification )
     {
             // Eliminate comment text
             size_t commentPos = specification.find( '#' );
@@ -133,7 +133,7 @@ namespace wdb { namespace load { namespace point {
             // Insert Key, Value pair
             configTable_[ key ] = value;
 
-    }
+    }*/
 
 //    std::string CfgFileReader::extractKey( const std::string & specification )
 //    {
