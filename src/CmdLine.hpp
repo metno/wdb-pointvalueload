@@ -61,26 +61,14 @@ namespace wdb { namespace load { namespace point {
         struct LoadingOptions
         {
             string nameSpace;
+            string mappingConfig;
             string dataProviderName;
-            string validtimeConfig;
-            string dataproviderConfig;
-            string valueparameterConfig;
-            string levelparameterConfig;
-            string leveladditionsConfig;
-            string valueparameter2Config;
-            string levelparameter2Config;
-            string leveladditions2Config;
             string unitsConfig;
             string fimexConfig;
             string fimexTemplate;
             string fimexInterpolateMethod;
             string fimexProcessRotateVectorToLatLonX;
             string fimexProcessRotateVectorToLatLonY;
-            string stations;
-//            std::string fimexReduceSouth;
-//            std::string fimexReduceNorth;
-//            std::string fimexReduceEast;
-//            std::string fimexReduceWest;
         };
 
         const InputOptions & input() const { return input_; }
