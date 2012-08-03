@@ -33,6 +33,7 @@
 // project
 #include "Loader.hpp"
 #include "FeltLoader.hpp"
+#include "CfgXmlFileReader.hpp"
 
 // wdb
 #include <GridGeometry.h>
@@ -77,7 +78,7 @@ namespace {
 
     path getConfigFile(const path& fileName)
     {
-        static const path sysConfDir = "";//./etc/";//SYSCONFDIR;
+        static const path sysConfDir = "";
         path confPath = sysConfDir/fileName;
         return confPath;
     }
@@ -139,7 +140,6 @@ namespace wdb { namespace load { namespace point {
                     eIt->second.levels_.insert(levels[i].levelFrom_);
                     eIt->second.levelname_ = levels[i].levelParameter_;
                 }
-
             } catch ( wdb::ignore_value &e ) {
                 std::cerr << e.what() << " Data field not loaded." << std::endl;
             } catch ( std::out_of_range &e ) {
@@ -158,120 +158,55 @@ namespace wdb { namespace load { namespace point {
     {
         stringstream keyStr;
         keyStr << field.producer() << ", " << field.gridArea();
-        std::string ret = point2DataProviderName_[keyStr.str()];
+        string ret = mappingConfig_->dataProviderName4Felt(boost::lexical_cast<string>(field.producer()), boost::lexical_cast<string>(field.gridArea()));
+        if(ret.empty()) {
+            throw wdb::ignore_value( "No dataprovider found for " + keyStr.str());
+        }
         return ret;
     }
 
     string FeltLoader::valueParameterName(const felt::FeltField & field)
     {
+        string sparameter = boost::lexical_cast<string>(field.parameter());
+        string sverticalcoordinate = boost::lexical_cast<string>(field.verticalCoordinate());
+        string slevel1 = boost::lexical_cast<string>(field.level1());
         stringstream keyStr;
-        keyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << field.level1();
-        std::string ret;
-        try {
-            ret = point2ValueParameter_[keyStr.str()];
-        } catch ( std::out_of_range & e ) {
-            // Check if we match on any (level1)
-            stringstream akeyStr;
-            akeyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << "any";
-            std::clog << "Did not find " << keyStr.str() << ". Trying to find " << akeyStr.str() << std::endl;
-            ret = point2ValueParameter_[akeyStr.str()];
+        keyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << field.level1() << endl;
+        string ret = mappingConfig_->valueParameterName4Felt(sparameter, sverticalcoordinate, slevel1);
+        if(ret.empty()) {
+            throw wdb::ignore_value( "No wdb name found for " + keyStr.str());
         }
-        ret = ret.substr( 0, ret.find(',') );
-        boost::trim( ret );
-        std::clog << "Value parameter " << ret << " found." << std::endl;
         return ret;
     }
 
     string FeltLoader::valueParameterUnit(const felt::FeltField & field)
     {
-        stringstream keyStr;
-        keyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << field.level1();
-        std::string ret;
-        try {
-            ret = point2ValueParameter_[keyStr.str()];
+        string sparameter = boost::lexical_cast<string>(field.parameter());
+        string sverticalcoordinate = boost::lexical_cast<string>(field.verticalCoordinate());
+        string slevel1 = boost::lexical_cast<string>(field.level1());
+        string ret = mappingConfig_->valueParameterUnits4Felt(sparameter, sverticalcoordinate, slevel1);
+        if(ret.empty()) {
+            stringstream keyStr;
+            keyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << field.level1();
+            throw wdb::ignore_value( "No value parameter unit found for " + keyStr.str());
         }
-        catch ( std::out_of_range & e ) {
-            // Check if we match on any (level1)
-            stringstream akeyStr;
-            akeyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << "any";
-            ret = point2ValueParameter_[akeyStr.str()];
-        }
-        ret = ret.substr( ret.find(',') + 1 );
-        boost::trim( ret );
         return ret;
     }
 
     void FeltLoader::levelValues( std::vector<wdb::load::Level> & levels, const felt::FeltField & field )
     {
-        try {
-            stringstream keyStr;
-            keyStr << field.verticalCoordinate() << ", " << field.level1();
-            std::string ret;
-            try {
-                ret = point2LevelParameter_[keyStr.str()];
-            } catch ( std::out_of_range & e ) {
-                // Check if we match on any (level1)
-                stringstream akeyStr;
-                akeyStr << field.verticalCoordinate() << ", any";
-                ret = point2LevelParameter_[akeyStr.str()];
-            }
-            std::string levelParameter = ret.substr( 0, ret.find(',') );
-            boost::trim( levelParameter );
-            std::string levelUnit = ret.substr( ret.find(',') + 1 );
-            boost::trim( levelUnit );
-            float coeff = 1.0;
-            float term = 0.0;
-            readUnit( levelUnit, coeff, term );
-            float lev1 = field.level1();
-            if ( ( coeff != 1.0 )&&( term != 0.0) ) {
-                        lev1 =   ( ( lev1 * coeff ) + term );
-            }
-            float lev2;
-            if ( field.level2() == 0 ) {
-                lev2 = lev1;
-            } else {
-                lev2 = field.level2();
-                if ( ( coeff != 1.0 )&&( term != 0.0) ) {
-                    lev2 =   ( ( lev2 * coeff ) + term );
-                }
-            }
-            wdb::load::Level baseLevel( levelParameter, lev1, lev2 );
-            levels.push_back( baseLevel );
-        } catch ( wdb::ignore_value &e ) {
-            std::clog << e.what() << std::endl;
-        }
-        // Find additional level
-        try {
+        string sparameter = boost::lexical_cast<string>(field.parameter());
+        string sverticalcoordinate = boost::lexical_cast<string>(field.verticalCoordinate());
+        string slevel1 = boost::lexical_cast<string>(field.level1());
+        string slevel2 = boost::lexical_cast<string>(field.level2());
+        mappingConfig_->levelValues4Felt(levels, sparameter, sverticalcoordinate, slevel1, slevel2);
+        if(levels.empty()) {
             stringstream keyStr;
             keyStr << field.parameter() << ", "
                    << field.verticalCoordinate() << ", "
                    << field.level1() << ", "
                    << field.level2();
-            std::clog << "Looking for levels matching " << keyStr.str() << std::endl;
-            std::string ret = point2LevelAdditions_[ keyStr.str() ];
-            std::string levelParameter = ret.substr( 0, ret.find(',') );
-            boost::trim( levelParameter );
-            string levFrom = ret.substr( ret.find_first_of(',') + 1, ret.find_last_of(',') - (ret.find_first_of(',') + 1) );
-            boost::trim( levFrom );
-            string levTo = ret.substr( ret.find_last_of(',') + 1 );
-            boost::trim( levTo );
-            std::clog << "Found levels from " << levFrom << " to " << levTo << std::endl;
-            float levelFrom = boost::lexical_cast<float>( levFrom );
-            float levelTo = boost::lexical_cast<float>( levTo );
-            wdb::load::Level level( levelParameter, levelFrom, levelTo );
-            levels.push_back( level );
-        } catch ( wdb::ignore_value &e ) {
-            std::clog << e.what() << std::endl;
-        } catch ( std::out_of_range &e ) {
-            std::clog << "No additional levels found." << std::endl;
-        }
-        if(levels.size() == 0) {
-            stringstream key;
-            key << field.parameter() << ", "
-                << field.verticalCoordinate() << ", "
-                << field.level1() << ", "
-                << field.level2();
-            throw wdb::ignore_value( "No valid level key values found for " + key.str());
+            throw wdb::ignore_value( "No level values found for " + keyStr.str());
         }
     }
 
