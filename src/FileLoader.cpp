@@ -32,6 +32,7 @@
 
 // project
 #include "FileLoader.hpp"
+#include "CfgXmlFileReader.hpp"
 
 // libfimex
 #include <fimex/CDM.h>
@@ -49,6 +50,7 @@
 #include <wdbException.h>
 
 // boost
+#include <boost/make_shared.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/filesystem.hpp>
@@ -100,24 +102,16 @@ namespace wdb { namespace load { namespace point {
 
     void FileLoader::setup()
     {
-        if(options().loading().validtimeConfig.empty())
-            throw runtime_error("Can't open validtime.config file [empty string?]");
-        if(options().loading().dataproviderConfig.empty())
-            throw runtime_error("Can't open dataprovider.config file [empty string?]");
-        if(options().loading().valueparameterConfig.empty())
-            throw runtime_error("Can't open valueparameter.config file [empty string?]");
-        if(options().loading().levelparameterConfig.empty())
-            throw runtime_error("Can't open levelparameter.config file [empty string?]");
-        if(options().loading().leveladditionsConfig.empty())
-            throw runtime_error("Can't open leveladditions.config file [empty string?]");
-        if(options().loading().unitsConfig.empty())
+        if(!options().loading().mappingConfig.empty()) {
+            mappingConfig_ = boost::make_shared<CfgXmlFileReader>(getConfigFile(options().loading().mappingConfig).file_string());
+        } else {
+            throw runtime_error("Can't open mapping.config file [empty string?]");
+        }
+        if(!options().loading().unitsConfig.empty()) {
+            point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
+        } else {
             throw runtime_error("Can't open units.config file [empty string?]");
-
-        point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).file_string());
-        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
-        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
-        point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
-        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
+        }
     }
 
     void FileLoader::readUnit(const string& unitname, float& coeff, float& term)

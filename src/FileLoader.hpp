@@ -43,6 +43,7 @@ namespace MetNoFimex {
 
 namespace wdb { namespace load { namespace point {
 
+    class CfgXmlFileReader;
     class Loader;
 
     struct EntryToLoad {
@@ -103,6 +104,8 @@ namespace wdb { namespace load { namespace point {
         /// Conversion Hash Map - Level Additions
         CfgFileReader point2LevelAdditions_;
         CfgFileReader point2Units_;
+
+        boost::shared_ptr<CfgXmlFileReader> mappingConfig_;
 
         vector<string> uWinds_;
         vector<string> vWinds_;
