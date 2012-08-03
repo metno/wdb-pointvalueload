@@ -32,6 +32,7 @@
 
 // project
 #include "NetCDFLoader.hpp"
+#include "CfgXmlFileReader.hpp"
 
 // wdb
 #include <GridGeometry.h>
@@ -54,6 +55,7 @@
 #include <pqxx/util>
 
 // boost
+#include <boost/make_shared.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/filesystem.hpp>
@@ -77,7 +79,7 @@ namespace {
 
     path getConfigFile(const path& fileName)
     {
-        static const path sysConfDir = "";//./etc/";//SYSCONFDIR;
+        static const path sysConfDir = "";
         path confPath = sysConfDir/fileName;
         return confPath;
     }
@@ -91,32 +93,13 @@ namespace wdb { namespace load { namespace point {
         setup();
     }
 
-    NetCDFLoader::~NetCDFLoader()
-    {
-        // NOOP
-    }
-
-    void NetCDFLoader::setup()
-    {
-        if(options().loading().valueparameterConfig.empty())
-            throw runtime_error("Can't open valueparameter.config file [empty string?]");
-        if(options().loading().levelparameterConfig.empty())
-            throw runtime_error("Can't open levelparameter.config file [empty string?]");
-        if(options().loading().unitsConfig.empty())
-            throw runtime_error("Can't open units.config file [empty string?]");
-
-        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
-        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
-        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
-    }
+    NetCDFLoader::~NetCDFLoader() { }
 
     string NetCDFLoader::dataProviderName(const string& varname)
     {
-        string ret;
-        if(options().loading().dataProviderName.empty()) {
-            throw runtime_error("data provider name not defined");
-        } else {
-            ret = options().loading().dataProviderName;
+        string ret = mappingConfig_->dataProviderName4Netcdf(varname);
+        if(ret.empty()) {
+            throw runtime_error("NETCDF data provider name not defined for " + varname);
         }
         return ret;
     }
@@ -128,79 +111,38 @@ namespace wdb { namespace load { namespace point {
 
     string NetCDFLoader::valueParameterName(const string& varname)
     {
-        stringstream keyStr;
-        keyStr << varname;
-        string ret;
-        ret = point2ValueParameter_[keyStr.str()];
-        ret = ret.substr(0, ret.find(','));
-        boost::trim(ret);
-        cerr << "Value parameter " << ret << " found." << endl;
+        string ret =  mappingConfig_->valueParameterName4Netcdf(varname);
+        if(ret.empty()) {
+            throw runtime_error("NETCDF wdb name for variable name not defined for " + varname);
+        }
         return ret;
     }
 
-    void NetCDFLoader::levelValues(vector<Level> & levels, const string& varname)
+    void NetCDFLoader::levelValues(vector<Level>& levels, const string& varname)
     {
+        vector<Level> tmpLevels;
+        mappingConfig_->levelValues4Netcdf(tmpLevels, varname);
+
         const CDM& cdmRef = cdmData_->getCDM();
         string verticalCoordinate = cdmRef.getVerticalAxis(varname);
-        string levelParameter;
-        string levelUnit;
-        string lvls;
-        try {
-            stringstream keyStr;
-            keyStr << verticalCoordinate;
-            string ret;
-            try {
-                ret = point2LevelParameter_[keyStr.str()];
-            } catch ( std::out_of_range & e ) {
-                ret = verticalCoordinate;
-            }
+        boost::shared_array<float> levelData = cdmData_->getData(verticalCoordinate)->asFloat();
 
-            levelParameter = ret.substr( 0, ret.find(',') );
-            boost::trim(levelParameter);
-
-            levelUnit = ret.substr( ret.find(',') + 1 );
-            boost::trim(levelUnit);
-
-            lvls = levelUnit.substr( levelUnit.find(',') + 1 );
-            boost::trim(lvls);
-            if(lvls == levelUnit) lvls.clear();
-
-            levelUnit = levelUnit.substr(0, levelUnit.find_first_of(", "));
-            boost::trim(levelUnit);
-
-            float coeff = 1.0;
-            float term = 0.0;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " verticalCoordinate : " << verticalCoordinate << endl;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " levelParameter : " << levelParameter << endl;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " levelUnit : " << levelUnit << endl;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " lvls : " << lvls << endl;
-            readUnit( levelUnit, coeff, term );
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << endl;
-        } catch ( wdb::ignore_value &e ) {
-            cerr<< e.what()<<endl;
-        }
-
-        if(!lvls.empty())
+        // extract only those who really exist in the data files
+        for(vector<Level>::iterator it = tmpLevels.begin(); it != tmpLevels.end(); ++it)
         {
-            string ret = lvls;
-            vector<string> levels2load;
-            boost::split(levels2load, ret, boost::is_any_of(", "));
-            for(size_t i = 0; i < levels2load.size(); ++i)
-            {
-                if(levels2load[i].empty())
-                    continue;
-                float levelTo = boost::lexical_cast<float>(levels2load[i]);
-                float levelFrom = levelTo;
-                cerr << "Found levels from " << levelFrom << " to " << levelTo<<endl;
-                wdb::load::Level level(levelParameter, levelFrom, levelTo);
-                levels.push_back(level);
-            }
+             Level level = *it;
+             float level2check = level.levelFrom_;
+             for(size_t i = 0; i < cdmData_->getData(verticalCoordinate)->size(); ++i)
+             {
+                 if(levelData[i] == level2check) {
+                     levels.push_back(level);
+                     break;
+                 }
+             }
         }
 
         if(levels.size() == 0) {
-            stringstream key;
-            key << varname << ", " << verticalCoordinate;
-            throw wdb::ignore_value( "No valid level key values found for " + key.str());
+            throw wdb::ignore_value( "No valid level key values found for " + varname);
         }
     }
 

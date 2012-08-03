@@ -49,11 +49,10 @@ namespace wdb { namespace load { namespace point {
 
         void loadInterpolated(const string& fileName);
 
-        void setup();
         string dataProviderName(const string& varname);
         string valueParameterName(const string& varname);
         string valueParameterUnit(const string& varname);
-        void levelValues( std::vector<wdb::load::Level>& levels, const string& varname);
+        void levelValues(std::vector<wdb::load::Level>& levels, const string& varname);
     };
 
 } } }  // end namespaces
