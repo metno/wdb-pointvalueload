@@ -30,34 +30,85 @@
 #ifndef POINTCFGXMLFILEREADER_H_
 #define POINTCFGXMLFILEREADER_H_
 
+// project
+#include "CfgXmlElements.hpp"
+
+// wdb
+#include <wdb/WdbLevel.h>
+
+// boost
+#include <boost/filesystem.hpp>
 
 // std
 #include <list>
 #include <string>
 #include <iosfwd>
-#include <tr1/unordered_map>
+
+using namespace std;
+
+extern "C"
+{
+    typedef struct _xmlXPathContext xmlXPathContext;
+    typedef xmlXPathContext *xmlXPathContextPtr;
+}
 
 namespace wdb { namespace load { namespace point {
   class CfgXmlFileReader
     {
     public:
-        CfgXmlFileReader( );
+        CfgXmlFileReader(const boost::filesystem::path& configFile);
         ~CfgXmlFileReader();
 
-//        std::list<std::string> keys();
+        string dataProviderName4Netcdf(const string& variablename) const;
+        string valueParameterName4Netcdf(const string& variablename) const;
+        void levelValues4Netcdf(std::vector<wdb::load::Level>& levels, const string& variablename) const;
 
-//        std::string operator[](std::string key) const;
-        void open(std::string fileName);
-//        std::string get(std::string key) const;
+        string dataProviderName4Felt(const string& producer, const string& gridarea) const;
+        string valueParameterName4Felt(const string& parameter, const string& verticalcoordinate, const string& level1) const;
+        string valueParameterUnits4Felt(const string& parameter, const string& verticalcoordinate, const string& level1) const;
+        void levelValues4Felt(vector<wdb::load::Level>& levels, const string& parameter, const string& verticalcoordinate, const string& level1, const string& level2) const;
 
+        string dataProviderName4Grib(const string& center, const string& process) const;
+        string valueParameterName4Grib1(const string& center,
+                                        const string& codetable2version,
+                                        const string& parameterid,
+                                        const string& timerange,
+                                        const string& thresholdindicator,
+                                        const string& thresholdlower,
+                                        const string& thresholdupper,
+                                        const string& thresholdscale) const;
+        string valueParameterUnits4Grib1(const string& center,
+                                         const string& codetable2version,
+                                         const string& parameterid,
+                                         const string& timerange,
+                                         const string& thresholdindicator,
+                                         const string& thresholdlower,
+                                         const string& thresholdupper,
+                                         const string& thresholdscale) const;
+        void levelValues4Grib1(vector<wdb::load::Level>& levels,
+                               const string& center,
+                               const string& codetable2version,
+                               const string& parameterid,
+                               const string& timerange,
+                               const string& thresholdindicator,
+                               const string& thresholdlower,
+                               const string& thresholdupper,
+                               const string& thresholdscale,
+                               const string& typeoflevel,
+                               const string& level) const;
+
+        string valueParameterName4Grib2(const string& parameterid) const;
+        string valueParameterUnits4Grib2(const string& parameterid) const;
+        void levelValues4Grib2(vector<wdb::load::Level>& levels, const string& parameterid, const string& typeoflevel, const string& level) const;
     private:
-        std::string fileName_;
-        std::list<std::string> configKeys_;
-        std::tr1::unordered_map< std::string, std::string> configTable_;
+        string fileName_;
+        dataprovider_multimap dataproviders_;
+        elements_multimap netcdfloads_;
+        felt_multimap feltfloads_;
+        grib1_multimap grib1loads_;
+        grib2_multimap grib2loads_;
 
-//        void parse(std::string specification);
-//        std::string extractKey( const std::string & specification );
-//        std::string extractValue( const std::string & specification );
+        void init_(xmlXPathContextPtr context);
     };
 
 } } }// end namespaces
