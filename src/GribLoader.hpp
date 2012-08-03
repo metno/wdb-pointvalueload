@@ -79,7 +79,6 @@ namespace wdb { namespace load { namespace point {
 
         void loadInterpolated(const string& fileName);
 
-        void setup();
         int editionNumber(const GribField & field) const;
         string dataProviderName(const GribField& field) const;
         string valueParameterName(const GribField & field) const;

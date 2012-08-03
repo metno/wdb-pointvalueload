@@ -34,6 +34,7 @@
 #include "GribFile.hpp"
 #include "GribField.hpp"
 #include "GribLoader.hpp"
+#include "CfgXmlFileReader.hpp"
 
 // wdb
 #include <GridGeometry.h>
@@ -103,27 +104,7 @@ namespace wdb { namespace load { namespace point {
         setup();
     }
 
-    GribLoader::~GribLoader()
-    {
-        // NOOP
-    }
-
-    void GribLoader::setup()
-    {
-        FileLoader::setup();
-
-        if(options().loading().valueparameter2Config.empty())
-            throw std::runtime_error("Can't open valueparameter2.config file [empty string?]");
-        if(options().loading().levelparameter2Config.empty())
-            throw std::runtime_error("Can't open levelparameter2.config file [empty string?]");
-        if(options().loading().leveladditions2Config.empty())
-            throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
-
-        // load GRIB2 metadata
-        point2ValueParameter2_.open(getConfigFile(options().loading().valueparameter2Config).file_string());
-        point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).file_string());
-        point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).file_string());
-    }
+    GribLoader::~GribLoader() { }
 
     void GribLoader::loadInterpolated(const string& fileName)
     {
@@ -167,7 +148,6 @@ namespace wdb { namespace load { namespace point {
                     eIt->second.levels_.insert(levels[i].levelFrom_);
                     eIt->second.levelname_ = levels[i].levelParameter_;
                 }
-
             } catch ( wdb::ignore_value &e ) {
                 std::cerr << e.what() << " Data field not loaded." << std::endl;
             } catch ( std::out_of_range &e ) {
@@ -184,173 +164,75 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::dataProviderName(const GribField & field) const
     {
-        stringstream keyStr;
-        keyStr << field.getGeneratingCenter() << ", "
-               << field.getGeneratingProcess();
-        std::cerr << __FUNCTION__ << " keyStr " << keyStr.str() << std::endl;
-        try {
-            std::string ret = point2DataProviderName_[ keyStr.str() ];
-            return ret;
+        string ret = mappingConfig_->dataProviderName4Grib(boost::lexical_cast<string>(field.getGeneratingCenter()), boost::lexical_cast<string>(field.getGeneratingProcess()));
+        if(ret.empty()) {
+            stringstream keyStr;
+            keyStr << field.getGeneratingCenter() << ", " << field.getGeneratingProcess();
+            throw wdb::ignore_value( "No dataprovider found for " + keyStr.str());
         }
-        catch ( std::out_of_range &e ) {
-            std::cerr << "Could not identify the data provider." << std::endl;
-            throw;
-        }
+        return ret;
     }
 
     string GribLoader::valueParameterName(const GribField & field) const
     {
-        stringstream keyStr;
-        std::string ret;
-        if (editionNumber_ == 1) {
-            keyStr << field.getGeneratingCenter() << ", "
-                   << field.getCodeTableVersionNumber() << ", "
-                   << field.getParameter1() << ", "
-                   << field.getTimeRange() << ", "
-                   << "0, 0, 0, 0"; // Default values for thresholds
-            try {
-                ret = point2ValueParameter_[keyStr.str()];
+        string ret;
+        if(editionNumber_ == 1) {
+            ret = mappingConfig_->valueParameterName4Grib1(boost::lexical_cast<string>(field.getGeneratingCenter()),
+                                                           boost::lexical_cast<string>(field.getCodeTableVersionNumber()),
+                                                           boost::lexical_cast<string>(field.getParameter1()),
+                                                           boost::lexical_cast<string>(field.getTimeRange()),
+                                                            "0", "0", "0", "0");
+            if(ret.empty()) {
+                throw wdb::ignore_value("value parameter name for GRIB1 not found");
             }
-            catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter." << std::endl;
-                throw;
-            }
-        }
-        else {
-            keyStr << field.getParameter2();
-            std::cerr << __FUNCTION__ << " keyStr " << keyStr.str() << std::endl;
-            try {
-                ret = point2ValueParameter2_[keyStr.str()];
-            }
-            catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter." << std::endl;
-                throw;
+        } else if(editionNumber_ == 2) {
+            ret = mappingConfig_->valueParameterName4Grib2(boost::lexical_cast<string>(field.getParameter2()));
+            if(ret.empty()) {
+                throw wdb::ignore_value("value parameter unit for GRIB12 not found");
             }
         }
-        ret = ret.substr( 0, ret.find(',') );
-        boost::trim( ret );
         return ret;
     }
 
     string GribLoader::valueParameterUnit(const GribField & field) const
     {
-        stringstream keyStr;
-        std::string ret;
-        if (editionNumber_ == 1) {
-            keyStr << field.getGeneratingCenter() << ", "
-                   << field.getCodeTableVersionNumber() << ", "
-                   << field.getParameter1() << ", "
-                   << field.getTimeRange() << ", "
-                   << "0, 0, 0, 0"; // Default values for thresholds
-            try {
-                ret = point2ValueParameter_[keyStr.str()];
+        string ret;
+        if(editionNumber_ == 1) {
+            ret = mappingConfig_->valueParameterUnits4Grib1(boost::lexical_cast<string>(field.getGeneratingCenter()),
+                                                            boost::lexical_cast<string>(field.getCodeTableVersionNumber()),
+                                                            boost::lexical_cast<string>(field.getParameter1()),
+                                                            boost::lexical_cast<string>(field.getTimeRange()),
+                                                            "0", "0", "0", "0");
+            if(ret.empty()) {
+                throw wdb::ignore_value("value parameter unit for GRIB1 not found");
             }
-            catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter identified by " << keyStr.str() << std::endl;
-                throw;
-            }
-        }
-        else {
-            keyStr << field.getParameter2();
-            std::cerr << __FUNCTION__ << " keyStr " << keyStr.str() << std::endl;
-            try {
-                ret = point2ValueParameter2_[keyStr.str()];
-            }
-            catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter identified by " << keyStr.str() << std::endl;
-                throw;
+        } else if(editionNumber_ == 2) {
+            ret = mappingConfig_->valueParameterUnits4Grib2(boost::lexical_cast<string>(field.getParameter2()));
+            if(ret.empty()) {
+                throw wdb::ignore_value("value parameter unit for GRIB12 not found");
             }
         }
-        ret = ret.substr( ret.find(',') + 1 );
-        boost::trim( ret );
         return ret;
     }
 
     void GribLoader::levelValues( std::vector<wdb::load::Level> & levels, const GribField & field )
     {
-        bool ignored = false;
-        stringstream keyStr;
-        std::string ret;
-        try {
-            if (editionNumber_ == 1) {
-                keyStr << field.getLevelParameter1();
-                std::cerr << __FUNCTION__ << " field.getLevelParameter1() "<<keyStr.str() << std::endl;
-                ret = point2LevelParameter_[keyStr.str()];
-            }
-            else {
-                keyStr << field.getLevelParameter2();
-                std::cerr << __FUNCTION__ << " keyStr "<<keyStr.str() << std::endl;
-                ret = point2LevelParameter2_[keyStr.str()];
-            }
-            std::string levelParameter = ret.substr( 0, ret.find(',') );
-            boost::trim( levelParameter );
-            std::string levelUnit = ret.substr( ret.find(',') + 1 );
-            boost::trim( levelUnit );
-            float coeff = 1.0;
-            float term = 0.0;
-            readUnit( levelUnit, coeff, term );
-            float lev1 = field.getLevelFrom();
-            float lev2 = field.getLevelTo();
-            if ( ( coeff != 1.0 )&&( term != 0.0) ) {
-                lev1 =   ( ( lev1 * coeff ) + term );
-                lev2 =   ( ( lev2 * coeff ) + term );
-            }
-            wdb::load::Level baseLevel( levelParameter, lev1, lev2 );
-            levels.push_back( baseLevel );
+        if(editionNumber_ == 1) {
+            string scenter = boost::lexical_cast<string>(field.getGeneratingCenter());
+            string scodetable2version = boost::lexical_cast<string>(field.getCodeTableVersionNumber());
+            string sparameterid = boost::lexical_cast<string>(field.getParameter1());
+            string stimerange = boost::lexical_cast<string>(field.getTimeRange());
+            string stypeoflevel = boost::lexical_cast<string>(field.getLevelFrom());
+            string slevel = boost::lexical_cast<string>(field.getLevelFrom());
+            mappingConfig_->levelValues4Grib1(levels, scenter, scodetable2version, sparameterid, stimerange, "0", "0", "0", "0", stypeoflevel, slevel);
+        } else if(editionNumber_ == 2) {
+            string sparameterid = boost::lexical_cast<string>(field.getParameter2());
+            string stypeoflevel = field.getLevelParameter2();
+            string slevel = boost::lexical_cast<string>(field.getLevelFrom());
+            mappingConfig_->levelValues4Grib2(levels, sparameterid, stypeoflevel, slevel);
         }
-        catch ( wdb::ignore_value &e )
-        {
-            std::clog << e.what() << std::endl;
-            ignored = true;
-        }
-        catch ( std::out_of_range &e ) {
-            std::cerr << "Could not identify the level parameter identified by " << keyStr.str() << std::endl;
-        }
-        // Find additional level
-        try {
-            stringstream keyStr;
-            std::string ret;
-            if (editionNumber_ == 1) {
-                keyStr << field.getGeneratingCenter() << ", "
-                       << field.getCodeTableVersionNumber() << ", "
-                       << field.getParameter1() << ", "
-                       << field.getTimeRange() << ", "
-                       << "0, 0, 0, 0, "
-                       << field.getLevelParameter1(); // Default values for thresholds
-                ret = point2LevelAdditions_[keyStr.str()];
-            }
-            else {
-                keyStr << field.getParameter2();
-                std::cerr <<__FUNCTION__<<" keyStr "<< keyStr.str() << std::endl;
-                ret = point2LevelAdditions2_[keyStr.str()];
-            }
-            if ( ret.length() != 0 ) {
-                std::string levelParameter = ret.substr( 0, ret.find(',') );
-                boost::trim( levelParameter );
-                string levFrom = ret.substr( ret.find_first_of(',') + 1, ret.find_last_of(',') - (ret.find_first_of(',') + 1) );
-                boost::trim( levFrom );
-                string levTo = ret.substr( ret.find_last_of(',') + 1 );
-                boost::trim( levTo );
-                float levelFrom = boost::lexical_cast<float>( levFrom );
-                float levelTo = boost::lexical_cast<float>( levTo );
-                wdb::load::Level level( levelParameter, levelFrom, levelTo );
-                levels.push_back( level );
-            }
-        }
-        catch ( wdb::ignore_value &e )
-        {
-            std::clog << e.what() << std::endl;
-        }
-        catch ( std::out_of_range &e )
-        {
-            // NOOP
-        }
-        if ( levels.size() == 0 ) {
-            if ( ignored )
-                throw wdb::ignore_value( "Level key is ignored" );
-            else
-                throw std::out_of_range( "No valid level key values found." );
-        }
+
+        if(levels.size() == 0) throw std::out_of_range( "No valid level key values found." );
     }
 
     int GribLoader::editionNumber(const GribField & field) const
