@@ -97,11 +97,16 @@ Loader::Loader(const CmdLine& cmdLine)
     } else {
         std::cerr << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear" << std::endl;
     }
+
+    if(!options().output().outFileName.empty()) {
+        output_.open(options().output().outFileName);
+    }
 }
 
 Loader::~Loader()
 {
-    //NOOP
+    if(output_.is_open())
+        output_.close();
 }
 
 void Loader::load()
@@ -149,18 +154,6 @@ void Loader::load()
             std::cerr << "Reason: " << e.what();
         }
     }
-
-//    for ( std::vector<std::string>::const_iterator file = filesToLoad.begin(); file != filesToLoad.end(); ++ file )
-//    {
-//        logHandler.setObjectName( * file );
-//        try {
-//            GribFile gribFile(* file);
-//            loader.load(gribFile);
-//        } catch ( std::exception & e) {
-//            log.errorStream()
-//                    << "Unrecoverable error when reading file " << * file << ". "<< e.what();
-//        }
-//    }
 }
 
     bool Loader::openTemplateCDM(const std::string& fileName)
@@ -224,6 +217,14 @@ void Loader::load()
         westBound_ = *(std::min_element(&lons[0], &lons[cdmTemplate_->getData("longitude")->size()]));
 
         return true;
+    }
+
+    void Loader::write(const string &str)
+    {
+        if(output_.is_open())
+            output_ << str;
+        else
+            cout << str;
     }
 
 } } } // end namespaces

@@ -2,8 +2,7 @@
 # WDB pointLoad Component
 #-----------------------------------------------------------------------------
 
-pointLoad_SOURCES =  src/main.cpp \
-                     src/CmdLine.cpp \
+SOURCE = src/CmdLine.cpp \
 	                 src/CfgFileReader.cpp \
 		             src/FeltLoader.cpp \
 			         src/Loader.cpp \
@@ -25,5 +24,10 @@ pointLoad_SOURCES =  src/main.cpp \
 					 src/GribHandleReader.hpp \
                      src/FileLoader.hpp \
 					 src/NetCDFLoader.hpp
+
+libpointload_a_SOURCES += $(SOURCE)
+
+pointLoad_SOURCES = \
+                  src/main.cpp
 
 EXTRA_DIST +=		src/src.mk

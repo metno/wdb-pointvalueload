@@ -52,6 +52,7 @@ namespace
     {
         options_description output( "Output" );
         output.add_options()
+        ( "output", value(& out.outFileName), "Specify a output filename ")
         ;
 
         return output;
@@ -77,15 +78,7 @@ namespace
         ( "fimex.process.rotateVectorToLatLonY", value(&out.fimexProcessRotateVectorToLatLonY), "Rotate Y wind component to lat/lon" )
         ( "fimex.interpolate.template", value(& out.fimexTemplate), "Path to template file tha fimex reader will use for point interpolation" )
         ( "fimex.interpolate.method", value(& out.fimexInterpolateMethod), "Interpolation method [nearestneighbor, bilinear, bicubic, coord_nearestneighbor, coord_kdtree, forward_max, forward_mean, forward_median or forward_sum]" )
-        ( "stations", value(& out.stations), "station ids to be selected from template (between qoutes '18700 1456') " )
-//    ( "fimex.reduceToBoundingBox.south", value<std::string>( & out.fimexReduceSouth), "geographical bounding-box in degree" )
-//    ( "fimex.reduceToBoundingBox.north", value<std::string>( & out.fimexReduceNorth), "geographical bounding-box in degree" )
-//    ( "fimex.reduceToBoundingBox.east", value<std::string>( & out.fimexReduceEast), "geographical bounding-box in degree" )
-//    ( "fimex.reduceToBoundingBox.west", value<std::string>( & out.fimexReduceWest), "geographical bounding-box in degree" )
         ;
-
-    // norway
-    // --fimex.reduceToBoundingBox.south 55 --fimex.reduceToBoundingBox.north 80 --fimex.reduceToBoundingBox.west 5 --fimex.reduceToBoundingBox.east 30
 
 	return input;
     }

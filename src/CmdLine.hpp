@@ -50,6 +50,7 @@ namespace wdb { namespace load { namespace point {
 
         struct OutputOptions
         {
+            string outFileName;
         };
 
         struct InputOptions
@@ -76,11 +77,6 @@ namespace wdb { namespace load { namespace point {
             string fimexInterpolateMethod;
             string fimexProcessRotateVectorToLatLonX;
             string fimexProcessRotateVectorToLatLonY;
-            string stations;
-//            std::string fimexReduceSouth;
-//            std::string fimexReduceNorth;
-//            std::string fimexReduceEast;
-//            std::string fimexReduceWest;
         };
 
         const InputOptions & input() const { return input_; }

@@ -362,7 +362,12 @@ namespace wdb { namespace load { namespace point {
             epsMaxVersion = realizations[epsLength - 1];
         }
 
-        const string strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
+        string strReferenceTime;
+	try {
+	    strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
+	} catch (CDMException& cdmex) {
+	    string strReferenceTime = times_[0];
+	}
 
         for(map<string, EntryToLoad>::const_iterator it = entries2load().begin(); it != entries2load().end(); ++it)
         {
@@ -506,7 +511,7 @@ namespace wdb { namespace load { namespace point {
                                     string validtime = times()[u];
 
                                     try {
-											stringstream cmd;
+                                                stringstream cmd;
 
                                                 cmd << value            << "\t"
                                                           << wkt.str()        << "\t"
@@ -522,12 +527,12 @@ namespace wdb { namespace load { namespace point {
                                                           << endl;
 
                                                if(value != value) {
-		                                           // IEEE way tom test for NaN
-												   cerr << cmd.str();
-												   continue;
-											   } else {
-											      cout << cmd.str();
-											   }
+                                                   // IEEE way tom test for NaN
+                                                   cerr << cmd.str();
+                                                   continue;
+                                               } else {
+                                                   controller_.write(cmd.str());
+                                               }
 
                                     } catch ( wdb::ignore_value &e ) {
                                         cerr << e.what() << " Data field not loaded."<< endl;

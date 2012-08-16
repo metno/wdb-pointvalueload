@@ -1,3 +1,9 @@
+wdb-pointload (1.1.5-2-ubuntu1) lucid; urgency=low
+
+  * new version
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Thu, 16 Aug 2012 16:00:00 +0100
+
 wdb-pointload (1.1.5-1-ubuntu1) lucid; urgency=low
 
   * NetCDF files supported

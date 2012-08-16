@@ -1,14 +1,14 @@
-dist_etcpointload_DATA += etc/template.nc \
-                          etc/loadfelteps.cfg \
-                          etc/felteps/felt2nc_vars_eps.xml \
-                          etc/felteps/felt_axes.xml \
-                          etc/felteps/felt_global_attributes.xml \
-                          etc/felteps/felt_variables_eps.xml \
-                          etc/felteps/dataprovider.conf \
-                          etc/felteps/validtime.conf \
-                          etc/felteps/valueparameter.conf \
-                          etc/felteps/levelparameter.conf \
-                          etc/felteps/leveladditions.conf
+dist_etcpointload_DATA += #etc/template.nc \
+                          #etc/loadfelteps.cfg \
+                          #etc/felteps/felt2nc_vars_eps.xml \
+                          #etc/felteps/felt_axes.xml \
+                          #etc/felteps/felt_global_attributes.xml \
+                          #etc/felteps/felt_variables_eps.xml \
+                          #etc/felteps/dataprovider.conf \
+                          #etc/felteps/validtime.conf \
+                          #etc/felteps/valueparameter.conf \
+                          #etc/felteps/levelparameter.conf \
+                          #etc/felteps/leveladditions.conf
 
                         #etc/loadfelt.cfg \
                         #etc/loadgrib.cfg \

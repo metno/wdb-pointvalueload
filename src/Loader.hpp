@@ -38,11 +38,15 @@
 // boost
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/file.hpp>
 
 // std
 #include <set>
 #include <vector>
 #include <string>
+
+typedef boost::iostreams::stream<boost::iostreams::file_sink> output_stream;
 
 using namespace std;
 
@@ -65,6 +69,7 @@ namespace wdb { namespace load { namespace point {
         const vector<float>& latitudes() { return latitudes_; }
         const vector<float>& longitudes() { return longitudes_; }
         const size_t interpolatemethod() { return interpolateMethod_; }
+        void write(const string& str);
     private:
 
         bool openTemplateCDM(const std::string& fileName);
@@ -90,6 +95,8 @@ namespace wdb { namespace load { namespace point {
         boost::shared_ptr<FeltLoader>   felt_;
         boost::shared_ptr<GribLoader>   grib_;
         boost::shared_ptr<NetCDFLoader> netcdf_;
+
+        output_stream output_;
     };
 
 } } } // end namespaces

@@ -8,7 +8,9 @@
 
 # Scanned by Autoreconf; must be static (no expansion)
 ACLOCAL_AMFLAGS = 		-I config/m4
-				
+
+
+
 # Share directory organization
 wdbdatadir = 			$(datadir)/wdb
 sqldir = 		        $(wdbdatadir)/sql
@@ -22,9 +24,13 @@ dist_etcpointload_DATA =
 bin_PROGRAMS = pointLoad
 
 # This is to be replaced by a "find wdb" macro:
-AM_CXXFLAGS =			-DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS) $(fimex_CPPFLAGS) $(grib_api_CPPFLAGS)
+AM_CXXFLAGS = -DSYSCONFDIR=\"$(pkgsysconfdir)\" $(wdb_CFLAGS) $(fimex_CPPFLAGS) $(grib_api_CPPFLAGS)
 
-pointLoad_LDADD = $(wdb_LIBS) $(fimex_LDFLAGS) $(fimex_LIBS) $(grib_api_LDFLAGS) $(grib_api_LIBS)
+noinst_LIBRARIES = libpointload.a
+libpointload_a_SOURCES =
+libpointload_a_CPPFLAGS = $(AM_CXXFLAGS)
+
+pointLoad_LDADD = libpointload.a $(wdb_LIBS) $(fimex_LDFLAGS) $(fimex_LIBS) $(grib_api_LDFLAGS) $(grib_api_LIBS)
 
 CLEANFILES =
 EXTRA_DIST =
@@ -32,7 +38,6 @@ EXTRA_DIST =
 include doc/doc.mk
 include etc/etc.mk
 include src/src.mk
-#include test/test.mk
-#include test/configuration/test.mk
+include test/pointload.mk
 
 include config/mk/debian.mk
