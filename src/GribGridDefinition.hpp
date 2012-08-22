@@ -168,6 +168,8 @@ private:
      */
     std::string lambertProjDefinition() const;
 
+    std::string polarStereographicProjDefinition() const;
+
     /// Perform initial setup of object. Called by all constructors
     void setup();
 
@@ -184,7 +186,8 @@ private:
         REGULAR_LONLAT,
         ROTATED_LONLAT,
         REGULAR_GAUSSIAN,
-        LAMBERT
+        LAMBERT,
+        POLAR_STEREOGRAPHIC
     };
     grid_type getGridType() const;
 

@@ -109,39 +109,54 @@ void GribGridDefinition::setup()
     long iNumber, jNumber;
     double iIncrement, jIncrement, startI, startJ;
 
-        ostringstream errMsg;
+    ostringstream errMsg;
     switch (getGridType()) {
     case REGULAR_LONLAT:
     case ROTATED_LONLAT:
         // X and Y size
         iNumber = gribHandleReader_.getLong("Ni");
-                jNumber = gribHandleReader_.getLong("Nj");
-                // X/Y increment
-                iIncrement = gribHandleReader_.getDouble("iDirectionIncrementInDegrees");// * DEG_TO_RAD;
-                if ( gribHandleReader_.getLong("iScansNegatively") )
-                        iIncrement *= -1;
-                jIncrement = gribHandleReader_.getDouble("jDirectionIncrementInDegrees");// * DEG_TO_RAD;
-                if ( ! gribHandleReader_.getLong("jScansPositively") )
-                        jIncrement *= -1;
-                // Start X/Y
-                startI = gribHandleReader_.getDouble("longitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
-                startJ = gribHandleReader_.getDouble("latitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
-                break;
+        jNumber = gribHandleReader_.getLong("Nj");
+        // X/Y increment
+        iIncrement = gribHandleReader_.getDouble("iDirectionIncrementInDegrees");// * DEG_TO_RAD;
+        if ( gribHandleReader_.getLong("iScansNegatively") )
+            iIncrement *= -1;
+        jIncrement = gribHandleReader_.getDouble("jDirectionIncrementInDegrees");// * DEG_TO_RAD;
+        if ( ! gribHandleReader_.getLong("jScansPositively") )
+            jIncrement *= -1;
+        // Start X/Y
+        startI = gribHandleReader_.getDouble("longitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
+        startJ = gribHandleReader_.getDouble("latitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
+        break;
     case LAMBERT:
         // X and Y size
         iNumber = gribHandleReader_.getLong("Nx");
-                jNumber = gribHandleReader_.getLong("Ny");
-                // X/Y increment
-                iIncrement = gribHandleReader_.getDouble("DxInMetres");// * DEG_TO_RAD;
-                if ( gribHandleReader_.getLong("iScansNegatively") )
-                        iIncrement *= -1;
-                jIncrement = gribHandleReader_.getDouble("DyInMetres");// * DEG_TO_RAD;
-                if ( ! gribHandleReader_.getLong("jScansPositively") )
-                        jIncrement *= -1;
-                // Start X/Y
-                startI = gribHandleReader_.getDouble("longitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
-                startJ = gribHandleReader_.getDouble("latitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
-                break;
+        jNumber = gribHandleReader_.getLong("Ny");
+        // X/Y increment
+        iIncrement = gribHandleReader_.getDouble("DxInMetres");// * DEG_TO_RAD;
+        if ( gribHandleReader_.getLong("iScansNegatively") )
+            iIncrement *= -1;
+        jIncrement = gribHandleReader_.getDouble("DyInMetres");// * DEG_TO_RAD;
+        if ( ! gribHandleReader_.getLong("jScansPositively") )
+            jIncrement *= -1;
+        // Start X/Y
+        startI = gribHandleReader_.getDouble("longitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
+        startJ = gribHandleReader_.getDouble("latitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
+        break;
+    case POLAR_STEREOGRAPHIC:
+        // X and Y size
+        iNumber = gribHandleReader_.getLong("Ni");
+        jNumber = gribHandleReader_.getLong("Nj");
+        // X/Y increment
+        iIncrement = gribHandleReader_.getDouble("DxInMetres");// * DEG_TO_RAD;
+        if ( gribHandleReader_.getLong("iScansNegatively") )
+            iIncrement *= -1;
+        jIncrement = gribHandleReader_.getDouble("DyInMetres");// * DEG_TO_RAD;
+        if ( ! gribHandleReader_.getLong("jScansPositively") )
+            jIncrement *= -1;
+        // Start X/Y
+        startI = gribHandleReader_.getDouble("longitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
+        startJ = gribHandleReader_.getDouble("latitudeOfFirstGridPointInDegrees");// * DEG_TO_RAD;
+        break;
     default:
         errMsg << "Cannot specify the grid geometry.";
         throw std::runtime_error( errMsg.str() );
@@ -188,20 +203,17 @@ GribGridDefinition::numberY() const
     return geometry_->yNumber_;
 };
 
-float
-GribGridDefinition::incrementX() const
+float GribGridDefinition::incrementX() const
 {
         return geometry_->xIncrement_;
 };
 
-float
-GribGridDefinition::incrementY() const
+float GribGridDefinition::incrementY() const
 {
         return geometry_->yIncrement_;
 };
 
-float
-GribGridDefinition::startX() const
+float GribGridDefinition::startX() const
 {
         return geometry_->startX_;
 };
@@ -212,9 +224,9 @@ GribGridDefinition::startY() const
         return geometry_->startY_;
 };
 
-std::string GribGridDefinition::getGeometry() const
+string GribGridDefinition::getGeometry() const
 {
-        return geometry_->wktRepresentation();
+    return geometry_->wktRepresentation();
 }
 
 void
@@ -242,35 +254,47 @@ wmo::codeTable::ScanMode GribGridDefinition::getScanMode() const
 
 GribGridDefinition::grid_type GribGridDefinition::getGridType() const
 {
-        std::string gridType = gribHandleReader_.getString("gridType");
-    std::clog << "GridType is " << gridType << std::endl;
+    //cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
+    std::string gridType = gribHandleReader_.getString("gridType");
+//    std::clog << "GridType is " << gridType << std::endl;
+    //cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
 
-    if (gridType == "regular_ll")
+    if(gridType == "regular_ll")
         return REGULAR_LONLAT;
 
-    if (gridType == "rotated_ll")
+    if(gridType == "rotated_ll")
         return ROTATED_LONLAT;
 
-    if (gridType == "lambert")
+    if(gridType == "lambert")
         return LAMBERT;
 
-    if (gridType == "regular_gg")
+    if(gridType == "regular_gg")
         return REGULAR_GAUSSIAN;
 
+    if(gridType == "polar_stereographic")
+        return POLAR_STEREOGRAPHIC;
+    
     std::clog << "Could not identify gridType: " << gridType << std::endl;
     return UNDEFINED_GRID;
 }
 
-std::string GribGridDefinition::getProjDefinition() const
+string GribGridDefinition::getProjDefinition() const
 {
+//    cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
     ostringstream errMsg;
     switch (getGridType()) {
     case REGULAR_LONLAT:
+//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
         return regularLatLonProjDefinition();
     case ROTATED_LONLAT:
+//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
         return rotatedLatLonProjDefinition();
     case LAMBERT:
+//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
         return lambertProjDefinition();
+    case POLAR_STEREOGRAPHIC:
+//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
+        return polarStereographicProjDefinition();
     case UNDEFINED_GRID:
         errMsg << "Undefined grid type in GRIB file.";
         throw std::runtime_error( errMsg.str() );
@@ -283,8 +307,9 @@ std::string GribGridDefinition::getProjDefinition() const
     return errMsg.str();
 }
 
-std::string GribGridDefinition::getEarthsOblateFigure(long factorToM) const
+string GribGridDefinition::getEarthsOblateFigure(long factorToM) const
 {
+//    cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
     long majorFactor = gribHandleReader_.getLong("scaleFactorOfMajorAxisOfOblateSpheroidEarth");
     long minorFactor = gribHandleReader_.getLong("scaleFactorOfMinorAxisOfOblateSpheroidEarth");
 
@@ -301,18 +326,19 @@ std::string GribGridDefinition::getEarthsOblateFigure(long factorToM) const
     while (minorFactor < 0) {minorValue /= 10; minorFactor++;}
     // transfer (km|m) to m
     minorFactor *= factorToM;
-
+//    cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
     return "+a=" + type2string(majorValue) + " +b=" + type2string(minorValue);
 }
 
-std::string GribGridDefinition::getEarthsSphericalFigure() const
+string GribGridDefinition::getEarthsSphericalFigure() const
 {
     double radius = gribHandleReader_.getDouble("radiusInMetres");
     return "+a=" + type2string(radius) + " +e=0";
 }
 
-std::string GribGridDefinition::getEarthsFigure() const
+string GribGridDefinition::getEarthsFigure() const
 {
+//    cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
     long edition = gribHandleReader_.getLong( "editionNumber" );
 
     string earth;
@@ -340,27 +366,19 @@ std::string GribGridDefinition::getEarthsFigure() const
         default: throw std::runtime_error("GRIB - undefined shape of the earth: " + type2string(shapeOfTheEarth));
         }
     }
+//    cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
     return earth;
 }
 
 std::string GribGridDefinition::regularLatLonProjDefinition() const
 {
-        // Define the PROJ definitions of the calculations
+//    cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
     std::ostringstream srcProjDef;
-    srcProjDef << "+proj=longlat";
-        long int earthIsOblate;
-        earthIsOblate = gribHandleReader_.getLong("earthIsOblate");;
-    if (earthIsOblate)
-    {
-        srcProjDef << " +a=6378160.0 +b=6356775.0";
-    }
-    else
-    {
-        srcProjDef << " +a=6367470.0";
-    }
+    srcProjDef << " +proj=longlat ";
+    srcProjDef << getEarthsFigure();
     srcProjDef << " +towgs84=0,0,0 +no_defs";
 
-        // Set the PROJ string for SRID
+    // Set the PROJ string for SRID
     return srcProjDef.str();
 }
 
@@ -377,8 +395,7 @@ std::string GribGridDefinition::rotatedLatLonProjDefinition() const
     return proj;
 }
 
-std::string
-GribGridDefinition::lambertProjDefinition() const
+std::string GribGridDefinition::lambertProjDefinition() const
 {
     // Define the PROJ definitions used for the computation of the
     // Rotated projection
@@ -412,4 +429,33 @@ GribGridDefinition::lambertProjDefinition() const
     return srcProjDef.str();
 }
 
+std::string GribGridDefinition::polarStereographicProjDefinition() const
+{
+    long edition = gribHandleReader_.getLong( "editionNumber" );
+
+    double lat0, lat_ts;
+    string earth;
+    double orientationOfGrid = gribHandleReader_.getDouble("orientationOfTheGridInDegrees");
+
+    if (edition == 1) {
+        lat_ts = 60.;
+    } else if(edition == 2) {
+        lat_ts = gribHandleReader_.getDouble("latitudeWhereDxAndDyAreSpecifiedInDegrees");
+
+    }
+    long projectionCentreFlag = gribHandleReader_.getLong("projectionCentreFlag"); // changed to centre in grib-api > 1.8
+    if (projectionCentreFlag == 0) {
+        lat0 = 90.; // northpole
+    } else {
+        lat0 = -90.; // southpole
+    }
+    ostringstream srcProjDef;
+    srcProjDef << " +proj=stere ";
+    srcProjDef << " +lat_0="<<lat0;
+    srcProjDef << " +lon_0="<< orientationOfGrid;
+    srcProjDef << " +lat_ts="<< lat_ts<< " ";
+    srcProjDef << getEarthsFigure();
+
+    return srcProjDef.str();
+}
 } } } // end namespace

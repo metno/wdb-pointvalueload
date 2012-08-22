@@ -313,6 +313,11 @@ GribField::getValidTimeTo() const
         }
     }
 
+    long int GribField::getParameterCategory() const
+    {
+        return  gribHandleReader_->getLong( "parameterCategory" );
+    }
+
     long int GribField::getTimeRange() const
     {
         return gribHandleReader_->getLong( "timeRangeIndicator" );
@@ -329,7 +334,8 @@ GribField::getValidTimeTo() const
 
     std::string GribField::getLevelParameter2() const
     {
-        return gribHandleReader_->getString( "typeOfLevel" );
+        string lp2 = gribHandleReader_->getString( "typeOfLevel" );
+        return lp2;
     }
 
     /**

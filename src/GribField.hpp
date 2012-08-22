@@ -131,6 +131,8 @@ namespace wdb { namespace load { namespace point {
           */
         long int getParameter2() const;
 
+        long int getParameterCategory() const;
+
         /** GRIB time range of the field data
           * @return	The GRIB time range
           */
