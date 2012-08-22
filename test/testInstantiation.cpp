@@ -48,8 +48,13 @@ const string stationsConf = commonDir + "testStations.nc";
 const string unitsConf = commonDir + "units.conf";
 const string dataproviderConf = commonDir + "dataprovider.conf";
 const string feltDir = etcDir + "/felt/";
+const string grib1Dir = etcDir + "/grib1/";
+const string grib2Dir = etcDir + "/grib2/";
 const string netcdfDir = etcDir + "/netcdf/";
 const string feltConf = feltDir + "/load.conf";
+const string grib1Conf = grib1Dir + "/load.conf";
+const string grib2Conf = grib2Dir + "/load.conf";
+const string netcdfConf = netcdfDir + "/load.conf";
 
 BOOST_AUTO_TEST_CASE( parseCmdLine1 )
 {
@@ -99,11 +104,13 @@ BOOST_AUTO_TEST_CASE( configFilesExist )
 
 BOOST_AUTO_TEST_CASE( loadfelt )
 {
-    int argc = 3;
+    int argc = 5;
     char *argv[argc];
     argv[0] = strdup("wdb-fastload");
     argv[1] = strdup("--config");
     argv[2] = strdup(feltConf.c_str());
+    argv[3] = strdup("");//strdup("--output");
+    argv[4] = strdup("");//("felt-result.txt");
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -114,4 +121,75 @@ BOOST_AUTO_TEST_CASE( loadfelt )
     free(argv[0]);
     free(argv[1]);
     free(argv[2]);
+    free(argv[3]);
+    free(argv[4]);
+}
+
+BOOST_AUTO_TEST_CASE( loadnetcdf )
+{
+    int argc = 5;
+    char *argv[argc];
+    argv[0] = strdup("wdb-fastload");
+    argv[1] = strdup("--config");
+    argv[2] = strdup(netcdfConf.c_str());
+    argv[3] = strdup("");//strdup("--output");
+    argv[4] = strdup("");//("felt-result.txt");
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    loader.load();
+
+    free(argv[0]);
+    free(argv[1]);
+    free(argv[2]);
+    free(argv[3]);
+    free(argv[4]);
+}
+
+BOOST_AUTO_TEST_CASE( loadgrib1 )
+{
+    int argc = 5;
+    char *argv[argc];
+    argv[0] = strdup("wdb-fastload");
+    argv[1] = strdup("--config");
+    argv[2] = strdup(grib1Conf.c_str());
+    argv[3] = strdup("");//strdup("--output");
+    argv[4] = strdup("");//("felt-result.txt");
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    loader.load();
+
+    free(argv[0]);
+    free(argv[1]);
+    free(argv[2]);
+    free(argv[3]);
+    free(argv[4]);
+}
+
+BOOST_AUTO_TEST_CASE( loadgrib2 )
+{
+    int argc = 5;
+    char *argv[argc];
+    argv[0] = strdup("wdb-fastload");
+    argv[1] = strdup("--config");
+    argv[2] = strdup(grib2Conf.c_str());
+    argv[3] = strdup("");//strdup("--output");
+    argv[4] = strdup("");//("felt-result.txt");
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    loader.load();
+
+    free(argv[0]);
+    free(argv[1]);
+    free(argv[2]);
+    free(argv[3]);
+    free(argv[4]);
 }
