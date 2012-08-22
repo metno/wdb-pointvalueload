@@ -41,7 +41,7 @@ namespace
     {
         options_description input("Input");
         input.add_options()
-        ( "type", value( & out.type ), "File type to be loaded [felt/grib/netcdf]" )
+        ( "type", value( & out.type ), "File type to be loaded [felt/grib1/grib2/netcdf]" )
         ( "name", value<vector<string> >(&out.file)->multitoken(), "Name of file to process" )
         ;
 

@@ -47,6 +47,7 @@
 
 // wdb
 #include <wdbException.h>
+#include <wdbLogHandler.h>
 
 // boost
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -90,16 +91,20 @@ namespace wdb { namespace load { namespace point {
     FileLoader::FileLoader(Loader& controller)
         : controller_(controller)
     {
-
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }
 
     FileLoader::~FileLoader()
     {
-        // NOOP
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }
 
     void FileLoader::setup()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(options().loading().validtimeConfig.empty())
             throw runtime_error("Can't open validtime.config file [empty string?]");
         if(options().loading().dataproviderConfig.empty())
@@ -118,10 +123,14 @@ namespace wdb { namespace load { namespace point {
         point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
         point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
         point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
+
+        //log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }
 
     void FileLoader::readUnit(const string& unitname, float& coeff, float& term)
     {
+//        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+//        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string ret = point2Units_[unitname];
         vector<string> strs;
         boost::split(strs, ret, boost::is_any_of("|"));
@@ -129,36 +138,39 @@ namespace wdb { namespace load { namespace point {
         string t = strs.at(1); boost::algorithm::trim(t);
         coeff = boost::lexical_cast<float>(c);
         term = boost::lexical_cast<float>(t);
+//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
      }
-
 
     bool FileLoader::openCDM(const string& fileName)
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string fType = options().input().type;
         string fimexConfig = options().loading().fimexConfig;
 
-        if(fType == "felt" or fType == "grib") {
+        if(fType == "felt" or fType == "grib1" or fType == "grib2") {
             if(fimexConfig.empty())
-                throw runtime_error(" Can't open fimex reader configuration file (must have for FELT/GRIB formats)!");
+                throw runtime_error(" Can't open fimex reader configuration file (must have for FELT/GRIB1/GRIB2 formats)!");
             if(!boost::filesystem::exists(fimexConfig))
                 throw runtime_error(" Fimex configuration file: " + fimexConfig + " doesn't exist!");
         }
 
         if(fType == "felt")
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_FELT, fileName, fimexConfig);
-        else if(fType == "grib")
+        else if(fType == "grib1" or fType == "grib2")
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_GRIB, fileName, fimexConfig);
         else if(fType == "netcdf")
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
         else
             throw runtime_error("Unknow file type!");
 
-//        cdmReader_->getCDM().toXMLStream(cerr);
         return true;
     }
 
     bool FileLoader::interpolateCDM()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string templateFile = options().loading().fimexTemplate;
 
         if(templateFile.empty())
@@ -174,11 +186,14 @@ namespace wdb { namespace load { namespace point {
 
         cdmData_ = interpolator;
 
+//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
         return true;
     }
 
     bool FileLoader::timeFromCDM()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         const CDM& cdmRef = cdmData_->getCDM();
         const CDMDimension* unlimited = cdmRef.getUnlimitedDim();
         if(unlimited == 0)
@@ -193,11 +208,15 @@ namespace wdb { namespace load { namespace point {
             times_.push_back(boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t(uValues[u])) + "+00");
         }
 
+//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
+
         return true;
     }
 
     bool FileLoader::processCDM()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         uwinds().clear();
         vwinds().clear();
 
@@ -211,17 +230,19 @@ namespace wdb { namespace load { namespace point {
         boost::split(vwinds(), options().loading().fimexProcessRotateVectorToLatLonY, boost::is_any_of(" ,"));
 
         if(uwinds().size() != vwinds().size())
-            throw runtime_error("not the same number of x and y wind components");
+            throw runtime_error("not the same number of x and y wind components\n");
 
         processor->rotateVectorToLatLon(true, uwinds(), vwinds());
 
         cdmData_ = processor;
-
+//         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         return true;
     }
 
     void FileLoader::load(const string& fileName)
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         openCDM(fileName);
 
         processCDM();
@@ -235,6 +256,8 @@ namespace wdb { namespace load { namespace point {
 
     void FileLoader::loadWindEntries()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(uwinds().size() != vwinds().size())
             throw runtime_error("uwinds and veinds sizes don't match");
 
@@ -343,8 +366,11 @@ namespace wdb { namespace load { namespace point {
 
     void FileLoader::loadEntries()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string dataprovider;
         const CDM& cdmRef = cdmData_->getCDM();
+//        cdmRef.toXMLStream(cout);
 
         // eps - realization variable
         size_t epsLength = 1;
@@ -366,11 +392,12 @@ namespace wdb { namespace load { namespace point {
 	try {
 	    strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
 	} catch (CDMException& cdmex) {
-	    string strReferenceTime = times_[0];
+            strReferenceTime = times_[0];
 	}
 
         for(map<string, EntryToLoad>::const_iterator it = entries2load().begin(); it != entries2load().end(); ++it)
         {
+//            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
             const EntryToLoad& entry(it->second);
             string wdbUnit = entry.unit_;
             if(dataprovider != entry.provider_) {
@@ -378,7 +405,7 @@ namespace wdb { namespace load { namespace point {
                 cout << endl << dataprovider<< '\t' << "88,0,88" <<endl;
             }
 
-            cerr << " LOADING param: " << entry.name_ << " in units: "<<entry.unit_<<endl;
+//            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
 
                 string fimexname;
                 string fimexlevelname;
@@ -386,7 +413,11 @@ namespace wdb { namespace load { namespace point {
                 size_t fimexYDimLength;
                 vector<string> fimexshape;
                 boost::shared_array<double> values;
-                string fimexstandardname(entry.name_);
+
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << " entry.name_: "<< entry.name_ ;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]"  << " entry.fimexName: "<< entry.fimexName;
+
+                string fimexstandardname(entry.fimexName.empty() ? entry.name_ : entry.fimexName);
                 string wdbstandardname(entry.name_);
 
                 if(entry.data_.get() == 0) {
@@ -415,8 +446,8 @@ namespace wdb { namespace load { namespace point {
                     fimexYDimLength = cdmRef.getDimension(yName).getLength();
 
 
-                   if(!cdmRef.getLatitudeLongitude(fimexVar.getName(), latName, lonName))
-                       throw runtime_error("lat and lon not defined for fimexvarname");
+                    if(!cdmRef.getLatitudeLongitude(fimexVar.getName(), latName, lonName))
+                        throw runtime_error("lat and lon not defined for fimexvarname");
 
                     boost::shared_ptr<MetNoFimex::Data> raw = cdmData_->getScaledDataInUnit(fimexVar.getName(), wdbUnit);
                     if(raw->size() == 0)

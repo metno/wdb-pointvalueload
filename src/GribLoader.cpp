@@ -37,6 +37,7 @@
 
 // wdb
 #include <GridGeometry.h>
+#include <wdbLogHandler.h>
 
 // libfelt
 #include <felt/FeltFile.h>
@@ -100,6 +101,8 @@ namespace wdb { namespace load { namespace point {
     GribLoader::GribLoader(Loader& controller)
         : FileLoader(controller)
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         setup();
     }
 
@@ -110,23 +113,46 @@ namespace wdb { namespace load { namespace point {
 
     void GribLoader::setup()
     {
-        FileLoader::setup();
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+        if(options().loading().dataproviderConfig.empty())
+            throw runtime_error("Can't open dataprovider.config file [empty string?]");
+        if(options().loading().valueparameterConfig.empty())
+            throw runtime_error("Can't open valueparameter.config file [empty string?]");
+        if(options().loading().levelparameterConfig.empty())
+            throw runtime_error("Can't open levelparameter.config file [empty string?]");
+        if(options().loading().leveladditionsConfig.empty())
+            throw runtime_error("Can't open leveladditions.config file [empty string?]");
+        if(options().loading().unitsConfig.empty())
+            throw runtime_error("Can't open units.config file [empty string?]");
+        point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).file_string());
+        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
+        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
+        point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
+        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
 
-        if(options().loading().valueparameter2Config.empty())
-            throw std::runtime_error("Can't open valueparameter2.config file [empty string?]");
-        if(options().loading().levelparameter2Config.empty())
-            throw std::runtime_error("Can't open levelparameter2.config file [empty string?]");
-        if(options().loading().leveladditions2Config.empty())
-            throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
+//        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
 
-        // load GRIB2 metadata
-        point2ValueParameter2_.open(getConfigFile(options().loading().valueparameter2Config).file_string());
-        point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).file_string());
-        point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).file_string());
+        if(options().input().type == "grib2") {
+//            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+            if(options().loading().valueparameter2Config.empty())
+                throw std::runtime_error("Can't open valueparameter2.config file [empty string?]");
+            if(options().loading().levelparameter2Config.empty())
+                throw std::runtime_error("Can't open levelparameter2.config file [empty string?]");
+            if(options().loading().leveladditions2Config.empty())
+                throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
+            point2ValueParameter2_.open(getConfigFile(options().loading().valueparameter2Config).file_string());
+            point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).file_string());
+            point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).file_string());
+        }
+//        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }
 
     void GribLoader::loadInterpolated(const string& fileName)
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+
         GribFile file(fileName);
 
         if(times_.size() == 0)
@@ -169,11 +195,11 @@ namespace wdb { namespace load { namespace point {
                 }
 
             } catch ( wdb::ignore_value &e ) {
-                std::cerr << e.what() << " Data field not loaded." << std::endl;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::out_of_range &e ) {
-                std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << std::endl;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::exception & e ) {
-                std::cerr << e.what() << " Data field not loaded." << std::endl;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             }
         }
 
@@ -184,22 +210,23 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::dataProviderName(const GribField & field) const
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
         stringstream keyStr;
         keyStr << field.getGeneratingCenter() << ", "
                << field.getGeneratingProcess();
-        std::cerr << __FUNCTION__ << " keyStr " << keyStr.str() << std::endl;
         try {
             std::string ret = point2DataProviderName_[ keyStr.str() ];
             return ret;
         }
         catch ( std::out_of_range &e ) {
-            std::cerr << "Could not identify the data provider." << std::endl;
+            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the data provider." << " for keyStr " << keyStr;
             throw;
         }
     }
 
     string GribLoader::valueParameterName(const GribField & field) const
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
         stringstream keyStr;
         std::string ret;
         if (editionNumber_ == 1) {
@@ -212,18 +239,18 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter." << std::endl;
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
                 throw;
             }
         }
         else {
             keyStr << field.getParameter2();
-            std::cerr << __FUNCTION__ << " keyStr " << keyStr.str() << std::endl;
+            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " keyStr " << keyStr.str();
             try {
                 ret = point2ValueParameter2_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter." << std::endl;
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
                 throw;
             }
         }
@@ -234,6 +261,7 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::valueParameterUnit(const GribField & field) const
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
         stringstream keyStr;
         std::string ret;
         if (editionNumber_ == 1) {
@@ -246,18 +274,17 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter identified by " << keyStr.str() << std::endl;
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
         else {
             keyStr << field.getParameter2();
-            std::cerr << __FUNCTION__ << " keyStr " << keyStr.str() << std::endl;
             try {
                 ret = point2ValueParameter2_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                std::cerr << "Could not identify the value parameter identified by " << keyStr.str() << std::endl;
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
@@ -268,18 +295,19 @@ namespace wdb { namespace load { namespace point {
 
     void GribLoader::levelValues( std::vector<wdb::load::Level> & levels, const GribField & field )
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
         bool ignored = false;
         stringstream keyStr;
         std::string ret;
         try {
             if (editionNumber_ == 1) {
                 keyStr << field.getLevelParameter1();
-                std::cerr << __FUNCTION__ << " field.getLevelParameter1() "<<keyStr.str() << std::endl;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << __FUNCTION__ << " field.getLevelParameter1() "<< keyStr.str();
                 ret = point2LevelParameter_[keyStr.str()];
             }
             else {
                 keyStr << field.getLevelParameter2();
-                std::cerr << __FUNCTION__ << " keyStr "<<keyStr.str() << std::endl;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " keyStr "<< keyStr.str();
                 ret = point2LevelParameter2_[keyStr.str()];
             }
             std::string levelParameter = ret.substr( 0, ret.find(',') );
@@ -300,11 +328,11 @@ namespace wdb { namespace load { namespace point {
         }
         catch ( wdb::ignore_value &e )
         {
-            std::clog << e.what() << std::endl;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
             ignored = true;
         }
         catch ( std::out_of_range &e ) {
-            std::cerr << "Could not identify the level parameter identified by " << keyStr.str() << std::endl;
+            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the level parameter identified by " << keyStr.str();
         }
         // Find additional level
         try {
@@ -320,8 +348,14 @@ namespace wdb { namespace load { namespace point {
                 ret = point2LevelAdditions_[keyStr.str()];
             }
             else {
-                keyStr << field.getParameter2();
-                std::cerr <<__FUNCTION__<<" keyStr "<< keyStr.str() << std::endl;
+                keyStr
+                       << field.getGeneratingCenter() << ", "
+                       << field.getParameterCategory() << ", "
+                       << field.getParameter2() << ", "
+                       << field.getTimeRange() << ", "
+                       << "0, 0, 0, 0, "
+                       << field.getLevelParameter2(); // Default values for thresholds
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " <<__FUNCTION__<<" keyStr ------ "<< keyStr.str();
                 ret = point2LevelAdditions2_[keyStr.str()];
             }
             if ( ret.length() != 0 ) {
@@ -339,7 +373,7 @@ namespace wdb { namespace load { namespace point {
         }
         catch ( wdb::ignore_value &e )
         {
-            std::clog << e.what() << std::endl;
+            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
         catch ( std::out_of_range &e )
         {

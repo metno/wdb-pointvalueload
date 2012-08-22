@@ -35,6 +35,7 @@
 
 // wdb
 #include <GridGeometry.h>
+#include <wdbLogHandler.h>
 
 // libfelt
 #include <felt/FeltFile.h>
@@ -88,16 +89,22 @@ namespace wdb { namespace load { namespace point {
     NetCDFLoader::NetCDFLoader(Loader& controller)
         : FileLoader(controller)
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         setup();
     }
 
     NetCDFLoader::~NetCDFLoader()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         // NOOP
     }
 
     void NetCDFLoader::setup()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(options().loading().valueparameterConfig.empty())
             throw runtime_error("Can't open valueparameter.config file [empty string?]");
         if(options().loading().levelparameterConfig.empty())
@@ -134,14 +141,19 @@ namespace wdb { namespace load { namespace point {
         ret = point2ValueParameter_[keyStr.str()];
         ret = ret.substr(0, ret.find(','));
         boost::trim(ret);
-        cerr << "Value parameter " << ret << " found." << endl;
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Value parameter " << ret << " found.";
         return ret;
     }
 
     void NetCDFLoader::levelValues(vector<Level> & levels, const string& varname)
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         const CDM& cdmRef = cdmData_->getCDM();
         string verticalCoordinate = cdmRef.getVerticalAxis(varname);
+	if(verticalCoordinate.empty())
+	  throw wdb::ignore_value( "No vertical coordinate found for " + varname);
         string levelParameter;
         string levelUnit;
         string lvls;
@@ -170,14 +182,13 @@ namespace wdb { namespace load { namespace point {
 
             float coeff = 1.0;
             float term = 0.0;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " verticalCoordinate : " << verticalCoordinate << endl;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " levelParameter : " << levelParameter << endl;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " levelUnit : " << levelUnit << endl;
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << " lvls : " << lvls << endl;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " verticalCoordinate : " << verticalCoordinate;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " levelParameter : " << levelParameter;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " levelUnit : " << levelUnit;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] "<< " lvls : " << lvls;
             readUnit( levelUnit, coeff, term );
-//            cerr << __FUNCTION__ << " @ " << __LINE__ << endl;
         } catch ( wdb::ignore_value &e ) {
-            cerr<< e.what()<<endl;
+            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
 
         if(!lvls.empty())
@@ -191,7 +202,7 @@ namespace wdb { namespace load { namespace point {
                     continue;
                 float levelTo = boost::lexical_cast<float>(levels2load[i]);
                 float levelFrom = levelTo;
-                cerr << "Found levels from " << levelFrom << " to " << levelTo<<endl;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << levelFrom << " to " << levelTo;
                 wdb::load::Level level(levelParameter, levelFrom, levelTo);
                 levels.push_back(level);
             }
@@ -206,6 +217,8 @@ namespace wdb { namespace load { namespace point {
 
     void NetCDFLoader::loadInterpolated(const string& fileName)
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(times_.size() == 0)
             return;
 
@@ -226,6 +239,7 @@ namespace wdb { namespace load { namespace point {
 
                 if(entries2load().find(name) == entries2load().end()) {
                     EntryToLoad entry;
+                    entry.fimexName = varname;
                     entry.name_ = name;
                     entry.unit_ = unit;
                     entry.provider_ = provider;
@@ -239,11 +253,11 @@ namespace wdb { namespace load { namespace point {
                 }
 
             } catch ( wdb::ignore_value &e ) {
-                std::cerr << e.what() << " Data field not loaded." << std::endl;
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::out_of_range &e ) {
-                std::cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << std::endl;
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
             } catch ( std::exception & e ) {
-                std::cerr << e.what() << " Data field not loaded." << std::endl;
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             }
         }
 
