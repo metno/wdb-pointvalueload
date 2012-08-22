@@ -45,6 +45,7 @@
 #include <fimex/CDMFileReaderFactory.h>
 
 // wdb
+#include <wdbLogHandler.h>
 #include <wdb/LoaderConfiguration.h>
 
 // boost
@@ -56,7 +57,7 @@
 #include <vector>
 
 using namespace std;
-
+using namespace wdb;
 using namespace wdb::load;
 
 //// Support Functions
@@ -108,13 +109,20 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    std::clog <<  "Starting pointLoad" << std::endl;
+    WdbLogHandler logHandler( cmdLine.logging().loglevel, cmdLine.logging().logfile );
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.main" );
+    log.debugStream() << "Starting pointLoad";
 
     try {
         wdb::load::point::Loader loader(cmdLine);
         loader.load();
     } catch(std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return 1;
+        log.fatalStream() << "Unable to load file " << cmdLine.input().file[0];
+        log.fatalStream() << "Reason: " << e.what();
+        return -1;
     }
+
+    log.debugStream() << "Exiting pointLoad";
+
+    return 0;
 }
