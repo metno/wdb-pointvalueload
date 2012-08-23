@@ -402,7 +402,8 @@ namespace wdb { namespace load { namespace point {
             string wdbUnit = entry.unit_;
             if(dataprovider != entry.provider_) {
                 dataprovider = entry.provider_;
-                cout << endl << dataprovider<< '\t' << "88,0,88" <<endl;
+                string dpLine = "\n" + dataprovider + "\t88,0,88\n";
+                controller_.write(dpLine);
             }
 
 //            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";

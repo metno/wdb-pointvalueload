@@ -110,7 +110,7 @@ int main(int argc, char ** argv)
     }
 
     WdbLogHandler logHandler( cmdLine.logging().loglevel, cmdLine.logging().logfile );
-    WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.main" );
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.main" );
     log.debugStream() << "Starting pointLoad";
 
     try {
