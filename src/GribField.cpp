@@ -39,6 +39,8 @@
 #include "GribHandleReader.hpp"
 #include "GribGridDefinition.hpp"
 
+//wdb
+#include <wdbLogHandler.h>
 // grib
 #include <grib_api.h>
 
@@ -354,17 +356,19 @@ GribField::getValidTimeTo() const
 
     int GribField::getDataVersion() const
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
+
         if(getEditionNumber() == 1) {
             long int localUsage = gribHandleReader_->getLong( "localUsePresent" );
-            std::clog << "Got LocalUsage: " << localUsage << std::endl;
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got LocalUsage: " << localUsage;
             if( localUsage == 0 ) {
                 return 0; // No local use section - no definition of data version
             } else {
                 long int marsType = gribHandleReader_->getLong( "marsType" );
-                std::clog << "Got MARS Type: " << marsType << std::endl;
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got MARS Type: " << marsType;
                 if ( marsType == 11 ) { // Perturbed Forecast
                     long int pertubNumber = gribHandleReader_->getLong( "perturbationNumber" );
-                    std::clog << "Got Perturbation Number: " << pertubNumber << std::endl;
+                    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got Perturbation Number: " << pertubNumber;
                     return pertubNumber;
                 }
             }
@@ -377,8 +381,9 @@ GribField::getValidTimeTo() const
 
 int GribField::getEditionNumber() const
 {
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
     int ret = gribHandleReader_->getLong( "editionNumber" );
-    std::clog << "Got GRIB Version: " << ret << std::endl;
+     log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got GRIB Version: " << ret;
     return ret;
 }
 
@@ -438,16 +443,16 @@ GribField::getValuesSize() const
 
 double GribField::getMissingValue() const
 {
-        return gribHandleReader_->getDouble("missingValue");
+    return gribHandleReader_->getDouble("missingValue");
 }
 
 
-void
-GribField::retrieveValues()
+void GribField::retrieveValues()
 {
-        sizeOfValues_ = gribHandleReader_->getValuesSize();
-        values_ =  gribHandleReader_->getValues( );
-    std::clog << "Retrieved " << sizeOfValues_ << " values from the field" << std::endl;
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
+    sizeOfValues_ = gribHandleReader_->getValuesSize();
+    values_ =  gribHandleReader_->getValues( );
+    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Retrieved " << sizeOfValues_ << " values from the field";
     if (sizeOfValues_ < 1) {
         string errorMessage = "Size of value grid is less than 1 byte";
         std::cerr << errorMessage << std::endl;
@@ -460,57 +465,59 @@ GribField::retrieveValues()
     }
 }
 
-void
-GribField::gridToLeftUpperHorizontal( )
+void GribField::gridToLeftUpperHorizontal( )
 {
-        wmo::codeTable::ScanMode fromMode = grid_->getScanMode();
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
+    wmo::codeTable::ScanMode fromMode = grid_->getScanMode();
     int nI = grid_->numberX();
     int nJ = grid_->numberY();
 
     switch( fromMode )
     {
-        case LeftUpperHorizontal:
-            std::clog << "Grid was already in requested format" << std::endl;
-            break;
-        case LeftLowerHorizontal:
-            // Todo: Implementation needs to be tested...
-            std::clog << "Swapping LeftLowerHorizontal to LeftUpperHorizontal" << std::endl;
-            for ( int j = 1; j <= nJ / 2; j ++ ) {
-                for ( int i = 0; i < nI; i ++ ) {
-                    swap( values_[((nJ - j) * nI) + i], values_[((j - 1) * nI) + i] );
-                }
+    case LeftUpperHorizontal:
+        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Grid was already in requested format";
+        break;
+    case LeftLowerHorizontal:
+        // Todo: Implementation needs to be tested...
+        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Swapping LeftLowerHorizontal to LeftUpperHorizontal";
+        for ( int j = 1; j <= nJ / 2; j ++ ) {
+            for ( int i = 0; i < nI; i ++ ) {
+                swap( values_[((nJ - j) * nI) + i], values_[((j - 1) * nI) + i] );
             }
-            grid_->setScanMode( LeftUpperHorizontal );
-            break;
-        default:
-            throw std::runtime_error( "Unsupported field conversion in gridToLeftUpperHorizontal");
+        }
+        grid_->setScanMode( LeftUpperHorizontal );
+        break;
+    default:
+        throw std::runtime_error( "Unsupported field conversion in gridToLeftUpperHorizontal");
     }
 }
 
 void
 GribField::gridToLeftLowerHorizontal( )
 {
-        wmo::codeTable::ScanMode fromMode = grid_->getScanMode();
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
+
+    wmo::codeTable::ScanMode fromMode = grid_->getScanMode();
 
     int nI = grid_->numberX();
     int nJ = grid_->numberY();
 
     switch( fromMode )
     {
-        case LeftUpperHorizontal:
-            std::clog << "Swapping LeftUpperHorizontal to LeftLowerHorizontal" << std::endl;
-            for ( int j = 1; j <= nJ / 2; j ++ ) {
-                for ( int i = 0; i < nI; i ++ ) {
-                    swap( values_[((nJ - j) * nI) + i], values_[((j - 1) * nI) + i] );
-                }
+    case LeftUpperHorizontal:
+        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Swapping LeftUpperHorizontal to LeftLowerHorizontal";
+        for ( int j = 1; j <= nJ / 2; j ++ ) {
+            for ( int i = 0; i < nI; i ++ ) {
+                swap( values_[((nJ - j) * nI) + i], values_[((j - 1) * nI) + i] );
             }
-            grid_->setScanMode( LeftLowerHorizontal );
-            break;
-        case LeftLowerHorizontal:
-            std::clog << "Grid was already in requested format" << std::endl;
-            break;
-        default:
-            throw std::runtime_error( "Unsupported field conversion in gridToLeftLowerHorizontal" );
+        }
+        grid_->setScanMode( LeftLowerHorizontal );
+        break;
+    case LeftLowerHorizontal:
+        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Grid was already in requested format";
+        break;
+    default:
+        throw std::runtime_error( "Unsupported field conversion in gridToLeftLowerHorizontal" );
     }
 }
 

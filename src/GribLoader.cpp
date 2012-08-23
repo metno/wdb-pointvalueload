@@ -101,7 +101,7 @@ namespace wdb { namespace load { namespace point {
     GribLoader::GribLoader(Loader& controller)
         : FileLoader(controller)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         setup();
     }
@@ -113,7 +113,7 @@ namespace wdb { namespace load { namespace point {
 
     void GribLoader::setup()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(options().loading().dataproviderConfig.empty())
             throw runtime_error("Can't open dataprovider.config file [empty string?]");
@@ -150,7 +150,7 @@ namespace wdb { namespace load { namespace point {
 
     void GribLoader::loadInterpolated(const string& fileName)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
 
         GribFile file(fileName);
@@ -210,7 +210,7 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::dataProviderName(const GribField & field) const
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         stringstream keyStr;
         keyStr << field.getGeneratingCenter() << ", "
                << field.getGeneratingProcess();
@@ -226,7 +226,7 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::valueParameterName(const GribField & field) const
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         stringstream keyStr;
         std::string ret;
         if (editionNumber_ == 1) {
@@ -261,7 +261,7 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::valueParameterUnit(const GribField & field) const
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         stringstream keyStr;
         std::string ret;
         if (editionNumber_ == 1) {
@@ -295,7 +295,7 @@ namespace wdb { namespace load { namespace point {
 
     void GribLoader::levelValues( std::vector<wdb::load::Level> & levels, const GribField & field )
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.GribLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         bool ignored = false;
         stringstream keyStr;
         std::string ret;

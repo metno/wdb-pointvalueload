@@ -89,21 +89,21 @@ namespace wdb { namespace load { namespace point {
     NetCDFLoader::NetCDFLoader(Loader& controller)
         : FileLoader(controller)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         setup();
     }
 
     NetCDFLoader::~NetCDFLoader()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         // NOOP
     }
 
     void NetCDFLoader::setup()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(options().loading().valueparameterConfig.empty())
             throw runtime_error("Can't open valueparameter.config file [empty string?]");
@@ -141,14 +141,14 @@ namespace wdb { namespace load { namespace point {
         ret = point2ValueParameter_[keyStr.str()];
         ret = ret.substr(0, ret.find(','));
         boost::trim(ret);
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Value parameter " << ret << " found.";
         return ret;
     }
 
     void NetCDFLoader::levelValues(vector<Level> & levels, const string& varname)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         const CDM& cdmRef = cdmData_->getCDM();
         string verticalCoordinate = cdmRef.getVerticalAxis(varname);
@@ -217,7 +217,7 @@ namespace wdb { namespace load { namespace point {
 
     void NetCDFLoader::loadInterpolated(const string& fileName)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.feltload.NetCDFLoader" );
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(times_.size() == 0)
             return;

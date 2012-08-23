@@ -41,7 +41,9 @@
 
 // wdb
 #include <WdbProjection.h>
+#include <wdbLogHandler.h>
 #include <GridGeometry.h>
+
 // SYSTEM INCLUDES
 #include <stdexcept>
 #include <boost/assign/list_of.hpp>
@@ -98,6 +100,7 @@ namespace wdb { namespace load { namespace point {
 
 void GribGridDefinition::setup()
 {
+    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribGridDefinition" );
     std::string sridProj = getProjDefinition();
 
     wmo::codeTable::ScanMode scanMode = (wmo::codeTable::ScanMode) gribHandleReader_.getLong("scanningMode");
@@ -162,14 +165,13 @@ void GribGridDefinition::setup()
         throw std::runtime_error( errMsg.str() );
         break;
     }
-    std::clog << "Creating geometry with ("
+    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Creating geometry with ("
                                           << iNumber << ", "
                                           << jNumber << ", "
                                           << iIncrement << ", "
                                           << jIncrement << ", "
                                           << startI << ", "
-                                          << startJ << ")"
-                                          << std::endl;
+                                          << startJ << ")";
     geometry_ = new GridGeometry(sridProj, o, iNumber, jNumber, iIncrement, jIncrement, startI, startJ );
 }
 
