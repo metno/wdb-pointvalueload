@@ -560,7 +560,7 @@ namespace wdb { namespace load { namespace point {
 
                                                if(value != value) {
                                                    // IEEE way tom test for NaN
-                                                   cerr << cmd.str();
+                                                   log.infoStream() << cmd.str();
                                                    continue;
                                                } else {
                                                    controller_.write(cmd.str());
