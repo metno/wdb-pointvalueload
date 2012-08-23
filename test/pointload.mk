@@ -3,7 +3,7 @@ TESTS = pointloadTest
 check_PROGRAMS = pointloadTest
 
 pointloadTest_SOURCES = \
-         test/testInstantiation.cpp
+         test/testLoading.cpp
 
 pointloadTest_CPPFLAGS = \
         $(AM_CPPFLAGS) \
