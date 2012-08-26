@@ -28,9 +28,6 @@
 // project
 #include "CmdLine.hpp"
 
-// std
-#include <fstream>
-
 using namespace std;
 using namespace boost::program_options;
 
