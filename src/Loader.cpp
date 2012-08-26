@@ -111,8 +111,10 @@ namespace wdb { namespace load { namespace point {
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        if(output_.is_open())
+        if(output_.is_open()) {
             output_.close();
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+        }
     }
 
     void Loader::load()
@@ -240,10 +242,12 @@ namespace wdb { namespace load { namespace point {
     {
 //        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
 //        log.debugStream() << __FUNCTION__ << " @ line["<< __LINE__ << "] CHECK POINT ";
-        if(output_.is_open())
+        if(output_.is_open()) {
             output_ << str;
-        else
+            flush(output_);
+        } else {
             cout << str;
+        }
     }
 
 } } } // end namespaces

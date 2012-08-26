@@ -425,10 +425,10 @@ namespace wdb { namespace load { namespace point {
                     boost::algorithm::replace_all(fimexstandardname, " ", "_");
                     vector<string> variables = cdmRef.findVariables("standard_name", fimexstandardname);
                     if(variables.empty()) {
-                        cerr << "cant find vars for fimexstandardname: " << fimexstandardname << endl;
+                        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "cant find vars for fimexstandardname: " << fimexstandardname;
                         continue;
                     } else if(variables.size() > 1) {
-                        cerr << "several vars for fimexstandardname: " << fimexstandardname << endl;
+                        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "several vars for fimexstandardname: " << fimexstandardname;
                         continue;
                     }
                     const MetNoFimex::CDMVariable fimexVar = cdmRef.getVariable(variables[0]);
@@ -459,7 +459,7 @@ namespace wdb { namespace load { namespace point {
                     // we deal only with variable that are time dependant
                     list<string> dims(fimexVar.getShape().begin(), fimexVar.getShape().end());
                     if(find(dims.begin(), dims.end(), "time") == dims.end()) {
-                        cerr << "not time dependent: " << fimexstandardname << endl;
+                        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "not time dependent: " << fimexstandardname;
                         continue;
                     }
                     fimexname = fimexVar.getName();
@@ -567,11 +567,11 @@ namespace wdb { namespace load { namespace point {
                                                }
 
                                     } catch ( wdb::ignore_value &e ) {
-                                        cerr << e.what() << " Data field not loaded."<< endl;
+                                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << e.what() << " Data field not loaded.";
                                     } catch ( out_of_range &e ) {
-                                        cerr << "Metadata missing for data value. " << e.what() << " Data field not loaded." << endl;
+                                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
                                     } catch ( exception & e ) {
-                                        cerr << e.what() << " Data field not loaded." << endl;
+                                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << e.what() << " Data field not loaded.";
                                     }
                             } // time slices end
                         } // eps slices
