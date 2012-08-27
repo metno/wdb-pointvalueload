@@ -282,21 +282,21 @@ namespace wdb { namespace load { namespace point {
             EntryToLoad uEntry = entries2load()[ucfname];
             EntryToLoad vEntry = entries2load()[vcfname];
 
-            if(uEntry.unit_ != vEntry.unit_)
+            if(uEntry.wdbUnit_ != vEntry.wdbUnit_)
                 throw runtime_error("units for wind componenets don't match");
-            string wdbUnit = uEntry.unit_;
+            string wdbunit = uEntry.wdbUnit_;
 
-            if(uEntry.provider_ != vEntry.provider_)
+            if(uEntry.wdbDataProvider_ != vEntry.wdbDataProvider_)
                 throw runtime_error("providers for wind componenets don't match");
-            string provider = uEntry.provider_;
+            string wdbdataprovider = uEntry.wdbDataProvider_;
 
-            if(uEntry.levelname_ != vEntry.levelname_)
+            if(uEntry.wdbLevelName_ != vEntry.wdbLevelName_)
                 throw runtime_error("levelnames for wind componenets don't match");
-            string levelname = uEntry.levelname_;
+            string levelname = uEntry.wdbLevelName_;
 
-            if(uEntry.levels_ != vEntry.levels_)
+            if(uEntry.wdbLevels_ != vEntry.wdbLevels_)
                 throw runtime_error("levels for wind componenets don't match");
-            set<double> levels(uEntry.levels_);
+            set<double> levels(uEntry.wdbLevels_);
 
             string xName = cdmData_->getCDM().getHorizontalXAxis(uwinds()[i]);
             string yName = cdmData_->getCDM().getHorizontalYAxis(uwinds()[i]);
@@ -307,8 +307,8 @@ namespace wdb { namespace load { namespace point {
             vector<string> shape(uVariabe.getShape().begin(), uVariabe.getShape().end());
             string lDimName = cdmData_->getCDM().getVerticalAxis(uwinds()[i]);
 
-            boost::shared_ptr<Data> udata = cdmData_->getScaledDataInUnit(uwinds()[i], wdbUnit);
-            boost::shared_ptr<Data> vdata = cdmData_->getScaledDataInUnit(vwinds()[i], wdbUnit);
+            boost::shared_ptr<Data> udata = cdmData_->getScaledDataInUnit(uwinds()[i], wdbunit);
+            boost::shared_ptr<Data> vdata = cdmData_->getScaledDataInUnit(vwinds()[i], wdbunit);
             boost::shared_array<double> uwinddata = udata->asDouble();
             boost::shared_array<double> vwinddata = vdata->asDouble();
 
@@ -319,42 +319,44 @@ namespace wdb { namespace load { namespace point {
             size_t tds = utds;
 
             EntryToLoad speed;
-            speed.name_ = "wind speed";
-            speed.unit_ = wdbUnit;
-            speed.provider_ = provider;
-            speed.levelname_ = levelname;
-            speed.levels_ = levels;
-            speed.data_ = boost::shared_array<double>(new double[tds]);
-            speed.fimexName = "wind_speed";
-            speed.fimexShape = shape;
-            speed.fimexLevelName = lDimName;
-            speed.fimexXDimLength = xDimLength;
-            speed.fimexYDimLength = yDimLength;
+            speed.wdbName_ = "wind speed";
+            speed.cdmName_ = "wind_speed";
+            speed.standardName_ = "wind_speed";
+            speed.wdbUnit_ = wdbunit;
+            speed.wdbDataProvider_ = wdbdataprovider;
+            speed.wdbLevelName_ = levelname;
+            speed.wdbLevels_ = levels;
+            speed.cdmData_ = boost::shared_array<double>(new double[tds]);
+            speed.cdmShape_ = shape;
+            speed.cdmLevelName_ = lDimName;
+            speed.cdmXDimLength_ = xDimLength;
+            speed.cdmYDimLength_ = yDimLength;
 
             EntryToLoad direction;
-            direction.name_ = "wind from direction";
-            direction.unit_ = "degrees";
-            direction.provider_ = provider;
-            direction.levelname_ = levelname;
-            direction.levels_ = levels;
-            direction.data_ = boost::shared_array<double>(new double[tds]);
-            direction.fimexName = "wind_from_direction";
-            direction.fimexShape = shape;
-            direction.fimexLevelName = lDimName;
-            direction.fimexXDimLength = xDimLength;
-            direction.fimexYDimLength = yDimLength;
+            direction.wdbName_ = "wind from direction";
+            direction.cdmName_ = "wind_from_direction";
+            direction.standardName_ = "wind_from_direction";
+            direction.wdbUnit_ = "degrees";
+            direction.wdbDataProvider_ = wdbdataprovider;
+            direction.wdbLevelName_ = levelname;
+            direction.wdbLevels_ = levels;
+            direction.cdmData_ = boost::shared_array<double>(new double[tds]);
+            direction.cdmShape_ = shape;
+            direction.cdmLevelName_ = lDimName;
+            direction.cdmXDimLength_ = xDimLength;
+            direction.cdmYDimLength_ = yDimLength;
 
             for(size_t t = 0; t < tds; ++t) {
-                speed.data_[t] = sqrt(uwinddata[t]*uwinddata[t] + vwinddata[t]*vwinddata[t]);
+                speed.cdmData_[t] = sqrt(uwinddata[t]*uwinddata[t] + vwinddata[t]*vwinddata[t]);
                 double dir = (3/2)*PI - atan2(vwinddata[t], uwinddata[t]);
                 while(dir > 2*PI) {
                     dir = dir - 2*PI;
                 }
-                direction.data_[t] = dir;
+                direction.cdmData_[t] = dir;
             }
 
-            winds.insert(make_pair<string, EntryToLoad>(speed.name_+boost::lexical_cast<string>(i), speed));
-            winds.insert(make_pair<string, EntryToLoad>(direction.name_+boost::lexical_cast<string>(i), direction));
+            winds.insert(make_pair<string, EntryToLoad>(speed.wdbName_+boost::lexical_cast<string>(i), speed));
+            winds.insert(make_pair<string, EntryToLoad>(direction.wdbName_+boost::lexical_cast<string>(i), direction));
         }
 
         entries2load().clear();
@@ -399,9 +401,9 @@ namespace wdb { namespace load { namespace point {
         {
 //            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
             const EntryToLoad& entry(it->second);
-            string wdbUnit = entry.unit_;
-            if(dataprovider != entry.provider_) {
-                dataprovider = entry.provider_;
+            string wdbunit = entry.wdbUnit_;
+            if(dataprovider != entry.wdbDataProvider_) {
+                dataprovider = entry.wdbDataProvider_;
                 string dpLine = "\n" + dataprovider + "\t88,0,88\n";
                 controller_.write(dpLine);
             }
@@ -415,13 +417,14 @@ namespace wdb { namespace load { namespace point {
                 vector<string> fimexshape;
                 boost::shared_array<double> values;
 
-                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << " entry.name_: "<< entry.name_ ;
-                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]"  << " entry.fimexName: "<< entry.fimexName;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << " entry.wdbName_: "<< entry.wdbName_ ;
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]"  << " entry.cdmName_: "<< entry.cdmName_;
 
-                string fimexstandardname(entry.fimexName.empty() ? entry.name_ : entry.fimexName);
-                string wdbstandardname(entry.name_);
+                //string fimexstandardname(entry.fimexName.empty() ? entry.name_ : entry.fimexName);
+                string fimexstandardname(entry.standardName_);
+                string wdbstandardname(entry.wdbName_);
 
-                if(entry.data_.get() == 0) {
+                if(entry.cdmData_.get() == 0) {
                     boost::algorithm::replace_all(fimexstandardname, " ", "_");
                     vector<string> variables = cdmRef.findVariables("standard_name", fimexstandardname);
                     if(variables.empty()) {
@@ -450,7 +453,7 @@ namespace wdb { namespace load { namespace point {
                     if(!cdmRef.getLatitudeLongitude(fimexVar.getName(), latName, lonName))
                         throw runtime_error("lat and lon not defined for fimexvarname");
 
-                    boost::shared_ptr<MetNoFimex::Data> raw = cdmData_->getScaledDataInUnit(fimexVar.getName(), wdbUnit);
+                    boost::shared_ptr<MetNoFimex::Data> raw = cdmData_->getScaledDataInUnit(fimexVar.getName(), wdbunit);
                     if(raw->size() == 0)
                         continue;
 
@@ -466,12 +469,12 @@ namespace wdb { namespace load { namespace point {
                     fimexshape = fimexVar.getShape();
                     fimexlevelname = cdmRef.getVerticalAxis(fimexname);
                 } else {
-                    values = entry.data_;
-                    fimexname = entry.fimexName;
-                    fimexshape = entry.fimexShape;
-                    fimexlevelname = entry.fimexLevelName;
-                    fimexXDimLength = entry.fimexXDimLength;
-                    fimexYDimLength = entry.fimexYDimLength;
+                    values = entry.cdmData_;
+                    fimexname = entry.cdmName_;
+                    fimexshape = entry.cdmShape_;
+                    fimexlevelname = entry.cdmLevelName_;
+                    fimexXDimLength = entry.cdmXDimLength_;
+                    fimexYDimLength = entry.cdmYDimLength_;
                 }
 
                 for(size_t i = 0; i < fimexYDimLength; ++i) {
@@ -480,7 +483,7 @@ namespace wdb { namespace load { namespace point {
                         stringstream wkt;
                         wkt <<  "point" << "(" << controller_.longitudes()[i * fimexXDimLength + j] << " " << controller_.latitudes()[i * fimexXDimLength + j] << ")";
 
-                        for(set<double>::const_iterator lIt = entry.levels_.begin(); lIt != entry.levels_.end(); ++lIt) {
+                        for(set<double>::const_iterator lIt = entry.wdbLevels_.begin(); lIt != entry.wdbLevels_.end(); ++lIt) {
                             size_t wdbLevel = *lIt;
                             size_t fimexLevelIndex = 0;
                             size_t fimexLevelLength = 1;
@@ -551,7 +554,7 @@ namespace wdb { namespace load { namespace point {
                                                           << validtime        << "\t"
                                                           << validtime        << "\t"
                                                           << wdbstandardname     << "\t"
-                                                          << entry.levelname_ << "\t"
+                                                          << entry.wdbLevelName_ << "\t"
                                                           << wdbLevel         << "\t"
                                                           << wdbLevel         << "\t"
                                                           << version          << "\t"

@@ -231,25 +231,29 @@ namespace wdb { namespace load { namespace point {
 
                 CDMVariable variable = variables[i];
                 string varname = variable.getName();
-                string name = valueParameterName(varname);
-                string unit = valueParameterUnit(varname);
-                string provider = dataProviderName(varname);
+                CDMAttribute uAtt;
+                cdmRef.getAttribute(varname, "standard_name", uAtt);
+                string standardname = uAtt.getStringValue();
+                string wdbname = valueParameterName(varname);
+                string wdbunit = valueParameterUnit(varname);
+                string wdbdataprovider = dataProviderName(varname);
                 vector<Level> levels;
                 levelValues(levels, varname);
 
-                if(entries2load().find(name) == entries2load().end()) {
+                if(entries2load().find(wdbname) == entries2load().end()) {
                     EntryToLoad entry;
-                    entry.fimexName = varname;
-                    entry.name_ = name;
-                    entry.unit_ = unit;
-                    entry.provider_ = provider;
-                    entries2load().insert(std::make_pair<std::string, EntryToLoad>(entry.name_, entry));
+                    entry.cdmName_ = varname;
+                    entry.wdbName_ = wdbname;
+                    entry.standardName_ = standardname;
+                    entry.wdbUnit_ = wdbunit;
+                    entry.wdbDataProvider_ = wdbdataprovider;
+                    entries2load().insert(std::make_pair<std::string, EntryToLoad>(entry.wdbName_, entry));
                 }
 
-                eIt = entries2load().find(name);
+                eIt = entries2load().find(wdbname);
                 for(size_t i = 0; i < levels.size(); ++i) {
-                    eIt->second.levels_.insert(levels[i].levelFrom_);
-                    eIt->second.levelname_ = levels[i].levelParameter_;
+                    eIt->second.wdbLevels_.insert(levels[i].levelFrom_);
+                    eIt->second.wdbLevelName_ = levels[i].levelParameter_;
                 }
 
             } catch ( wdb::ignore_value &e ) {

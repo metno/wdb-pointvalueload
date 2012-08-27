@@ -127,24 +127,25 @@ namespace wdb { namespace load { namespace point {
                 std::map<std::string, EntryToLoad>::iterator eIt;
 
                 const felt::FeltField& field(**it);
-                std::string name = valueParameterName(field);
-                std::string unit = valueParameterUnit(field);
-                std::string provider = dataProviderName(field);
+                std::string wdbname = valueParameterName(field);
+                std::string wdbunit = valueParameterUnit(field);
+                std::string wdbdataprovider = dataProviderName(field);
                 std::vector<Level> levels;
                 levelValues(levels, field);
 
-                if(entries2load().find(name) == entries2load().end()) {
+                if(entries2load().find(wdbname) == entries2load().end()) {
                     EntryToLoad entry;
-                    entry.name_ = name;
-                    entry.unit_ = unit;
-                    entry.provider_ = provider;
-                    entries2load().insert(std::make_pair<std::string, EntryToLoad>(entry.name_, entry));
+                    entry.wdbName_ = wdbname;
+                    entry.standardName_ = wdbname;
+                    entry.wdbUnit_ = wdbunit;
+                    entry.wdbDataProvider_ = wdbdataprovider;
+                    entries2load().insert(std::make_pair<std::string, EntryToLoad>(entry.wdbName_, entry));
                 }
 
-                eIt = entries2load().find(name);
+                eIt = entries2load().find(wdbname);
                 for(size_t i = 0; i < levels.size(); ++i) {
-                    eIt->second.levels_.insert(levels[i].levelFrom_);
-                    eIt->second.levelname_ = levels[i].levelParameter_;
+                    eIt->second.wdbLevels_.insert(levels[i].levelFrom_);
+                    eIt->second.wdbLevelName_ = levels[i].levelParameter_;
                 }
 
             } catch ( wdb::ignore_value &e ) {

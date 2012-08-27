@@ -46,17 +46,18 @@ namespace wdb { namespace load { namespace point {
     class Loader;
 
     struct EntryToLoad {
-        string name_;
-        string unit_;
-        string provider_;
-        string levelname_;
-        set<double> levels_;
-        size_t fimexXDimLength;
-        size_t fimexYDimLength;
-        string fimexName;
-        string fimexLevelName;
-        vector<string> fimexShape;
-        boost::shared_array<double> data_;
+        string cdmName_;
+        string standardName_;
+        string wdbName_;
+        string wdbUnit_;
+        string wdbDataProvider_;
+        string wdbLevelName_;
+        set<double> wdbLevels_;
+        size_t cdmXDimLength_;
+        size_t cdmYDimLength_;
+        string cdmLevelName_;
+        vector<string> cdmShape_;
+        boost::shared_array<double> cdmData_;
     };
 
     class FileLoader
