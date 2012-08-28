@@ -162,9 +162,14 @@ namespace wdb { namespace load { namespace point {
                 } else if(options_.input().type == "netcdf") {
                     netcdf_->load(it->native_file_string());
                 }
+            } catch (MetNoFimex::CDMException& e) {
+                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->native_file_string();
+                log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
+                throw e;
             } catch (std::exception& e) {
                 log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->native_file_string();
                 log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
+                throw e;
             }
         }
     }

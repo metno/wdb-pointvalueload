@@ -34,6 +34,10 @@
 #include <CmdLine.hpp>
 #include <Loader.hpp>
 
+
+// fimex
+#include <fimex/CDMException.h>
+
 // boost
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
@@ -166,6 +170,36 @@ BOOST_AUTO_TEST_CASE( loadfelt )
     delete [] argv;
 }
 
+BOOST_AUTO_TEST_CASE( loadfelt_missing )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/felt/load.conf --name missing.nc", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), std::exception);
+
+
+    delete [] argv;
+}
+
+BOOST_AUTO_TEST_CASE( loadfelt_empty )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/felt/load.conf --name etc/common/empty.file", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), MetNoFimex::CDMException);
+
+
+    delete [] argv;
+}
+
 BOOST_AUTO_TEST_CASE( loadnetcdf )
 {
     char **argv = 0;
@@ -181,6 +215,34 @@ BOOST_AUTO_TEST_CASE( loadnetcdf )
     }
 
     BOOST_REQUIRE(compareFiles("etc/netcdf/expected.txt", "etc/netcdf/result.txt"));
+
+    delete [] argv;
+}
+
+BOOST_AUTO_TEST_CASE( loadnetcdf_missing )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/netcdf/load.conf --name missing.nc", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), std::exception);
+
+    delete [] argv;
+}
+
+BOOST_AUTO_TEST_CASE( loadnetcdf_empty )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/netcdf/load.conf --name etc/common/empty.file", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), MetNoFimex::CDMException);
 
     delete [] argv;
 }
@@ -203,6 +265,34 @@ BOOST_AUTO_TEST_CASE( loadgrib1 )
     delete [] argv;
 }
 
+BOOST_AUTO_TEST_CASE( loadgrib1_missing )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/grib1/load.conf --name missing.nc", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), std::exception);
+
+    delete [] argv;
+}
+
+BOOST_AUTO_TEST_CASE( loadgrib1_empty )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/grib1/load.conf --name etc/common/empty.file", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), MetNoFimex::CDMException);
+
+    delete [] argv;
+}
+
 BOOST_AUTO_TEST_CASE( loadgrib2 )
 {
     char **argv = 0;
@@ -219,5 +309,32 @@ BOOST_AUTO_TEST_CASE( loadgrib2 )
     BOOST_REQUIRE(compareFiles("etc/grib2/expected.txt", "etc/grib2/result.txt"));
 
     delete [] argv;
+}
 
+BOOST_AUTO_TEST_CASE( loadgrib2_missing )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/grib2/load.conf --name missing.nc", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), std::exception);
+
+    delete [] argv;
+}
+
+BOOST_AUTO_TEST_CASE( loadgrib2_empty )
+{
+    char **argv = 0;
+    int argc = makeArgv("pointload --config etc/grib2/load.conf --name etc/common/empty.file", argv);
+
+    wdb::load::point::CmdLine cmdLine;
+    cmdLine.parse( argc, argv );
+
+    wdb::load::point::Loader loader(cmdLine);
+    BOOST_REQUIRE_THROW(loader.load(), MetNoFimex::CDMException);
+
+    delete [] argv;
 }

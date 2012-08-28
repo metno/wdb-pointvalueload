@@ -7,14 +7,18 @@
 ]
 >
 
-<chapter id="cha:stationload_system-test-specification">
+<chapter id="cha:pointload_system-test-specification">
 
-  <title>StationLoad - System Test Specification</title>
+  <title>pointLoad - System Test Specification</title>
 
 	<sect1><title>Introduction</title>
 
 <para>
-    This document describes the specific tests to be carried out during the system test of the StationLoad component, used for the weather station(s) locatin(s) loading. The purpose of this component is to load station meta-data from STINFOSYS into the WDB system.
+    This document describes the specific tests to be carried out during the system test of the pointLoad component. 
+    The purpose of pointLoad is to extract point data from gridded data files (FELT | GRIB | NETCDF) and prepare them for loading into WDB.
+    In order to do the actual loading one must use wdb-fastload. The pointLoad is to deliver data in the format known to wdb-fastload.
+    For more information on wdb-fastload and it's formats see: wdb-fastload (see https://github.com/wdb/wdb-contrib).
+    pointLoad sends extracted data either to standard out or to a file (see available command line options).
 </para>
 
 <sect2><title>Purpose</title>
@@ -22,40 +26,220 @@
 <para>The test specification should:</para>
 
 <itemizedlist>
-    <listitem><para>Clarify the functionality/performance/accesibility requirements of the system</para></listitem>
-    <listitem><para>Clearly specify which tests must be passed for the component to be accepted for production</para></listitem>
-    <listitem><para>Document the consensus for the level of testing of the WDB</para></listitem>
+    <listitem>
+        <para>Clarify the functionality/performance/accesibility requirements of the system</para>
+    </listitem>
+    <listitem>
+        <para>Clearly specify which tests must be passed for the component to be accepted for production</para>
+    </listitem>
+    <listitem>
+        <para>Document the consensus for the level of testing of the WDB</para>
+    </listitem>
 </itemizedlist>
-
-<para>The tests set forth in this document are designed to satisfy the demands of two distinct stakeholders in the product; namely the end-users of the WDB and the operational maintenance department.</para>
 
 <para>For each test, it must be defined who has the responsibility for performing the test. Any limitations with respect to the test must also be specified (e.g., for example if the test has yet to be implemented).</para>
 
 </sect2>
 
-<sect2><title>Controlling Document</title>
-
-<para>The test specification and implemented tests in the StationLoad component follow the principles described in the WDB Test plan [1].</para>
-
+<sect2>
+    <title>Controlling Document</title>
+    <para>
+        The test specification and implemented tests in the pointLoad component follow the principles described in the WDB Test plan [1].
+     </para>                   
 </sect2>
 
-</sect1>
-
-<sect1><title>Compilation Test</title>
-
-<para>There should be no warnings during the compilation or linking of the StationLoad component.</para>
 
 </sect1>
 
-<sect1><title>Unit Tests</title>
+<sect1>
+    <title>Compilation Test</title>
 
-<para>At the moment there are no unit tests for the StationLoad component.</para>
+    <para>There should be no warnings during the compilation or linking of the StationLoad component.</para>
 
 </sect1>
+
+<sect1>
+    <title>Unit Tests</title>
+
+    <para>Unit tests will make sure that pointload is producing expected output when processing test input files.
+          There are 4 input files for each type that pointloade can handle (felt | grib1 | grib2 | netcdf).
+    </para>
+
+    <sect2>
+        <title>Test Cases</title>
+
+        <para>The following section describes the test samples that are intended to be
+              handled by the test cases of the test suite.
+        </para>
+
+        <table frame="all">
+            <title>pointLoad Unit Test Cases</title>
+            <tgroup cols="7">
+            <colspec align="left"/>
+            <colspec align="left"/>
+            <colspec align="center"/>
+            <colspec align="left"/>
+            <colspec align="left"/>
+            <colspec align="left"/>
+            <colspec align="center"/>
+                <thead>
+                    <row>
+                        <entry> C# </entry>
+							<entry> Category </entry>
+							<entry> P# </entry>
+							<entry> Partition </entry>
+							<entry> Description </entry>
+							<entry> Expected Result </entry>
+							<entry> Priority </entry>
+						</row>
+					</thead>
+					<tbody>
+						
+						<row>
+							<entry> F001 </entry>
+							<entry> Extract FELT data</entry>
+							<entry> 1 </entry>
+							<entry> Input file exists</entry>
+							<entry> Input file name and config files passed </entry>
+							<entry> Write processed data to result.txt and compare them with expected output </entry>
+							<entry> H </entry>
+						</row>
+
+                                                <row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 2 </entry>
+							<entry> Input file missing </entry>
+							<entry> Non-existing file as argument </entry>
+							<entry> Message send to output, exception caught</entry>
+							<entry> M </entry>
+						</row>
+						
+						<row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 3 </entry>
+							<entry> Input file empty </entry>
+							<entry> Empty file as argument </entry>
+							<entry> Message send to output, CDMException caught</entry>
+							<entry> M </entry>
+						</row>
+						
+						<row>
+							<entry> F002 </entry>
+							<entry> Extract GRIB1 data</entry>
+							<entry> 1 </entry>
+							<entry> Input file exists</entry>
+							<entry> Input file name and config files passed </entry>
+							<entry> Write processed data to result.txt and compare them with expected output </entry>
+							<entry> H </entry>
+						</row>
+                                                <row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 2 </entry>
+							<entry> Input file missing </entry>
+							<entry> Non-existing file as argument </entry>
+							<entry> Message send to output, exception caught</entry>
+							<entry> M </entry>
+						</row>
+						
+						<row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 3 </entry>
+							<entry> Input file empty </entry>
+							<entry> Empty file as argument </entry>
+							<entry> Message send to output, CDMException caught</entry>
+							<entry> M </entry>
+						</row>
+						
+                                                <row>
+							<entry> F003 </entry>
+							<entry> Extract GRIB2 data</entry>
+							<entry> 1 </entry>
+							<entry> Input file exists</entry>
+							<entry> Input file name and config files passed </entry>
+							<entry> Write processed data to result.txt and compare them with expected output </entry>
+							<entry> H </entry>
+						</row>
+                                                <row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 2 </entry>
+							<entry> Input file missing </entry>
+							<entry> Non-existing file as argument </entry>
+							<entry> Message send to output, exception caught</entry>
+							<entry> M </entry>
+						</row>
+						
+						<row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 3 </entry>
+							<entry> Input file empty </entry>
+							<entry> Empty file as argument </entry>
+							<entry> Message send to output, CDMException caught</entry>
+							<entry> M </entry>
+						</row>
+						
+                                                <row>
+							<entry> F004 </entry>
+							<entry> Extract NETCDF data</entry>
+							<entry> 1 </entry>
+							<entry> Input file exists</entry>
+							<entry> Input file name and config files passed </entry>
+							<entry> Write processed data to result.txt and compare them with expected output </entry>
+							<entry> H </entry>
+						</row>
+                                                <row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 2 </entry>
+							<entry> Input file missing </entry>
+							<entry> Non-existing file as argument </entry>
+							<entry> Message send to output, exception caught</entry>
+							<entry> M </entry>
+						</row>
+						
+						<row>
+							<entry>
+							</entry>
+							<entry>
+							</entry>
+							<entry> 3 </entry>
+							<entry> Input file empty </entry>
+							<entry> Empty file as argument </entry>
+							<entry> Message send to output, CDMException caught</entry>
+							<entry> M </entry>
+						</row>
+						
+					</tbody>
+				</tgroup>
+			</table>
+			
+		</sect2>
+		
+	</sect1>
+	
 
 <sect1><title>Performance Tests</title>
 
-<para>At the moment rhere are no performance tests for the StationLoad component.</para>
+<para>At the moment there are no performance tests for the pointLoad component.</para>
 
 </sect1>
 
