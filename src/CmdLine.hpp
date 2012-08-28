@@ -61,7 +61,6 @@ namespace wdb { namespace load { namespace point {
 
         struct LoadingOptions
         {
-            string nameSpace;
             string dataProviderName;
             string validtimeConfig;
             string dataproviderConfig;

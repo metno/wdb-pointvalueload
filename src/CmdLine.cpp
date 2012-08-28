@@ -59,7 +59,6 @@ namespace
     {
         options_description input("Point Loading");
         input.add_options()
-        ( "placenamespaceid", value(& out.nameSpace), "Specify a non-default namespace ")
         ( "dataprovidername", value(& out.dataProviderName), "Specify a non-default namespace [Must have for NetCDF] ")
         ( "validtime.config", value(& out.validtimeConfig), "Specify path to validtime configuration file")
         ( "dataprovider.config", value(& out.dataproviderConfig), "Specify path to dataprovider configuration file")
