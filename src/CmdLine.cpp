@@ -84,11 +84,6 @@ namespace wdb { namespace load { namespace point {
 
     CmdLine::CmdLine() : WdbConfiguration("")
     {
-
-        cmdOptions().add(getInput(input_));
-        cmdOptions().add(getOutput(output_));
-        cmdOptions().add(getLoading(loading_));
-
         configOptions().add(getInput(input_));
         configOptions().add(getOutput(output_));
         configOptions().add(getLoading(loading_));

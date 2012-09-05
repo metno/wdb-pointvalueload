@@ -156,18 +156,18 @@ namespace wdb { namespace load { namespace point {
         {
             try {
                 if(options_.input().type == "felt") {
-                    felt_->load(it->native_file_string());
+                    felt_->load(it->string());
                 } else if(options_.input().type == "grib1" or options_.input().type == "grib2") {
-                    grib_->load(it->native_file_string());
+                    grib_->load(it->string());
                 } else if(options_.input().type == "netcdf") {
-                    netcdf_->load(it->native_file_string());
+                    netcdf_->load(it->string());
                 }
             } catch (MetNoFimex::CDMException& e) {
-                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->native_file_string();
+                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->string();
                 log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
                 throw e;
             } catch (std::exception& e) {
-                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->native_file_string();
+                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->string();
                 log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
                 throw e;
             }

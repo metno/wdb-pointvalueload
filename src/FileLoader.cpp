@@ -118,11 +118,11 @@ namespace wdb { namespace load { namespace point {
         if(options().loading().unitsConfig.empty())
             throw runtime_error("Can't open units.config file [empty string?]");
 
-        point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).file_string());
-        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
-        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
-        point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
-        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
+        point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).string());
+        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).string());
+        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).string());
+        point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).string());
+        point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
 
         //log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }

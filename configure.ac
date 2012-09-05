@@ -13,7 +13,6 @@ AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([config/m4])
 AC_PROG_RANLIB
 
-AC_DEFINE(BOOST_FILESYSTEM_VERSION, 2, [makes thing compilable under precise pangolin])
 #-----------------------------------------------------------------------------
 # Source & Build Directories
 #-----------------------------------------------------------------------------
@@ -73,24 +72,21 @@ AC_SUBST(grib_api_LIBS)
 AC_SUBST(grib_api_LDFLAGS)
 AC_SUBST(grib_api_CPPFLAGS)
 
-# LOG4CPP
-WDB_LOG4CPP_CHECK(1.0)
-
 # PROJ.4
 WDB_PROJ_CHECK
-
-# PQXX Lib
-WDB_PQXX_CHECK(2.6.8)
 
 # WDBLOAD
 WDB_LIBWDBLOAD_CHECK
 
 WDB_CHECK
 
+AM_PATH_XML2
+AM_PATH_LOG4CPP(1.0)
 AX_BOOST_BASE(1.40.0)
 AX_BOOST_PROGRAM_OPTIONS(1.40.0)
 AX_BOOST_DATE_TIME(1.40.0)
 AX_BOOST_THREAD(1.40.0)
+AX_BOOST_REGEX(1.40.0)
 AX_BOOST_UNIT_TEST_FRAMEWORK(1.40.0)
 
 #-----------------------------------------------------------------------------

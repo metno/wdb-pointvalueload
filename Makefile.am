@@ -17,8 +17,6 @@ sqldir = 		        $(wdbdatadir)/sql
 wdblibdir = 			$(libdir)/wdb
 
 pointloadbindir = $(bindir)
-etcpointloaddir = /usr/share/doc/wdb-pointload
-dist_etcpointload_DATA =
 
 # Setting Targets
 bin_PROGRAMS = pointLoad
@@ -30,7 +28,10 @@ noinst_LIBRARIES = libpointload.a
 libpointload_a_SOURCES =
 libpointload_a_CPPFLAGS = $(AM_CXXFLAGS)
 
-pointLoad_LDADD = libpointload.a $(wdb_LIBS) $(fimex_LDFLAGS) $(fimex_LIBS) $(grib_api_LDFLAGS) $(grib_api_LIBS)
+pointLoad_LDADD = libpointload.a -lfelt \
+                  $(wdb_LIBS) $(fimex_LDFLAGS) $(fimex_LIBS) $(grib_api_LDFLAGS) $(grib_api_LIBS) \
+                  $(XML_LIB) $(LOG4CPP_LIB) \
+				  $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_DATE_TIME_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_REGEX_LIB) $(BOOST_FILESYSTEM_LIB)
 
 CLEANFILES =
 EXTRA_DIST =

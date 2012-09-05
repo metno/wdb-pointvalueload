@@ -112,9 +112,9 @@ namespace wdb { namespace load { namespace point {
         if(options().loading().unitsConfig.empty())
             throw runtime_error("Can't open units.config file [empty string?]");
 
-        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
-        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
-        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
+        point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).string());
+        point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).string());
+        point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
     }
 
     string NetCDFLoader::dataProviderName(const string& varname)

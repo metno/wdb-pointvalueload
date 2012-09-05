@@ -1,4 +1,5 @@
-dist_etcpointload_DATA += \
+confdir        = $(datadir)/pointLoad
+dist_conf_DATA = \
 					   etc/common/units.conf \
 					   etc/felt/dataprovider.conf \
 					   etc/felt/fimexreader.xml \

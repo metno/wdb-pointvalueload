@@ -120,8 +120,8 @@ namespace wdb { namespace load { namespace point {
             throw runtime_error("Can't open dataprovider.config file [empty string?]");
         if(options().loading().unitsConfig.empty())
             throw runtime_error("Can't open units.config file [empty string?]");
-        point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).file_string());
-        point2Units_.open(getConfigFile(options().loading().unitsConfig).file_string());
+        point2DataProviderName_.open(getConfigFile(options().loading().dataproviderConfig).string());
+        point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
 
         if(options().input().type == "grib1") {
             if(options().loading().valueparameterConfig.empty())
@@ -130,9 +130,9 @@ namespace wdb { namespace load { namespace point {
                 throw runtime_error("Can't open levelparameter.config file [empty string?]");
             if(options().loading().leveladditionsConfig.empty())
                 throw runtime_error("Can't open leveladditions.config file [empty string?]");
-            point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).file_string());
-            point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).file_string());
-            point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).file_string());
+            point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).string());
+            point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).string());
+            point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).string());
         }
 
 //        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
@@ -145,9 +145,9 @@ namespace wdb { namespace load { namespace point {
                 throw std::runtime_error("Can't open levelparameter2.config file [empty string?]");
             if(options().loading().leveladditions2Config.empty())
                 throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
-            point2ValueParameter2_.open(getConfigFile(options().loading().valueparameter2Config).file_string());
-            point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).file_string());
-            point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).file_string());
+            point2ValueParameter2_.open(getConfigFile(options().loading().valueparameter2Config).string());
+            point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).string());
+            point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).string());
         }
 //        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }

@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE( loadfelt_empty )
     cmdLine.parse( argc, argv );
 
     wdb::load::point::Loader loader(cmdLine);
-    BOOST_REQUIRE_THROW(loader.load(), MetNoFimex::CDMException);
+    BOOST_REQUIRE_THROW(loader.load(), std::exception);
 
 
     delete [] argv;
