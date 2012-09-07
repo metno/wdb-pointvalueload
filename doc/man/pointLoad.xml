@@ -16,8 +16,8 @@
 	
 	<refnamediv>
 		<refname>pointLoad</refname>
-                <refpurpose>Extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files to be loaded into the WDB database.
-                            Template file is used to describe latitude/longitude pairs for points of interest.
+                <refpurpose>Extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files to be loaded into the vega wdb database.
+                            Template file is used to describe geographical position (longitude/latitude value pairs) for the points of interest.
                             Point loader is a part of the WDB system and works together with wdb-fastload (see https://github.com/wdb/wdb-contrib).
                 </refpurpose>
 	</refnamediv>
@@ -33,16 +33,27 @@
 		<title>Description</title>
 		
                 <para>
-                      pointLoad extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files to be loaded into the wdb database.
-                      The extracted data (lines to be fed into wdb) is sent either to standard output or to designated file.
-                      For actual loading into wdb database one must use wdb-fastload utility (see https://github.com/wdb/wdb-contrib).
-                      The data lines must be in the format recognized by wdb-fastload.
+                      pointLoad extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files. Point data is then to be loaded into the vega wdb database.
+                      The extracted lines (data to be fed into vega wdb) is sent either to standard output or to designated file (see --output option).
                 </para>
-		
+                <para>
+                      NOTE: pointLoad requires set of configuration files to function properly. The aim is to tell how the data is to be mapped into the
+                      fields in the database. It states which levels are to be loaded, what units to be used and what are the names of the parameters.
+                      For more info on syntax and semantics look into the documentation for wdb-feltload (https://github.com/wdb/wdb-feltload.git) and
+                      wdb-gribload (https://github.com/wdb/wdb-gribload) utilities.
+                </para>
+                <para>
+                      For actual loading into the database one must use wdb-fastload utility (see https://github.com/wdb/wdb-contrib).
+                      The data lines have to be in the format recognized by wdb-fastload (see related man pages).
+                </para>
 		<para>
-                      The pointLoad is using libfimex and template interpolation to extract point data from gridded files.
-                      The template file (given in NetCDF format) describes latitude/longitude pairs for points of interest.
-                      For more info on fimex and template interpolation consult https://wiki.met.no/fimex/start.
+                      The pointLoad uses libfimex and the process of template interpolation in order to extract points data from gridded files.
+                      The template file (given in NetCDF format) describes geographical locations (latitude/longitude value pairs) for points of interest.
+                      For more info on fimex and template interpolation consult https://wiki.met.no/fimex/start and related man pages.
+                      NOTE: As fimex is used to process files in different formats (felt/grib/necdf), one has to provide proper configuration files.
+                </para>
+                <para>
+                      NOTE: For some setup samples look in vega git repository (git://git.met.no/vega.git), more precisely in "config/pointLoad" subdirectory.
                 </para>
 		
 	</refsect1>
@@ -72,7 +83,7 @@
 				<listitem>
 					<para>
                                               Specify main configuration file to run pointLoad.
-                                              The main configuration can host all available options.
+                                              The main configuration can set all the cpmmand line options and it's usage is higly recommended.
                                               (see examples: /usr/share/doc/wdb-pointLoad/etc/felt/load.conf)
                                         </para>
 				</listitem>
@@ -81,7 +92,7 @@
 			<varlistentry>
                                 <term>--logfile FILENAME.LOG</term>
                                 <listitem>
-                                        <para>Set output logfile. The default is to print to stdout</para>
+                                        <para>By default the log messages will be sent to standard output. You can use this option to specify the logging file instead.</para>
                                 </listitem>
                         </varlistentry>
                         
@@ -102,7 +113,7 @@
 			<varlistentry>
 				<term>--output FILENAME.OUT</term>
 				<listitem>
-					<para>Name of the file extracted points are to be written to.</para>
+                                        <para>By default the extracted data is sent to the standard output. Use this option to specify output file instead.</para>
 				</listitem>
 			</varlistentry>
 			
@@ -149,9 +160,12 @@
 				<term>--validtime.config VALIDTIME.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to validtime configuration file for [FELT | GRIB1 | GRIB2].
-                                              For further information look documentation for:
-                                              wdb-feltLoad (see: https://github.com/wdb/wdb-feltload) or wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                              Specify validtime configuration file (applicable for FELT, GRIB1 and GRIB2).
+                                        </para>
+                                        <para>
+                                              For further information look documentation for: wdb-feltLoad (https://github.com/wdb/wdb-feltload) or wdb-gribLoad (https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/felt/validtime.cfg.
                                         </para>
 				</listitem>
@@ -161,9 +175,12 @@
 				<term>--dataprovider.config DATAPROVIDER.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to dataprovider configuration file for [FELT | GRIB1 | GRIB2].
-                                              For further information look documentation for:
-                                              wdb-feltLoad (see: https://github.com/wdb/wdb-feltload) or wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                              Specify dataprovider configuration file (applicable for FELT, GRIB1 and GRIB2).
+                                        </para>
+                                        <para> For further information look documentation for:
+                                              wdb-feltLoad (https://github.com/wdb/wdb-feltload) or wdb-gribLoad (https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/felt/dataprovider.cfg.
                                         </para>
 				</listitem>
@@ -173,9 +190,13 @@
 				<term>--valueparameter.config VALUEPARAMETER.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to valueparameter configuration file for [FELT | GRIB1 | NETCDF].
-                                              For further information look documentation for:
-                                              wdb-feltLoad (see: https://github.com/wdb/wdb-feltload) or wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                              Specify valueparameter configuration file (applicable for FELT, GRIB1 and NETCDF).
+                                        </para>
+                                        <para>
+                                        For further information look documentation for:
+                                        wdb-feltLoad (https://github.com/wdb/wdb-feltload) or wdb-gribLoad (https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/felt/valueparameter.cfg.
                                         </para>
 				</listitem>
@@ -185,9 +206,13 @@
 				<term>--levelparameter.config LEVELPARAMETER.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to levelparameter configuration file for [FELT | GRIB1 | NETCDF].
+                                              Specify levelparameter configuration file (applicable for FELT, GRIB1 and NETCDF).
+                                        </para>
+                                        <para>
                                               For further information look documentation for:
-                                              wdb-feltLoad (see: https://github.com/wdb/wdb-feltload) or wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                              wdb-feltLoad (https://github.com/wdb/wdb-feltload) or wdb-gribLoad (https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/felt/levelparameter.cfg.
                                         </para>
 				</listitem>
@@ -197,9 +222,13 @@
 				<term>--leveladditions.config LEVELADDITIONS.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to leveladditions configuration file for [FELT | GRIB1 | NETCDF].
+                                              Specify leveladditions configuration file (applicable for FELT, GRIB1 and NETCDF].
+                                        </para>
+                                        <para>
                                               For further information look documentation for:
-                                              wdb-feltLoad (see: https://github.com/wdb/wdb-feltload) or wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                              wdb-feltLoad (https://github.com/wdb/wdb-feltload) or wdb-gribLoad (https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/felt/leveladdtions.cfg.
                                         </para>
 				</listitem>
@@ -209,8 +238,12 @@
 				<term>--valueparameter2.config VALUEPARAMETER2.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to valueparameter2 configuration file for [GRIB2].
+                                              Specify valueparameter2 configuration file (applicable for GRIB2).
+                                        </para>
+                                        <para>
                                               For further information look documentation for: wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/grib2/valueparameter2.cfg.
                                         </para>
 				</listitem>
@@ -220,8 +253,12 @@
 				<term>--levelparameter2.config LEVELPARAMETER2.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to levelparameter2 configuration file for [GRIB2].
+                                              Specify levelparameter2 configuration file (applicable for GRIB2).
+                                        </para>
+                                        <para>
                                               For further information look documentation for: wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/grib2/levelparameter2.cfg.
                                         </para>
 				</listitem>
@@ -231,8 +268,12 @@
 				<term>--leveladditions2.config LEVELADDITIONS2.CONF</term>
 				<listitem>
 					<para>
-                                              Specify path to leveladditions2 configuration file for [GRIB2].
+                                              Specify leveladditions2 configuration file (applicable for GRIB2).
+                                        </para>
+                                        <para>
                                               For further information look documentation for: wdb-gribLoad (see https://github.com/wdb/wdb-gribload).
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/grib2/leveladdtions2.cfg.
                                         </para>
 				</listitem>
@@ -242,8 +283,10 @@
 				<term>--fimex.config FIMEXREADER.XML</term>
 				<listitem>
 					<para>
-                                              Specify path to fimex reader configuration file.
+                                              Specify fimex reader configuration file.
                                               For more info on fimex and template interpolation consult https://wiki.met.no/fimex/start.
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/grib/gribreader.xml.
                                         </para>
 				</listitem>
@@ -253,8 +296,10 @@
 				<term>--fimex.interpolate.template TEMPLATE.NC</term>
 				<listitem>
 					<para>
-                                              Specify path to file used in fimex template interpolation (describes latitude/longitude values for points of interest).
+                                              Specify file used in fimex template interpolation (describes latitude/longitude values for points of interest).
                                               For more info on fimex and template interpolation consult https://wiki.met.no/fimex/start.
+                                        </para>
+                                        <para>
                                               In addtion, some examples can be found inside the wdb-pointLoad package: /usr/share/doc/wdb-pointLoad/etc/grib/stations.nc.
                                         </para>
 				</listitem>
@@ -264,9 +309,54 @@
 
 
 	</refsect1>
-	
-	<refsect1>
-		<title>Exit Status</title>
+
+        <refsect1>
+                <title>Usage</title>
+
+                <para> pointLoad can be called with all options present on the command line.</para>
+                <para> However, it is more convenient to use main configuration file that points to other elements needed for data extraction:</para>
+                <para>
+                      <command>pointLoad</command> --config /etc/felt/load.conf
+                </para>
+
+                <para> It can also be expected that station list and file names will change frequently, leaving us with following form: </para>
+                <para>
+                      <command>pointLoad</command> --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat
+                </para>
+
+                <para> One might also want to save output to a file for further processing: </para>
+                <para>
+                      <command>pointLoad</command> --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat --output DATAh8km[00|06|12|18].txt
+                </para>
+
+                <para>
+                    Main config file looks like:
+                    <programlisting>
+                        # file(s) to process
+                        type = felt
+                        name = ./etc/felt/data.dat
+
+                        # loader config files
+                        validtime.config       = ./etc/felt/validtime.conf
+                        dataprovider.config    = ./etc/felt/dataprovider.conf
+                        valueparameter.config  = ./etc/felt/valueparameter.conf
+                        levelparameter.config  = ./etc/felt/levelparameter.conf
+                        leveladditions.config  = ./etc/felt/leveladditions.conf
+                        units.config           = ./etc/common/units.conf
+
+                        # fimex config files
+                        fimex.config               = ./etc/felt/fimexreader.xml
+                        fimex.interpolate.method   = bilinear
+                        fimex.interpolate.template = ./etc/felt/stations.nc
+                        fimex.process.rotateVectorToLatLonX = x_wind
+                        fimex.process.rotateVectorToLatLonY = y_wind
+                    </programlisting>
+                </para>
+        </refsect1>
+
+
+        <refsect1>
+                <title>Exit Status</title>
 		
 		<para>pointLoad returns 0 to the shell if it finished normally and 1 if a fatal error
 		      occured during loading (out of memory, files not found, database not found,
