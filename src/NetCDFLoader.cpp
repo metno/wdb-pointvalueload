@@ -105,6 +105,19 @@ namespace wdb { namespace load { namespace point {
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+
+        // check for excess parameters
+        if(!options().loading().dataproviderConfig.empty())
+            throw runtime_error("dataprovider.config file not required");
+        if(!options().loading().leveladditionsConfig.empty())
+            throw runtime_error("leveladditions.config file [empty string?]");
+        if(!options().loading().valueparameter2Config.empty())
+            throw std::runtime_error("valueparameter2.config file not required");
+        if(!options().loading().levelparameter2Config.empty())
+            throw std::runtime_error("levelparameter2.config file not required");
+        if(!options().loading().leveladditions2Config.empty())
+            throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
+
         if(options().loading().valueparameterConfig.empty())
             throw runtime_error("Can't open valueparameter.config file [empty string?]");
         if(options().loading().levelparameterConfig.empty())

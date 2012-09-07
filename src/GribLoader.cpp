@@ -124,6 +124,14 @@ namespace wdb { namespace load { namespace point {
         point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
 
         if(options().input().type == "grib1") {
+            // check for excess parameters
+            if(!options().loading().valueparameter2Config.empty())
+                throw std::runtime_error("valueparameter2.config file not required");
+            if(!options().loading().levelparameter2Config.empty())
+                throw std::runtime_error("levelparameter2.config file not required");
+            if(!options().loading().leveladditions2Config.empty())
+                throw std::runtime_error("Can't open leveladditions2.config file [empty string?]");
+
             if(options().loading().valueparameterConfig.empty())
                 throw runtime_error("Can't open valueparameter.config file [empty string?]");
             if(options().loading().levelparameterConfig.empty())
@@ -135,10 +143,15 @@ namespace wdb { namespace load { namespace point {
             point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).string());
         }
 
-//        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-
         if(options().input().type == "grib2") {
-//            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+            // check for excess parameters
+            if(!options().loading().valueparameterConfig.empty())
+                throw std::runtime_error("valueparameter.config file not required");
+            if(!options().loading().levelparameterConfig.empty())
+                throw std::runtime_error("levelparameter.config file not required");
+            if(!options().loading().leveladditionsConfig.empty())
+                throw std::runtime_error("Can't open leveladditions.config file [empty string?]");
+
             if(options().loading().valueparameter2Config.empty())
                 throw std::runtime_error("Can't open valueparameter2.config file [empty string?]");
             if(options().loading().levelparameter2Config.empty())
