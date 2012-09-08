@@ -33,7 +33,12 @@ wdb_pointLoad_LDADD = libpointload.a -lfelt \
                   $(XML_LIB) $(LOG4CPP_LIB) \
 				  $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_DATE_TIME_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_REGEX_LIB) $(BOOST_FILESYSTEM_LIB)
 
-CLEANFILES =
+man1_MANS = wdb-pointLoad.man
+
+wdb-pointLoad.man:   wdb-pointLoad
+	help2man -N -n"Extracts point data from gridded data files to be loaded into vega wdb database " ./$< > $@
+
+CLEANFILES = $(man1_MANS)
 EXTRA_DIST =
 
 include doc/doc.mk
