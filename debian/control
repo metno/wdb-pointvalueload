@@ -3,6 +3,10 @@ Section: science
 Priority: optional
 Maintainer: Norwegian Meteorological Institute <aleksandarb@met.no>
 Build-Depends: debhelper (>=7.0.50~), autotools-dev,
+ libfelt-dev,
+ libgrib-api-data,
+ libnetcdf-dev,
+ libgeos-dev,
  libfimex-dev (>=0.37.0),
  libboost-dev,
  libboost-program-options-dev,
@@ -11,6 +15,7 @@ Build-Depends: debhelper (>=7.0.50~), autotools-dev,
  libboost-filesystem-dev,
  libxml2-dev,
  liblog4cpp5-dev,
+ help2man,
  xmlto
 Build-Conflicts: autoconf2.13, automake1.4
 Standards-Version: 3.9.1
@@ -18,7 +23,22 @@ Homepage: http://www.met.no
 
 Package: wdb-pointload
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ libfelt-dev,
+ libgrib-api-data,
+ libnetcdf-dev,
+ libgeos-dev,
+ libmetgm-dev,
+ libfimex-dev (>=0.37.0),
+ libboost-dev,
+ libboost-program-options-dev,
+ libboost-regex-dev,
+ libboost-date-time-dev,
+ libboost-filesystem-dev,
+ libxml2-dev,
+ liblog4cpp5-dev,
+ help2man,
+ xmlto
 Description: Load point data from FELT/GRIB files into wdb
  A loader program for transferring forecasts for pints (not gridded data) 
  from FELT/GRIB files into a wdb database

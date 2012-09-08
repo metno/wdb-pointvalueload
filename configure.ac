@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 
-AC_INIT(pointLoad, 1.1.5, [wdb@met.no])
+AC_INIT(wdb-pointLoad, 1.1.5, [wdb@met.no])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([config/m4])
@@ -72,16 +72,31 @@ AC_SUBST(grib_api_LIBS)
 AC_SUBST(grib_api_LDFLAGS)
 AC_SUBST(grib_api_CPPFLAGS)
 
+
+WDB_GEOS
+AC_SUBST(geos_LIBS)
+AC_SUBST(geos_LDFLAGS)
+AC_SUBST(geos_CFLAGS)
+
+WDB_NETCDF
+AC_SUBST(netcdf_LIBS)
+AC_SUBST(netcdf_LDFLAGS)
+AC_SUBST(netcdf_CFLAGS)
+
+WDB_REQUIRE_FELT
+AC_SUBST(felt_LIBS)
+AC_SUBST(felt_LDFLAGS)
+AC_SUBST(felt_CPPFLAGS)
+
 # PROJ.4
 WDB_PROJ_CHECK
 
 # WDBLOAD
 WDB_LIBWDBLOAD_CHECK
-
+WDB_LOG4CPP_CHECK
 WDB_CHECK
 
 AM_PATH_XML2
-AM_PATH_LOG4CPP(1.0)
 AX_BOOST_BASE(1.40.0)
 AX_BOOST_PROGRAM_OPTIONS(1.40.0)
 AX_BOOST_DATE_TIME(1.40.0)

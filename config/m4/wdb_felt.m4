@@ -1,72 +1,88 @@
+# -*- autoconf -*-
 #
-#   wdb - weather and water data storage
 #
-#   Copyright (C) 2012 met.no
-#   
-#   Contact information:
-#   Norwegian Meteorological Institute
-#   Box 43 Blindern
-#   0313 OSLO
-#   NORWAY
-#   E-mail: wdb@met.no
-# 
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation; either version 2 of the License, or
-#   (at your option) any later version.
+# SYNOPSIS
 #
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   WDB_REQUIRE_FELT(default)
 #
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-#   MA  02110-1301, USA
+# DESCRIPTION
 #
-#   Checks for the presence of docbook
+#   The WDB_WITH_FELT macro searches for the felt library.
+#
+#   The WDB_REQUIRE_FELT macro is equivalent, but terminates the
+#   configure script if it can not find the Felt libraries.
+#
+# TODO
+#
+#   The WDB_REQUIRE_C_LIBRARY macro should be improved to the point
+#   where this macro can simply use it instead of duplicating
+#   significant parts of it. Try m4_foreach_w(COMPONENT, [$1])
+#
+# AUTHORS
+#
+#   Aleksandar Babic aleksandarb@met.no
 #
 
-AC_DEFUN([WDB_FELT],
-[
-# Set up option
-AC_ARG_WITH([felt],
-	     	AS_HELP_STRING([--with-felt=FELT_PATH], 
-			[Specify the directory in which felt is installed (by default, configure checks your PATH).]),
-	    	[ac_felt_path="$withval"],
-            [])
+#
+# WDB_WITH_FELT
+#
+# $1 = default
+#
+AC_DEFUN([WDB_WITH_FELT], [
+    # --with-felt magic
+    WDB_WITH_LIBRARY([felt], [felt], [Felt library], [$1])
 
-# Add path if given
-PATH="$ac_docbook_path/bin:$PATH"
+    # is Felt required, or did the user request it?
+    AS_IF([test x"${with_felt}" != x"no" -o x"${require_felt}" = x"yes"], [
+	# save state
+	saved_CPPFLAGS="${CPPFLAGS}"
+	saved_LDFLAGS="${LDFLAGS}"
+	saved_LIBS="${LIBS}"
+	LIBS=""
 
-# Find xmlto
-AC_PATH_PROG(FELT_CONFIG, felt-config, no, $PATH)
+	# header location
+	AS_IF([test x"${FELT_INCLUDEDIR}" != x""], [
+	    FELT_CPPFLAGS="-I${FELT_INCLUDEDIR}"
+	])
+	CPPFLAGS="${CPPFLAGS} ${FELT_CPPFLAGS}"
 
-if test "$FELT_CONFIG" = "no" ; then
- 
-	AC_MSG_ERROR([
--------------------------------------------------------------------------
-    Unable to find felt. felt is required in order to build the pointLoad.
--------------------------------------------------------------------------
+	# library location
+	AS_IF([test x"${FELT_LIBDIR}" != x""], [
+	    FELT_LDFLAGS="-L${FELT_LIBDIR}"
+	])
+	LDFLAGS="${LDFLAGS} ${FELT_LDFLAGS}"
+
+	# C version
+        AC_REQUIRE([AC_PROG_CXXCPP])
+        AC_LANG_PUSH(C++)
+	AC_CHECK_HEADER([felt/FeltField.h], [], [
+	    AC_MSG_ERROR([the required felt/FeltField.h header was not found])
+	])
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <felt/FeltConstants.h>],
+                                         [using namespace felt;
+                                          const double radius = EARTH_RADIUS;
+                                         ])],
+                          [AC_MSG_NOTICE([Felt found])],
+                          [AC_MSG_ERROR([Felt not found --- stopping])])])
+	AC_LANG_POP(C++)
+
+	# export our stuff
+	FELT_LIBS="${LIBS}"
+	AC_SUBST([felt_CPPFLAGS], ["${FELT_CPPFLAGS}"])
+	AC_SUBST([felt_LDFLAGS], ["${FELT_LDFLAGS}"])
+	AC_SUBST([felt_LIBS], ["-lfelt"])
+
+	# restore state
+	LIBS="${saved_LIBS}"
+	LDFLAGS="${saved_LDFLAGS}"
+	CPPFLAGS="${saved_CPPFLAGS}"
+    ])
 ])
-fi
 
-netcdf_CFLAGS=`$FELT_CONFIG --cflags`
-netcdf_LIBS=`$NETCDF_CONFIG --libs`
-AC_SUBST(felt_CFLAGS)
-AC_SUBST(felt_LIBS)
-
-])
-
-AC_DEFUN([WDB_FELT],
-[
-AC_ARG_WITH([felt],
-	     	AS_HELP_STRING([--with-felt=FELT_PATH], 
-			[Specify the directory in which netcdf interface is installed (by default, configure checks your PATH).]),
-	    	[LDFLAGS="-L$withval/lib $LDFLAGS"
-	    	CPPFLAGS="-I$withval/include $CPPFLAGS"])
-
-AC_CHECK_HEADER([FeltConstants.h])
-##AC_CHECK_LIB([netcdf], [NC_check_name])
+#
+# WDB_REQUIRE_FELT
+#
+AC_DEFUN([WDB_REQUIRE_FELT], [
+    require_felt=yes
+    WDB_WITH_FELT
 ])

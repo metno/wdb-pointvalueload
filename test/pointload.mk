@@ -12,5 +12,5 @@ pointloadTest_CPPFLAGS = \
         $(BOOST_CPPFLAGS)
 
 pointloadTest_LDADD = \
-          $(pointLoad_LDADD) \
+          $(wdb_pointLoad_LDADD) \
           $(BOOST_UNIT_TEST_FRAMEWORK_LIB)

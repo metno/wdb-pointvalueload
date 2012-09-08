@@ -1,4 +1,4 @@
-confdir        = $(datadir)/pointLoad
+confdir        = $(datadir)/wdb-pointLoad
 commondir = $(confdir)/common
 dist_common_DATA = \
                    etc/common/units.conf
@@ -43,3 +43,9 @@ dist_netcdf_DATA = \
                                            etc/netcdf/load.conf \
                                            etc/netcdf/stations.nc \
                                            etc/netcdf/valueparameter.conf
+
+CLEANFILES += \
+           etc/felt/result.txt \
+		   etc/grib1/result.txt \
+		   etc/grib2/result.txt \
+		   etc/netcdf/result.txt

@@ -27,7 +27,7 @@ SOURCE = src/CmdLine.cpp \
 
 libpointload_a_SOURCES += $(SOURCE)
 
-pointLoad_SOURCES = \
+wdb_pointLoad_SOURCES = \
                   src/main.cpp
 
 EXTRA_DIST +=		src/src.mk
