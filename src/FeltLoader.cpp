@@ -151,7 +151,7 @@ namespace wdb { namespace load { namespace point {
             } catch ( wdb::ignore_value &e ) {
                 log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::out_of_range &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
             } catch ( std::exception & e ) {
                 log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             }
@@ -183,12 +183,12 @@ namespace wdb { namespace load { namespace point {
             // Check if we match on any (level1)
             stringstream akeyStr;
             akeyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << "any";
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Did not find " << keyStr.str() << ". Trying to find " << akeyStr.str();
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Did not find " << keyStr.str() << ". Trying to find " << akeyStr.str();
             ret = point2ValueParameter_[akeyStr.str()];
         }
         ret = ret.substr( 0, ret.find(',') );
         boost::trim( ret );
-        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Value parameter " << ret << " found.";
+        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Value parameter " << ret << " found.";
         return ret;
     }
 
@@ -258,7 +258,7 @@ namespace wdb { namespace load { namespace point {
                    << field.verticalCoordinate() << ", "
                    << field.level1() << ", "
                    << field.level2();
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Looking for levels matching " << keyStr.str();
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Looking for levels matching " << keyStr.str();
             std::string ret = point2LevelAdditions_[ keyStr.str() ];
             std::string levelParameter = ret.substr( 0, ret.find(',') );
             boost::trim( levelParameter );
@@ -266,7 +266,7 @@ namespace wdb { namespace load { namespace point {
             boost::trim( levFrom );
             string levTo = ret.substr( ret.find_last_of(',') + 1 );
             boost::trim( levTo );
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Found levels from " << levFrom << " to " << levTo;
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Found levels from " << levFrom << " to " << levTo;
             float levelFrom = boost::lexical_cast<float>( levFrom );
             float levelTo = boost::lexical_cast<float>( levTo );
             wdb::load::Level level( levelParameter, levelFrom, levelTo );
@@ -274,7 +274,7 @@ namespace wdb { namespace load { namespace point {
         } catch ( wdb::ignore_value &e ) {
             log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         } catch ( std::out_of_range &e ) {
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "No additional levels found.";
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "No additional levels found.";
         }
         if(levels.size() == 0) {
             stringstream key;

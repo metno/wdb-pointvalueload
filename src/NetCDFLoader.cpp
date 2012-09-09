@@ -201,7 +201,7 @@ namespace wdb { namespace load { namespace point {
             log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] "<< " lvls : " << lvls;
             readUnit( levelUnit, coeff, term );
         } catch ( wdb::ignore_value &e ) {
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
 
         if(!lvls.empty())
@@ -270,9 +270,9 @@ namespace wdb { namespace load { namespace point {
                 }
 
             } catch ( wdb::ignore_value &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::out_of_range &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
             } catch ( std::exception & e ) {
                 log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             }

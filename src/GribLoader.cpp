@@ -237,7 +237,7 @@ namespace wdb { namespace load { namespace point {
             return ret;
         }
         catch ( std::out_of_range &e ) {
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the data provider." << " for keyStr " << keyStr;
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the data provider." << " for keyStr " << keyStr;
             throw;
         }
     }
@@ -257,18 +257,18 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
                 throw;
             }
         }
         else {
             keyStr << field.getParameter2();
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " keyStr " << keyStr.str();
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " keyStr " << keyStr.str();
             try {
                 ret = point2ValueParameter2_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
                 throw;
             }
         }
@@ -292,7 +292,7 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
@@ -302,7 +302,7 @@ namespace wdb { namespace load { namespace point {
                 ret = point2ValueParameter2_[keyStr.str()];
             }
             catch ( std::out_of_range &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
+                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
@@ -346,11 +346,11 @@ namespace wdb { namespace load { namespace point {
         }
         catch ( wdb::ignore_value &e )
         {
-            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
             ignored = true;
         }
         catch ( std::out_of_range &e ) {
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the level parameter identified by " << keyStr.str();
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the level parameter identified by " << keyStr.str();
         }
         // Find additional level
         try {
@@ -391,7 +391,7 @@ namespace wdb { namespace load { namespace point {
         }
         catch ( wdb::ignore_value &e )
         {
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
         catch ( std::out_of_range &e )
         {

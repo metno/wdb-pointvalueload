@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Norwegian Meteorological Institute <aleksandarb@met.no>
 Build-Depends: debhelper (>=7.0.50~), autotools-dev,
  libfelt-dev,
- libgrib-api-data,
+ libgrib-api-dev,
  libnetcdf-dev,
  libgeos-dev,
  libfimex-dev (>=0.37.0),
@@ -25,10 +25,9 @@ Package: wdb-pointload
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
  libfelt-dev,
- libgrib-api-data,
+ libgrib-api-dev,
  libnetcdf-dev,
  libgeos-dev,
- libmetgm-dev,
  libfimex-dev (>=0.37.0),
  libboost-dev,
  libboost-program-options-dev,
