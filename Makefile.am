@@ -36,10 +36,10 @@ wdb_pointLoad_LDADD = libpointload.a -lfelt \
 man1_MANS = wdb-pointLoad.man
 
 wdb-pointLoad.man:   wdb-pointLoad
-	help2man -N -n"Extracts point data from gridded data files to be loaded into vega wdb database " ./$< > $@
+	help2man -N -n"Extracts point data from gridded data files to be loaded into vega wdb database " ./$< --include detailed.h2m > $@
 
 CLEANFILES = $(man1_MANS)
-EXTRA_DIST =
+EXTRA_DIST = detailed.h2m
 
 include doc/doc.mk
 include etc/etc.mk

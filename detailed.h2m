@@ -1,0 +1,58 @@
+[detailed]
+
+Extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files to be loaded into the vega wdb database.
+Template file is used to describe geographical position (longitude/latitude value pairs) for the points of interest.
+Point loader is a part of the WDB system and works together with wdb-fastload (see https://github.com/wdb/wdb-contrib).
+
+The wdb-pointLoad uses libfimex and the process of template interpolation in order to extract points data from gridded files.
+For more info on fimex and template interpolation consult https://wiki.met.no/fimex/start and related man pages.
+
+The extracted lines (data to be fed into vega wdb) is sent either to standard output or to designated file (see --output option).
+
+For actual loading into the database one must use wdb-fastload utility (see https://github.com/wdb/wdb-contrib).
+The data lines have to be in the format recognized by wdb-fastload (see related man pages).
+
+\fbNOTE:\fR wdb-pointLoad requires set of configuration files to function properly. The aim is to tell how the data is to be mapped into the
+fields in the database. It states which levels are to be loaded, what units to be used and what are the names of the parameters.
+As fimex is used to process files in different formats (felt/grib/necdf), one has to provide proper configuration files.
+
+\fbNOTE:\fR For more information on configuration files (dataprovder.conf, valueparameter.conf, levelparameter.conf and others) look into documentation
+for wdb-feltload(https://github.com/wdb/wdb-feltload) and wdb-grib-load (https://github.com/wdb/wdb-gribload.git) utilities.
+
+wdb-pointLoad can be called with all options present on the command line.
+However, it is more convenient to use main configuration file that points to other elements needed for data extraction:
+            
+	# \fBwdb-pointLoad\fR --config /etc/felt/load.conf
+            
+It is be expected that station list and file names will change frequently, leaving us with following form:
+
+	# \fBwdb-pointLoad\fR --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat
+
+One might also want to save output to a file for further processing:
+
+	\fBwdb-pointLoad\fR --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat --output DATAh8km[00|06|12|18].txt
+
+One example of main config file might look like:
+
+	# file(s) to process
+	type = felt
+	name = ./etc/felt/data.dat
+
+	# loader config files
+	validtime.config       = ./etc/felt/validtime.conf
+	dataprovider.config    = ./etc/felt/dataprovider.conf
+	valueparameter.config  = ./etc/felt/valueparameter.conf
+	levelparameter.config  = ./etc/felt/levelparameter.conf
+	leveladditions.config  = ./etc/felt/leveladditions.conf
+	units.config           = ./etc/common/units.conf
+
+	# fimex config files
+	fimex.config               = ./etc/felt/fimexreader.xml
+	fimex.interpolate.method   = bilinear
+	fimex.interpolate.template = ./etc/felt/stations.nc
+	fimex.process.rotateVectorToLatLonX = x_wind
+	fimex.process.rotateVectorToLatLonY = y_wind
+
+[author]
+Aleksandar Babic
+aleksandarb@met.no
