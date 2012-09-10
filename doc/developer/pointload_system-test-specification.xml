@@ -15,7 +15,7 @@
 
 <para>
     This document describes the specific tests to be carried out during the system test of the pointLoad component. 
-    The purpose of pointLoad is to extract point data from gridded data files (FELT | GRIB | NETCDF) and prepare them for loading into WDB.
+    The purpose of pointLoad is to extract point data from gridded data files (FELT | GRIB1 | GRIB2 | NETCDF) and prepare them for loading into WDB.
     In order to do the actual loading one must use wdb-fastload. The pointLoad is to deliver data in the format known to wdb-fastload.
     For more information on wdb-fastload and it's formats see: wdb-fastload (see https://github.com/wdb/wdb-contrib).
     pointLoad sends extracted data either to standard out or to a file (see available command line options).
@@ -33,7 +33,7 @@
         <para>Clearly specify which tests must be passed for the component to be accepted for production</para>
     </listitem>
     <listitem>
-        <para>Document the consensus for the level of testing of the WDB</para>
+        <para>Document the consensus for the level of testing of the wdb-pointLoad utility</para>
     </listitem>
 </itemizedlist>
 
@@ -54,14 +54,14 @@
 <sect1>
     <title>Compilation Test</title>
 
-    <para>There should be no warnings during the compilation or linking of the StationLoad component.</para>
+    <para>There should be no warnings during the compilation or linking of the wdb-pointLoad utiluty.</para>
 
 </sect1>
 
 <sect1>
     <title>Unit Tests</title>
 
-    <para>Unit tests will make sure that pointload is producing expected output when processing test input files.
+    <para>Unit tests will make sure that wdb-pointLoad is producing expected output when processing test input files.
           There are 4 input files for each type that pointloade can handle (felt | grib1 | grib2 | netcdf).
     </para>
 

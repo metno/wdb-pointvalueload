@@ -1,3 +1,9 @@
+wdb-pointload (1.1.5-7-ubuntu1) lucid; urgency=low
+
+  * man pages update
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Sat, 10 Sep 2012 10:00:00 +0100
+
 wdb-pointload (1.1.5-5-ubuntu1) lucid; urgency=low
 
   * better docs and full dependency check
