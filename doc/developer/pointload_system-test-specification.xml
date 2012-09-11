@@ -54,7 +54,7 @@
 <sect1>
     <title>Compilation Test</title>
 
-    <para>There should be no warnings during the compilation or linking of the wdb-pointLoad utiluty.</para>
+    <para>There should be no warnings during the compilation or linking of the wdb-pointLoad utility.</para>
 
 </sect1>
 
@@ -62,7 +62,8 @@
     <title>Unit Tests</title>
 
     <para>Unit tests will make sure that wdb-pointLoad is producing expected output when processing test input files.
-          There are 4 input files for each type that pointloade can handle (felt | grib1 | grib2 | netcdf).
+          There are 4 input files for each type that wdb-pointLoad can handle (felt | grib1 | grib2 | netcdf).
+          For each of them a file with expected result exists. The neccessary configuration files are bundled as well.
     </para>
 
     <sect2>
@@ -239,7 +240,8 @@
 
 <sect1><title>Performance Tests</title>
 
-<para>At the moment there are no performance tests for the pointLoad component.</para>
+<para>At the moment there are no performance tests for the pointLoad component.
+      Anyway, it has been observed that extracting data from gridded files takes les time tha loading them into vega wdb database via wdb-fastLoad utility.</para>
 
 </sect1>
 
