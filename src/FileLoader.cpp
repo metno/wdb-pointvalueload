@@ -141,6 +141,7 @@ namespace wdb { namespace load { namespace point {
 //        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
 //        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string ret = point2Units_[unitname];
+        ret = (ret == "none") ? "1" : ret;
         vector<string> strs;
         boost::split(strs, ret, boost::is_any_of("|"));
         string c = strs.at(0); boost::algorithm::trim(c);
@@ -293,7 +294,9 @@ namespace wdb { namespace load { namespace point {
 
             if(uEntry.wdbUnit_ != vEntry.wdbUnit_)
                 throw runtime_error("units for wind componenets don't match");
-            string wdbunit = uEntry.wdbUnit_;
+            // some configuration files have "none" as units
+            // for Fimex this should be "1"
+            string wdbunit = (uEntry.wdbUnit_ == "none") ? "1" : uEntry.wdbUnit_;
 
             if(uEntry.wdbDataProvider_ != vEntry.wdbDataProvider_)
                 throw runtime_error("providers for wind componenets don't match");
@@ -410,7 +413,9 @@ namespace wdb { namespace load { namespace point {
         {
 //            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
             const EntryToLoad& entry(it->second);
-            string wdbunit = entry.wdbUnit_;
+            // some configuration files have "none" as units
+            // for Fimex this should be "1"
+            string wdbunit = (entry.wdbUnit_ == "none") ? "1" : entry.wdbUnit_;
             if(dataprovider != entry.wdbDataProvider_) {
                 dataprovider = entry.wdbDataProvider_;
                 string dpLine = "\n" + dataprovider + "\t88,0,88\n";
