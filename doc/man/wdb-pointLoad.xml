@@ -10,12 +10,12 @@
 <refentry id='pointLoad1'>
 	
 	<refmeta>
-		<refentrytitle>pointLoad</refentrytitle>
+		<refentrytitle>wdb-pointLoad</refentrytitle>
 		<manvolnum>1</manvolnum>
 	</refmeta>
 	
 	<refnamediv>
-		<refname>pointLoad</refname>
+		<refname>wdb-pointLoad</refname>
                 <refpurpose>Extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files to be loaded into the vega wdb database.
                             Template file is used to describe geographical position (longitude/latitude value pairs) for the points of interest.
                             Point loader is a part of the WDB system and works together with wdb-fastload (see https://github.com/wdb/wdb-contrib).
@@ -24,7 +24,7 @@
 	
 	<refsynopsisdiv>
 		<cmdsynopsis>
-			<command>pointLoad</command>
+			<command>wdb-pointLoad</command>
 			<arg choice='opt'>OPTIONS</arg>
 		</cmdsynopsis>
 	</refsynopsisdiv>
@@ -33,11 +33,11 @@
 		<title>Description</title>
 		
                 <para>
-                      pointLoad extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files. Point data is then to be loaded into the vega wdb database.
+                      wdb-pointLoad extracts point data from FELT | GRIB1 | GRIB2 | NETCDF gridded files. Point data is then to be loaded into the vega wdb database.
                       The extracted lines (data to be fed into vega wdb) is sent either to standard output or to designated file (see --output option).
                 </para>
                 <para>
-                      NOTE: pointLoad requires set of configuration files to function properly. The aim is to tell how the data is to be mapped into the
+                      NOTE: wdb-pointLoad requires set of configuration files to function properly. The aim is to tell how the data is to be mapped into the
                       fields in the database. It states which levels are to be loaded, what units to be used and what are the names of the parameters.
                       For more info on syntax and semantics look into the documentation for wdb-feltload (https://github.com/wdb/wdb-feltload.git) and
                       wdb-gribload (https://github.com/wdb/wdb-gribload) utilities.
@@ -47,7 +47,7 @@
                       The data lines have to be in the format recognized by wdb-fastload (see related man pages).
                 </para>
 		<para>
-                      The pointLoad uses libfimex and the process of template interpolation in order to extract points data from gridded files.
+                      The wdb-pointLoad uses libfimex and the process of template interpolation in order to extract points data from gridded files.
                       The template file (given in NetCDF format) describes geographical locations (latitude/longitude value pairs) for points of interest.
                       For more info on fimex and template interpolation consult https://wiki.met.no/fimex/start and related man pages.
                       NOTE: As fimex is used to process files in different formats (felt/grib/necdf), one has to provide proper configuration files.
@@ -82,7 +82,7 @@
 				<term>--config MAIN.CONF</term>
 				<listitem>
 					<para>
-                                              Specify main configuration file to run pointLoad.
+                                              Specify main configuration file to run wdb-pointLoad.
                                               The main configuration can set all the cpmmand line options and it's usage is higly recommended.
                                               (see examples: /usr/share/doc/wdb-pointLoad/etc/felt/load.conf)
                                         </para>
@@ -313,20 +313,20 @@
         <refsect1>
                 <title>Usage</title>
 
-                <para> pointLoad can be called with all options present on the command line.</para>
+                <para> wdb-pointLoad can be called with all options present on the command line.</para>
                 <para> However, it is more convenient to use main configuration file that points to other elements needed for data extraction:</para>
                 <para>
-                      <command>pointLoad</command> --config /etc/felt/load.conf
+                      <command>wdb-pointLoad</command> --config /etc/felt/load.conf
                 </para>
 
                 <para> It can also be expected that station list and file names will change frequently, leaving us with following form: </para>
                 <para>
-                      <command>pointLoad</command> --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat
+                      <command>wdb-pointLoad</command> --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat
                 </para>
 
                 <para> One might also want to save output to a file for further processing: </para>
                 <para>
-                      <command>pointLoad</command> --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat --output DATAh8km[00|06|12|18].txt
+                      <command>wdb-pointLoad</command> --config /etc/felt/load.conf ----fimex.interpolate.template path_to_stations.nc --name /opdata/hirlam8/h8km[00|06|12|18].dat --output DATAh8km[00|06|12|18].txt
                 </para>
 
                 <para>
@@ -358,7 +358,7 @@
         <refsect1>
                 <title>Exit Status</title>
 		
-		<para>pointLoad returns 0 to the shell if it finished normally and 1 if a fatal error
+		<para>wdb-pointLoad returns 0 to the shell if it finished normally and 1 if a fatal error
 		      occured during loading (out of memory, files not found, database not found,
 		      etc.).
                 </para>

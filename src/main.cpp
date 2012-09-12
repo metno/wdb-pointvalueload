@@ -82,7 +82,7 @@ namespace
     {
         version( out );
         out << '\n';
-        out << "Usage: PACKAGE_NAME [OPTIONS] FILES...\n\n";
+        out << "Usage: PACKAGE_NAME [OPTIONS] FILE...\n\n";
         out << "Options:\n";
         out << options << endl;
     }
