@@ -1,3 +1,9 @@
+wdb-pointload (1.1.5-8-ubuntu1) lucid; urgency=low
+
+  * "none" units mapped to "1". this is whar Fimex understands.
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Wed, 12 Sep 2012 10:00:00 +0100
+
 wdb-pointload (1.1.5-7-ubuntu1) lucid; urgency=low
 
   * man pages update
