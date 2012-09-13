@@ -73,7 +73,6 @@ namespace wdb { namespace load { namespace point {
     private:
 
         bool openTemplateCDM(const std::string& fileName);
-        bool extractBounds();
         bool extractPointIds();
 
         const CmdLine& options_;
@@ -86,11 +85,6 @@ namespace wdb { namespace load { namespace point {
         // point ids found in cdm template
         vector<float>                     latitudes_;
         vector<float>                     longitudes_;
-
-        double northBound_;
-        double southBound_;
-        double westBound_;
-        double eastBound_;
 
         boost::shared_ptr<FeltLoader>   felt_;
         boost::shared_ptr<GribLoader>   grib_;
