@@ -23,3 +23,7 @@ src/.dirstamp
 stamp-h1
 configure
 pointload*.tar.gz
+/build
+.autotools
+.project
+.cproject
