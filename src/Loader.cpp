@@ -70,8 +70,7 @@ using namespace std;
 namespace wdb { namespace load { namespace point {
 
     Loader::Loader(const CmdLine& cmdLine)
-        : options_(cmdLine),
-          northBound_(90.0), southBound_(-90.0), westBound_(-180.0), eastBound_(180.0)
+        : options_(cmdLine)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
@@ -216,29 +215,6 @@ namespace wdb { namespace load { namespace point {
         feIt = &lons_[cdmTemplate_->getData(lonVarName)->size()];
         for(; fsIt!=feIt; ++fsIt)
             longitudes_.push_back(*fsIt);
-
-        return true;
-    }
-
-    bool Loader::extractBounds()
-    {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        if(not cdmTemplate_.get())
-            return false;
-
-        const MetNoFimex::CDM& cdmRef = cdmTemplate_->getCDM();
-
-        assert(cdmRef.hasVariable("latitude"));
-        assert(cdmRef.hasVariable("longitude"));
-
-        boost::shared_array<double> lats = cdmTemplate_->getData("latitude")->asDouble();
-        northBound_ = *(std::max_element(&lats[0], &lats[cdmTemplate_->getData("latitude")->size()]));
-        southBound_ = *(std::min_element(&lats[0], &lats[cdmTemplate_->getData("latitude")->size()]));
-
-        boost::shared_array<double> lons = cdmTemplate_->getData("longitude")->asDouble();
-        eastBound_ = *(std::max_element(&lons[0], &lons[cdmTemplate_->getData("longitude")->size()]));
-        westBound_ = *(std::min_element(&lons[0], &lons[cdmTemplate_->getData("longitude")->size()]));
 
         return true;
     }
