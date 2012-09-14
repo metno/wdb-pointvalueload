@@ -73,7 +73,6 @@ namespace wdb { namespace load { namespace point {
         : options_(cmdLine)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         // check interpolation method
         interpolateMethod_ = MIFI_INTERPOL_BILINEAR;
 
@@ -98,7 +97,7 @@ namespace wdb { namespace load { namespace point {
         } else if (options().loading().fimexInterpolateMethod == "forward_min") {
             interpolateMethod_ = MIFI_INTERPOL_FORWARD_MIN;
         } else {
-            log.errorStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] " << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear";
+            log.infoStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] " << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear";
         }
 
         if(!options().output().outFileName.empty()) {
@@ -108,26 +107,17 @@ namespace wdb { namespace load { namespace point {
 
     Loader::~Loader()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(output_.is_open()) {
             output_.close();
-            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         }
     }
 
     void Loader::load()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(options_.input().type.empty()) {
-            log.errorStream() << " @ line["<< __LINE__ << "] " << "Missing input file type";
-            return;
-        }
-
-        if(options_.input().type != "felt" and options_.input().type !="grib1" and options_.input().type !="grib2" and options_.input().type !="netcdf") {
-            log.errorStream() << " @ line[" << __LINE__ << "] " << "Unrecognized input file type";
-            return;
+            stringstream ss;
+            ss << "Missing input file type";
+            throw runtime_error(ss.str());
         }
 
         if(options_.input().type == "felt") {
@@ -137,37 +127,39 @@ namespace wdb { namespace load { namespace point {
         } else if(options_.input().type == "netcdf") {
             netcdf_ = boost::shared_ptr<NetCDFLoader>(new NetCDFLoader(*this));
         } else {
-            log.errorStream() << " @ line["<< __LINE__ << "] " << "Unrecognized input file type";
-            return;
+            stringstream ss;
+            ss << "Unrecognized input file type: " << options_.input().type;
+            throw runtime_error(ss.str());
         }
-
-        vector<boost::filesystem::path> files;
-        vector<string> names;
-
-        boost::split(names, options().input().file[0], boost::is_any_of(" ,"));
-
-        copy(names.begin(), names.end(), back_inserter(files));
 
         std::string tmplFileName = options().loading().fimexTemplate;
         openTemplateCDM(tmplFileName);
 
-        for(std::vector<boost::filesystem::path>::const_iterator it = files.begin(); it != files.end(); ++ it)
+        vector<string> filenames;
+        boost::split(filenames, options().input().file[0], boost::is_any_of(","));
+
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
+        for(size_t i = 0; i < filenames.size(); ++i)
         {
+            string gridded = filenames[i];
+            boost::trim(gridded);
+            if(gridded.empty()) {
+                log.debugStream() << "Skipping to load file with the empty name";
+                continue;
+            }
             try {
                 if(options_.input().type == "felt") {
-                    felt_->load(it->string());
+                    felt_->load(gridded);
                 } else if(options_.input().type == "grib1" or options_.input().type == "grib2") {
-                    grib_->load(it->string());
+                    grib_->load(gridded);
                 } else if(options_.input().type == "netcdf") {
-                    netcdf_->load(it->string());
+                    netcdf_->load(gridded);
                 }
             } catch (MetNoFimex::CDMException& e) {
-                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->string();
-                log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
+                log.errorStream() << "Unable to load file [" << gridded << "]";
                 throw e;
             } catch (std::exception& e) {
-                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->string();
-                log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
+                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << gridded;
                 throw e;
             }
         }
@@ -175,26 +167,31 @@ namespace wdb { namespace load { namespace point {
 
     bool Loader::openTemplateCDM(const std::string& fileName)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        if(fileName.empty())
-            throw std::runtime_error(" Can't open template interpolation file! ");
+        if(fileName.empty()) {
+            stringstream ss;
+            ss << " Can't open template interpolation file: " << fileName;
+            throw std::runtime_error(ss.str());
+        }
 
-        if(!boost::filesystem::exists(fileName))
-                    throw std::runtime_error(" Template file: " + fileName + " doesn't exist!");
+        if(!boost::filesystem::exists(fileName))  {
+            stringstream ss;
+            ss << " Template file: " << fileName << " doesn't exist!";
+            throw std::runtime_error(ss.str());
+        }
 
-            cdmTemplate_ = MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
+        cdmTemplate_ = MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
 
-            assert(extractPointIds());
+        if(!extractPointIds()) {
+            stringstream ss;
+            ss << " Can't extract data from : " << fileName << " interpolation template!";
+            throw std::runtime_error(ss.str());
+        }
 
-//        cdmTemplate_->getCDM().toXMLStream(std::cerr);
-            return true;
+        return true;
     }
 
     bool Loader::extractPointIds()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(not cdmTemplate_.get())
             return false;
 
@@ -221,8 +218,6 @@ namespace wdb { namespace load { namespace point {
 
     void Loader::write(const string &str)
     {
-//        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-//        log.debugStream() << __FUNCTION__ << " @ line["<< __LINE__ << "] CHECK POINT ";
         if(output_.is_open()) {
             output_ << str;
             flush(output_);

@@ -356,19 +356,14 @@ GribField::getValidTimeTo() const
 
     int GribField::getDataVersion() const
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
-
         if(getEditionNumber() == 1) {
             long int localUsage = gribHandleReader_->getLong( "localUsePresent" );
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got LocalUsage: " << localUsage;
             if( localUsage == 0 ) {
                 return 0; // No local use section - no definition of data version
             } else {
                 long int marsType = gribHandleReader_->getLong( "marsType" );
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got MARS Type: " << marsType;
                 if ( marsType == 11 ) { // Perturbed Forecast
                     long int pertubNumber = gribHandleReader_->getLong( "perturbationNumber" );
-                    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got Perturbation Number: " << pertubNumber;
                     return pertubNumber;
                 }
             }
@@ -381,9 +376,7 @@ GribField::getValidTimeTo() const
 
 int GribField::getEditionNumber() const
 {
-    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
     int ret = gribHandleReader_->getLong( "editionNumber" );
-     log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Got GRIB Version: " << ret;
     return ret;
 }
 
@@ -449,10 +442,8 @@ double GribField::getMissingValue() const
 
 void GribField::retrieveValues()
 {
-    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
     sizeOfValues_ = gribHandleReader_->getValuesSize();
     values_ =  gribHandleReader_->getValues( );
-    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Retrieved " << sizeOfValues_ << " values from the field";
     if (sizeOfValues_ < 1) {
         string errorMessage = "Size of value grid is less than 1 byte";
         std::cerr << errorMessage << std::endl;
@@ -467,7 +458,6 @@ void GribField::retrieveValues()
 
 void GribField::gridToLeftUpperHorizontal( )
 {
-    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
     wmo::codeTable::ScanMode fromMode = grid_->getScanMode();
     int nI = grid_->numberX();
     int nJ = grid_->numberY();
@@ -475,11 +465,9 @@ void GribField::gridToLeftUpperHorizontal( )
     switch( fromMode )
     {
     case LeftUpperHorizontal:
-        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Grid was already in requested format";
         break;
     case LeftLowerHorizontal:
         // Todo: Implementation needs to be tested...
-        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Swapping LeftLowerHorizontal to LeftUpperHorizontal";
         for ( int j = 1; j <= nJ / 2; j ++ ) {
             for ( int i = 0; i < nI; i ++ ) {
                 swap( values_[((nJ - j) * nI) + i], values_[((j - 1) * nI) + i] );
@@ -495,8 +483,6 @@ void GribField::gridToLeftUpperHorizontal( )
 void
 GribField::gridToLeftLowerHorizontal( )
 {
-    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribField" );
-
     wmo::codeTable::ScanMode fromMode = grid_->getScanMode();
 
     int nI = grid_->numberX();
@@ -505,7 +491,6 @@ GribField::gridToLeftLowerHorizontal( )
     switch( fromMode )
     {
     case LeftUpperHorizontal:
-        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Swapping LeftUpperHorizontal to LeftLowerHorizontal";
         for ( int j = 1; j <= nJ / 2; j ++ ) {
             for ( int i = 0; i < nI; i ++ ) {
                 swap( values_[((nJ - j) * nI) + i], values_[((j - 1) * nI) + i] );
@@ -514,7 +499,6 @@ GribField::gridToLeftLowerHorizontal( )
         grid_->setScanMode( LeftLowerHorizontal );
         break;
     case LeftLowerHorizontal:
-        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Grid was already in requested format";
         break;
     default:
         throw std::runtime_error( "Unsupported field conversion in gridToLeftLowerHorizontal" );

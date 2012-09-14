@@ -188,7 +188,7 @@ BOOST_AUTO_TEST_CASE( loadfelt_missing )
 BOOST_AUTO_TEST_CASE( loadfelt_empty )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/felt/load.conf --name etc/common/empty.file", argv);
+    int argc = makeArgv("wdb-pointload --config etc/felt/load.conf --name etc/common/empty.file", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE( loadfelt_empty )
 BOOST_AUTO_TEST_CASE( loadnetcdf )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/netcdf/load.conf --output etc/netcdf/result.txt", argv);
+    int argc = makeArgv("wdb-pointload --config etc/netcdf/load.conf --output etc/netcdf/result.txt", argv);
 
     wdb::load::point::CmdLine cmdLine;
         cmdLine.parse( argc, argv );
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE( loadgrib2_missing )
 BOOST_AUTO_TEST_CASE( loadgrib2_empty )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/grib2/load.conf --name etc/common/empty.file", argv);
+    int argc = makeArgv("pointload --config etc/grib2/load.conf --name=etc/common/empty.file", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );

@@ -165,13 +165,6 @@ void GribGridDefinition::setup()
         throw std::runtime_error( errMsg.str() );
         break;
     }
-    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Creating geometry with ("
-                                          << iNumber << ", "
-                                          << jNumber << ", "
-                                          << iIncrement << ", "
-                                          << jIncrement << ", "
-                                          << startI << ", "
-                                          << startJ << ")";
     geometry_ = new GridGeometry(sridProj, o, iNumber, jNumber, iIncrement, jIncrement, startI, startJ );
 }
 

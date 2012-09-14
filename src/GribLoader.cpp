@@ -101,21 +101,13 @@ namespace wdb { namespace load { namespace point {
     GribLoader::GribLoader(Loader& controller)
         : FileLoader(controller)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         setup();
     }
 
-    GribLoader::~GribLoader()
-    {
-        // NOOP
-    }
+    GribLoader::~GribLoader() { }
 
     void GribLoader::setup()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-
         if(options().loading().dataproviderConfig.empty())
             throw runtime_error("Can't open dataprovider.config file [empty string?]");
         if(options().loading().unitsConfig.empty())
@@ -162,13 +154,11 @@ namespace wdb { namespace load { namespace point {
             point2LevelParameter2_.open(getConfigFile(options().loading().levelparameter2Config).string());
             point2LevelAdditions2_.open(getConfigFile(options().loading().leveladditions2Config).string());
         }
-//        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }
 
     void GribLoader::loadInterpolated(const string& fileName)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
 
         GribFile file(fileName);
 
@@ -237,7 +227,7 @@ namespace wdb { namespace load { namespace point {
             return ret;
         }
         catch ( std::out_of_range &e ) {
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the data provider." << " for keyStr " << keyStr;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the data provider." << " for keyStr " << keyStr;
             throw;
         }
     }
@@ -255,20 +245,17 @@ namespace wdb { namespace load { namespace point {
                    << "0, 0, 0, 0"; // Default values for thresholds
             try {
                 ret = point2ValueParameter_[keyStr.str()];
-            }
-            catch ( std::out_of_range &e ) {
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
+            } catch ( std::out_of_range &e ) {
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
                 throw;
             }
         }
         else {
             keyStr << field.getParameter2();
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " keyStr " << keyStr.str();
             try {
                 ret = point2ValueParameter2_[keyStr.str()];
-            }
-            catch ( std::out_of_range &e ) {
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
+            } catch ( std::out_of_range &e ) {
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
                 throw;
             }
         }
@@ -290,9 +277,8 @@ namespace wdb { namespace load { namespace point {
                    << "0, 0, 0, 0"; // Default values for thresholds
             try {
                 ret = point2ValueParameter_[keyStr.str()];
-            }
-            catch ( std::out_of_range &e ) {
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
+            } catch ( std::out_of_range &e ) {
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
@@ -300,9 +286,8 @@ namespace wdb { namespace load { namespace point {
             keyStr << field.getParameter2();
             try {
                 ret = point2ValueParameter2_[keyStr.str()];
-            }
-            catch ( std::out_of_range &e ) {
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
+            } catch ( std::out_of_range &e ) {
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
                 throw;
             }
         }
@@ -343,14 +328,11 @@ namespace wdb { namespace load { namespace point {
             }
             wdb::load::Level baseLevel( levelParameter, lev1, lev2 );
             levels.push_back( baseLevel );
-        }
-        catch ( wdb::ignore_value &e )
-        {
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+        } catch ( wdb::ignore_value &e ) {
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
             ignored = true;
-        }
-        catch ( std::out_of_range &e ) {
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the level parameter identified by " << keyStr.str();
+        } catch ( std::out_of_range &e ) {
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the level parameter identified by " << keyStr.str();
         }
         // Find additional level
         try {
@@ -373,7 +355,6 @@ namespace wdb { namespace load { namespace point {
                        << field.getTimeRange() << ", "
                        << "0, 0, 0, 0, "
                        << field.getLevelParameter2(); // Default values for thresholds
-                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " <<__FUNCTION__<<" keyStr ------ "<< keyStr.str();
                 ret = point2LevelAdditions2_[keyStr.str()];
             }
             if ( ret.length() != 0 ) {
@@ -388,13 +369,9 @@ namespace wdb { namespace load { namespace point {
                 wdb::load::Level level( levelParameter, levelFrom, levelTo );
                 levels.push_back( level );
             }
-        }
-        catch ( wdb::ignore_value &e )
-        {
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
-        }
-        catch ( std::out_of_range &e )
-        {
+        } catch ( wdb::ignore_value &e ) {
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+        } catch ( std::out_of_range &e ) {
             // NOOP
         }
         if ( levels.size() == 0 ) {

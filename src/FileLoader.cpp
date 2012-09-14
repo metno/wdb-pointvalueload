@@ -88,24 +88,12 @@ namespace {
 
 namespace wdb { namespace load { namespace point {
 
-    FileLoader::FileLoader(Loader& controller)
-        : controller_(controller)
-    {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-    }
+    FileLoader::FileLoader(Loader& controller) : controller_(controller) { }
 
-    FileLoader::~FileLoader()
-    {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-    }
+    FileLoader::~FileLoader() { }
 
     void FileLoader::setup()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-
         // check for excess parameters
         if(!options().loading().valueparameter2Config.empty())
             throw std::runtime_error("valueparameter2.config file not required");
@@ -132,14 +120,10 @@ namespace wdb { namespace load { namespace point {
         point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).string());
         point2LevelAdditions_.open(getConfigFile(options().loading().leveladditionsConfig).string());
         point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
-
-        //log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
     }
 
     void FileLoader::readUnit(const string& unitname, float& coeff, float& term)
     {
-//        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-//        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string ret = point2Units_[unitname];
         ret = (ret == "none") ? "1" : ret;
         vector<string> strs;
@@ -148,39 +132,42 @@ namespace wdb { namespace load { namespace point {
         string t = strs.at(1); boost::algorithm::trim(t);
         coeff = boost::lexical_cast<float>(c);
         term = boost::lexical_cast<float>(t);
-//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
      }
 
     bool FileLoader::openCDM(const string& fileName)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string fType = options().input().type;
         string fimexConfig = options().loading().fimexConfig;
 
         if(fType == "felt" or fType == "grib1" or fType == "grib2") {
-            if(fimexConfig.empty())
-                throw runtime_error(" Can't open fimex reader configuration file (must have for FELT/GRIB1/GRIB2 formats)!");
-            if(!boost::filesystem::exists(fimexConfig))
-                throw runtime_error(" Fimex configuration file: " + fimexConfig + " doesn't exist!");
+            if(fimexConfig.empty()) {
+                stringstream ss;
+                ss << " Can't open fimex reader configuration file (must have for FELT/GRIB1/GRIB2 formats) for data file: " << fileName;
+                throw runtime_error(ss.str());
+            } if(!boost::filesystem::exists(fimexConfig)) {
+                stringstream ss;
+                ss << " Fimex configuration file: " << fimexConfig << " doesn't exist for data file: " << fileName;
+                throw runtime_error(ss.str());
+            }
         }
 
-        if(fType == "felt")
+        if(fType == "felt") {
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_FELT, fileName, fimexConfig);
-        else if(fType == "grib1" or fType == "grib2")
+        } else if(fType == "grib1" or fType == "grib2") {
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_GRIB, fileName, fimexConfig);
-        else if(fType == "netcdf")
+        } else if(fType == "netcdf") {
             cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
-        else
-            throw runtime_error("Unknow file type!");
+        } else {
+            stringstream ss;
+            ss << "Unknow file type for data file: " << fileName;
+            throw runtime_error(ss.str());
+        }
 
         return true;
     }
 
     bool FileLoader::interpolateCDM()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         string templateFile = options().loading().fimexTemplate;
 
         if(templateFile.empty())
@@ -196,14 +183,11 @@ namespace wdb { namespace load { namespace point {
 
         cdmData_ = interpolator;
 
-//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
         return true;
     }
 
     bool FileLoader::timeFromCDM()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         const CDM& cdmRef = cdmData_->getCDM();
         const CDMDimension* unlimited = cdmRef.getUnlimitedDim();
         if(unlimited == 0)
@@ -218,15 +202,11 @@ namespace wdb { namespace load { namespace point {
             times_.push_back(boost::posix_time::to_iso_extended_string(boost::posix_time::from_time_t(uValues[u])) + "+00");
         }
 
-//        cout << __FILE__ << " | " << __FUNCTION__ << " @ " << __LINE__ << " : " << " CHECK " << endl;
-
         return true;
     }
 
     bool FileLoader::processCDM()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         uwinds().clear();
         vwinds().clear();
 
@@ -245,14 +225,12 @@ namespace wdb { namespace load { namespace point {
         processor->rotateVectorToLatLon(true, uwinds(), vwinds());
 
         cdmData_ = processor;
-//         log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+
         return true;
     }
 
     void FileLoader::load(const string& fileName)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         openCDM(fileName);
 
         processCDM();
@@ -266,10 +244,8 @@ namespace wdb { namespace load { namespace point {
 
     void FileLoader::loadWindEntries()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(uwinds().size() != vwinds().size())
-            throw runtime_error("uwinds and veinds sizes don't match");
+            throw runtime_error("uwinds and vWinds sizes don't match");
 
         map<string, EntryToLoad> winds;
 
@@ -381,10 +357,9 @@ namespace wdb { namespace load { namespace point {
     void FileLoader::loadEntries()
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+
         string dataprovider;
         const CDM& cdmRef = cdmData_->getCDM();
-//        cdmRef.toXMLStream(cout);
 
         // eps - realization variable
         size_t epsLength = 1;
@@ -411,7 +386,6 @@ namespace wdb { namespace load { namespace point {
 
         for(map<string, EntryToLoad>::const_iterator it = entries2load().begin(); it != entries2load().end(); ++it)
         {
-//            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
             const EntryToLoad& entry(it->second);
             // some configuration files have "none" as units
             // for Fimex this should be "1"
@@ -422,21 +396,18 @@ namespace wdb { namespace load { namespace point {
                 controller_.write(dpLine);
             }
 
-//            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+            string fimexname;
+            string fimexlevelname;
+            size_t fimexXDimLength;
+            size_t fimexYDimLength;
+            vector<string> fimexshape;
+            boost::shared_array<double> values;
 
-                string fimexname;
-                string fimexlevelname;
-                size_t fimexXDimLength;
-                size_t fimexYDimLength;
-                vector<string> fimexshape;
-                boost::shared_array<double> values;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << " entry.wdbName_: "<< entry.wdbName_ ;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]"  << " entry.cdmName_: "<< entry.cdmName_;
 
-                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << " entry.wdbName_: "<< entry.wdbName_ ;
-                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]"  << " entry.cdmName_: "<< entry.cdmName_;
-
-                //string fimexstandardname(entry.fimexName.empty() ? entry.name_ : entry.fimexName);
-                string fimexstandardname(entry.standardName_);
-                string wdbstandardname(entry.wdbName_);
+            string fimexstandardname(entry.standardName_);
+            string wdbstandardname(entry.wdbName_);
 
                 if(entry.cdmData_.get() == 0) {
                     boost::algorithm::replace_all(fimexstandardname, " ", "_");
@@ -445,8 +416,10 @@ namespace wdb { namespace load { namespace point {
                         log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "cant find vars for fimexstandardname: " << fimexstandardname;
                         continue;
                     } else if(variables.size() > 1) {
-                        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "several vars for fimexstandardname: " << fimexstandardname;
-                        continue;
+                        stringstream ss;
+                        ss << "several vars for fimexstandardname: " << fimexstandardname;
+                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << ss.str();
+                        throw std::runtime_error(ss.str());
                     }
                     const MetNoFimex::CDMVariable fimexVar = cdmRef.getVariable(variables[0]);
                     if(find(uwinds().begin(), uwinds().end(), fimexVar.getName()) != uwinds().end()
@@ -464,8 +437,11 @@ namespace wdb { namespace load { namespace point {
                     fimexYDimLength = cdmRef.getDimension(yName).getLength();
 
 
-                    if(!cdmRef.getLatitudeLongitude(fimexVar.getName(), latName, lonName))
-                        throw runtime_error("lat and lon not defined for fimexvarname");
+                    if(!cdmRef.getLatitudeLongitude(fimexVar.getName(), latName, lonName)) {
+                        stringstream ss;
+                        ss << "lat and lon not defined for fimex varName: " << fimexVar.getName();
+                        throw runtime_error(ss.str());
+                    }
 
                     boost::shared_ptr<MetNoFimex::Data> raw = cdmData_->getScaledDataInUnit(fimexVar.getName(), wdbunit);
                     if(raw->size() == 0)
@@ -476,7 +452,7 @@ namespace wdb { namespace load { namespace point {
                     // we deal only with variable that are time dependant
                     list<string> dims(fimexVar.getShape().begin(), fimexVar.getShape().end());
                     if(find(dims.begin(), dims.end(), "time") == dims.end()) {
-                        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "not time dependent: " << fimexstandardname;
+                        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "not time dependent: " << fimexstandardname;
                         continue;
                     }
                     fimexname = fimexVar.getName();
@@ -577,7 +553,7 @@ namespace wdb { namespace load { namespace point {
 
                                                if(value != value) {
                                                    // IEEE way tom test for NaN
-                                                   log.infoStream() << cmd.str();
+                                                   log.debugStream() << cmd.str();
                                                    continue;
                                                } else {
                                                    controller_.write(cmd.str());
