@@ -100,7 +100,6 @@ namespace wdb { namespace load { namespace point {
 
 void GribGridDefinition::setup()
 {
-    WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribGridDefinition" );
     std::string sridProj = getProjDefinition();
 
     wmo::codeTable::ScanMode scanMode = (wmo::codeTable::ScanMode) gribHandleReader_.getLong("scanningMode");

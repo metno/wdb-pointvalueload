@@ -73,6 +73,7 @@
 using namespace std;
 using namespace boost::posix_time;
 using namespace boost::filesystem;
+using namespace MetNoFimex;
 
 namespace {
 
@@ -105,6 +106,26 @@ namespace wdb { namespace load { namespace point {
 
     FeltLoader::~FeltLoader() { }
 
+    // create CDMReader for felt input file
+    bool FeltLoader::openCDM(const string& fileName)
+    {
+        if(options().loading().fimexConfig.empty()) {
+            stringstream ss;
+            ss << " Can't open fimex reader configuration file (must have for FELT format) for data file: " << fileName;
+            throw runtime_error(ss.str());
+        } if(!boost::filesystem::exists(options().loading().fimexConfig)) {
+            stringstream ss;
+            ss << " Fimex configuration file: " << options().loading().fimexConfig << " doesn't exist for data file: " << fileName;
+            throw runtime_error(ss.str());
+        }
+
+        cdmData_ = CDMFileReaderFactory::create("felt", fileName, options().loading().fimexConfig);
+
+        return true;
+    }
+
+    // create the lost of EntryToLoad items for parameters to be load
+    // config files are describing how should felt params be mapped to wdb
     void FeltLoader::loadInterpolated(const string& fileName)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FeltLoader" );
@@ -150,8 +171,11 @@ namespace wdb { namespace load { namespace point {
             }
         }
 
+        // create data lines for selected params
+        // follow wdb-fastload format
         loadEntries();
 
+        // same sa abpve but for wind_direction and wind_speed
         loadWindEntries();
     }
 
@@ -240,7 +264,7 @@ namespace wdb { namespace load { namespace point {
             wdb::load::Level baseLevel( levelParameter, lev1, lev2 );
             levels.push_back( baseLevel );
         } catch ( wdb::ignore_value &e ) {
-            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
         // Find additional level
         try {
@@ -257,15 +281,15 @@ namespace wdb { namespace load { namespace point {
             boost::trim( levFrom );
             string levTo = ret.substr( ret.find_last_of(',') + 1 );
             boost::trim( levTo );
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Found levels from " << levFrom << " to " << levTo;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Found levels from " << levFrom << " to " << levTo;
             float levelFrom = boost::lexical_cast<float>( levFrom );
             float levelTo = boost::lexical_cast<float>( levTo );
             wdb::load::Level level( levelParameter, levelFrom, levelTo );
             levels.push_back( level );
         } catch ( wdb::ignore_value &e ) {
-            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         } catch ( std::out_of_range &e ) {
-            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "No additional levels found.";
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "No additional levels found.";
         }
         if(levels.size() == 0) {
             stringstream key;

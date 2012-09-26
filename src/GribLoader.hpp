@@ -30,38 +30,9 @@
 #define POINTGRIBLOADER_H_
 
 // project
-#include "Loader.hpp"
 #include "FileLoader.hpp"
-#include "CmdLine.hpp"
-#include "CfgFileReader.hpp"
-
-// wdb
-#include <wdb/WdbLevel.h>
-#include <WdbConfigFile.h>
-#include <wdb/LoaderConfiguration.h>
-#include <wdb/LoaderDatabaseConnection.h>
-
-// libfelt
-#include <felt/FeltFile.h>
-#include <felt/FeltField.h>
-#include <felt/FeltConstants.h>
-
-// libfimex
-#include <fimex/CDMReader.h>
-
-// boost
-#include <boost/shared_array.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
-
-// std
-#include <vector>
-#include <tr1/unordered_map>
 
 using namespace std;
-
-namespace MetNoFimex {
-    class CDMReader;
-}
 
 namespace wdb { namespace load { namespace point {
 
@@ -73,22 +44,33 @@ namespace wdb { namespace load { namespace point {
     {
     public:
         GribLoader(Loader& controller);
-        ~GribLoader( );
+        ~GribLoader();
 
     private:
 
+        // read config files with metadata about
+        void setup();
+
+        // create CDMreader for GRIB data file
+        // fimex needs xml confiog file for this
+        bool openCDM(const string& fileName);
+
+        // iterate input file and gather metadata about entries to be loaded
         void loadInterpolated(const string& fileName);
 
-        void setup();
+        // read config files to see grib -> wdb mapping
         int editionNumber(const GribField & field) const;
         string dataProviderName(const GribField& field) const;
         string valueParameterName(const GribField & field) const;
         string valueParameterUnit(const GribField & field) const;
         void levelValues(vector<wdb::load::Level>& levels, const GribField& field);
+        ///////////////////////////////////////////////////////////////////////////
 
         // GRIB Edition Number
+        // used to decide which config files to read
         int editionNumber_;
 
+        // these will hole metadata for GRIB 2 files
         /// Conversion Hash Map - Value Parameter GRIB2
         CfgFileReader point2ValueParameter2_;
         /// Conversion Hash Map - Level Parameter GRIB2

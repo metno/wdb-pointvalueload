@@ -120,6 +120,14 @@ namespace wdb { namespace load { namespace point {
         point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
     }
 
+    bool NetCDFLoader::openCDM(const string& fileName)
+    {
+        // Fimex reader configuration file not needed for NETCDF file types
+        cdmData_ = CDMFileReaderFactory::create("netcdf", fileName);
+
+        return true;
+    }
+
     string NetCDFLoader::dataProviderName(const string& varname)
     {
         string ret;
@@ -188,7 +196,7 @@ namespace wdb { namespace load { namespace point {
             log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] "<< " lvls : " << lvls;
             readUnit( levelUnit, coeff, term );
         } catch ( wdb::ignore_value &e ) {
-            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
 
         if(!lvls.empty())
@@ -223,6 +231,7 @@ namespace wdb { namespace load { namespace point {
 
         const CDM& cdmRef = cdmData_->getCDM();
         vector<CDMVariable> variables = cdmRef.getVariables();
+
         for(size_t i = 0; i < variables.size(); ++i)
         {
             try{
@@ -264,8 +273,10 @@ namespace wdb { namespace load { namespace point {
             }
         }
 
+        // load regualar parameters
         loadEntries();
 
+        // load calculated wind_speed and wind_direction
         loadWindEntries();
     }
 } } } // namespaces
