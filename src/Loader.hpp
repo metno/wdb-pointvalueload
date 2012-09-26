@@ -45,6 +45,7 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <iostream>
 
 typedef boost::iostreams::stream<boost::iostreams::file_sink> output_stream;
 
@@ -52,27 +53,44 @@ using namespace std;
 
 namespace wdb { namespace load { namespace point {
 
-    class FeltLoader;
-    class GribLoader;
-    class NetCDFLoader;
+    class FileLoader;
 
+    // Main class for loading. Used as controller/manager that creates
+    // actual loaders (based on the input file type).
     class Loader
     {
     public:
         Loader(const CmdLine& cmdLine);
         ~Loader();
 
+        //    The first method called by the main function.
+        //    Template file (holds stations information) is opened using CDMreader.
+        //    The actual loader object "floader_" (based on the input file type) is created.
+        //    For each file in the input list the floader_.load(...) is executed.
         void load();
 
         const CmdLine& options() { return options_; }
+
+        // CDMReader object created for template file.
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return cdmTemplate_; }
+
         const vector<float>& latitudes() { return latitudes_; }
         const vector<float>& longitudes() { return longitudes_; }
         const size_t interpolatemethod() { return interpolateMethod_; }
+
+        // Writes point data lines either to standard output
+        // or to a deticated output file
         void write(const string& str);
     private:
 
+        // Create CDMReader for the template file (in netcdf format)
+        // that holds lat/lon positions for each point of interest.
+        // It is used in fimex when doing template interpolation.
+        // Template interpolation enables point data extraction from field data set.
         bool openTemplateCDM(const std::string& fileName);
+
+        // extract lat/lon point positions to be used
+        // when generating the output data lines (to be send to wdb-fastload)
         bool extractPointIds();
 
         const CmdLine& options_;
@@ -86,9 +104,9 @@ namespace wdb { namespace load { namespace point {
         vector<float>                     latitudes_;
         vector<float>                     longitudes_;
 
-        boost::shared_ptr<FeltLoader>   felt_;
-        boost::shared_ptr<GribLoader>   grib_;
-        boost::shared_ptr<NetCDFLoader> netcdf_;
+        // Pointer to a specialized loader object
+        // ATM there are 3 types: FELT/GRIB/NETCDF
+        boost::shared_ptr<FileLoader>   floader_;
 
         output_stream output_;
     };

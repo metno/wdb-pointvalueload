@@ -32,10 +32,7 @@
 
 // project
 #include "Loader.hpp"
-#include "FeltLoader.hpp"
-#include "GribFile.hpp"
-#include "GribLoader.hpp"
-#include "NetCDFLoader.hpp"
+#include "FileLoader.hpp"
 
 // libfimex
 #include <fimex/CDM.h>
@@ -69,13 +66,15 @@ using namespace std;
 
 namespace wdb { namespace load { namespace point {
 
-    Loader::Loader(const CmdLine& cmdLine)
-        : options_(cmdLine)
+    Loader::Loader(const CmdLine& cmdLine) : options_(cmdLine)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        // check interpolation method
+
+        // check requested interpolation method
         interpolateMethod_ = MIFI_INTERPOL_BILINEAR;
 
+        // Not all interpolation methods supported.
+        // If method unrecognized - bilinear used as default.
         if (options().loading().fimexInterpolateMethod == "bilinear") {
             interpolateMethod_ = MIFI_INTERPOL_BILINEAR;
         } else if (options().loading().fimexInterpolateMethod == "nearestneighbor") {
@@ -97,7 +96,7 @@ namespace wdb { namespace load { namespace point {
         } else if (options().loading().fimexInterpolateMethod == "forward_min") {
             interpolateMethod_ = MIFI_INTERPOL_FORWARD_MIN;
         } else {
-            log.infoStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] " << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear";
+            log.warnStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] " << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear";
         }
 
         if(!options().output().outFileName.empty()) {
@@ -112,25 +111,17 @@ namespace wdb { namespace load { namespace point {
         }
     }
 
+//    The first method called by the main function.
+//    Template file (holds stations information) is opened using CDMreader.
+//    The actual loader object "floader_" (based on the input file type) is created.
+//    For each file in the input list the floader_.load(...) is executed.
     void Loader::load()
     {
-        if(options_.input().type.empty()) {
-            stringstream ss;
-            ss << "Missing input file type";
-            throw runtime_error(ss.str());
-        }
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
 
-        if(options_.input().type == "felt") {
-            felt_ = boost::shared_ptr<FeltLoader>(new FeltLoader(*this));
-        } else if(options_.input().type == "grib1" or options_.input().type == "grib2") {
-            grib_ = boost::shared_ptr<GribLoader>(new GribLoader(*this));
-        } else if(options_.input().type == "netcdf") {
-            netcdf_ = boost::shared_ptr<NetCDFLoader>(new NetCDFLoader(*this));
-        } else {
-            stringstream ss;
-            ss << "Unrecognized input file type: " << options_.input().type;
-            throw runtime_error(ss.str());
-        }
+        if(options_.input().type.empty()) throw runtime_error("Missing input file type");
+
+        floader_ = boost::shared_ptr<FileLoader>(FileLoaderFactory::createFileLoader(options_.input().type, *this));
 
         std::string tmplFileName = options().loading().fimexTemplate;
         openTemplateCDM(tmplFileName);
@@ -138,7 +129,6 @@ namespace wdb { namespace load { namespace point {
         vector<string> filenames;
         boost::split(filenames, options().input().file[0], boost::is_any_of(","));
 
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
         for(size_t i = 0; i < filenames.size(); ++i)
         {
             string gridded = filenames[i];
@@ -148,13 +138,7 @@ namespace wdb { namespace load { namespace point {
                 continue;
             }
             try {
-                if(options_.input().type == "felt") {
-                    felt_->load(gridded);
-                } else if(options_.input().type == "grib1" or options_.input().type == "grib2") {
-                    grib_->load(gridded);
-                } else if(options_.input().type == "netcdf") {
-                    netcdf_->load(gridded);
-                }
+                floader_->load(gridded);
             } catch (MetNoFimex::CDMException& e) {
                 log.errorStream() << "Unable to load file [" << gridded << "]";
                 throw e;
@@ -165,6 +149,10 @@ namespace wdb { namespace load { namespace point {
         }
     }
 
+//    We are using fimex and the process of template interpolation to extract point related data.
+//    One must supply the list of lat/lon values presenting the geographical positions of the points.
+//    The file must be in the netcdf format.
+//    Checks if such template file exists and create corresponding CDMReader object.
     bool Loader::openTemplateCDM(const std::string& fileName)
     {
         if(fileName.empty()) {
@@ -190,6 +178,8 @@ namespace wdb { namespace load { namespace point {
         return true;
     }
 
+    // Extracting lat/long positions from the template file.
+    // used when generating data lines for each point.
     bool Loader::extractPointIds()
     {
         if(not cdmTemplate_.get())
@@ -216,6 +206,7 @@ namespace wdb { namespace load { namespace point {
         return true;
     }
 
+    // Writes either to standard output or to a file-
     void Loader::write(const string &str)
     {
         if(output_.is_open()) {

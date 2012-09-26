@@ -31,9 +31,11 @@
 
 // project
 #include "Loader.hpp"
-#include "FileLoader.hpp"
 #include "CmdLine.hpp"
 #include "CfgFileReader.hpp"
+
+#include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
 
 using namespace std;
 
@@ -43,8 +45,11 @@ namespace MetNoFimex {
 
 namespace wdb { namespace load { namespace point {
 
-    class Loader;
-
+    /*
+     * Struct that holds various metadata for parameters that are to be extracted from field data files
+     * i,e. how should parameter be named in WDB, what units to be used, which levels to be loaded ...
+     * The metada is given through various config files
+     **/
     struct EntryToLoad {
         string cdmName_;
         string standardName_;
@@ -60,29 +65,101 @@ namespace wdb { namespace load { namespace point {
         boost::shared_array<double> cdmData_;
     };
 
+    /*
+     * The base class for point loaders
+     * Describes the main steps how to load points
+     * and implements common infrastructre
+     *
+     * ATM there are 3 spercialized classes:
+     * FeltLoader, GribLoader and NetCDFLoader
+     **/
     class FileLoader
     {
     public:
         FileLoader(Loader& controller);
         virtual ~FileLoader( );
 
+
+        // Extract data for wdb-fastload consumption
         void load(const string& fileName);
 
     protected:
-        virtual void loadInterpolated(const string& fileName) = 0;
+        /*
+         * Opens/reads configuration files with the
+         * metadata about parameters to be loaded
+         * metadata: wdb name, wdb unit, wdb levels ...
+         **/
         virtual void setup();
-        virtual void loadEntries();
-        virtual void loadWindEntries();
-        virtual bool openCDM(const std::string& file);
-        virtual bool timeFromCDM();
-        virtual bool processCDM();
-        virtual bool interpolateCDM();
 
+        /*
+         * Iterate through each record in the data files
+         * and make a list of EntryToLoad items that will
+         * represent parameters to be extracetd
+         *
+         * Each file type konws how to to this
+         **/
+        virtual void loadInterpolated(const string& fileName) = 0;
+
+        /* Uses fimex to create CDMReader object
+         *
+         * Some file types require xml
+         * configuration file (felt, grib)
+         * and some not (netcdf)
+         *
+         * Overload method as needed
+         **/
+        virtual bool openCDM(const std::string& file) = 0;
+
+        /*
+         * iterates through each EntryToLoad item (see loadIntepolated )
+         * reads the data from a fimex CDMReader object (see openCDM )
+         * and assembles the data line to be sent to wdb-fastload
+         *
+         * The lines are written for each lat/lon, each time step,
+         * each ensemble member and only for selected levels
+         **/
+        virtual void loadEntries();
+
+        /*
+         * If requested it will extract the u and v wind components
+         * to calculate wind_speed and wind_direction as prescribed
+         * by met.no scientis
+         * To make this happen, data must have u and w components
+         * and fimex.process.rotateVectorToLatLonX, fimex.process.rotateVectorToLatLonY
+         * command options have to hold fimex points for the u and w components
+         **/
+        virtual void loadWindEntries();
+
+        // Extract time axis and unique forecast time from the data file
+        virtual bool timeFromCDM();
+
+        // Recalculate wind_speed and wind_direction
+        // based on u and v wind components
+        virtual bool processCDM();
+
+        /*
+         * apply fimex template interpolation to the data
+         * by using the created CDMReader (look openCDM )
+         **/
+         virtual bool interpolateCDM();
+
+        /*
+         * Read the units.conf file to find what units
+         * should be used when inserting the data into wdb
+         **/
         void readUnit(const string& unitname, float& coeff, float& term);
+
+        // access to the command line options
         const CmdLine& options() { return controller_.options(); }
+
         boost::shared_ptr<MetNoFimex::CDMReader> cdmTemplate() { return controller_.cdmTemplate(); }
+
+        // the list of parameters (+ metadata) to be extracted
         std::map<std::string, EntryToLoad>& entries2load()  {return entries2Load_; }
 
+        // fimex can hel to obtain rotated wind componenets
+        // the parameter names are placed as strings in
+        // u and v component vector
         vector<string>& uwinds() { return uWinds_; }
         vector<string>& vwinds() { return vWinds_; }
 
@@ -91,10 +168,11 @@ namespace wdb { namespace load { namespace point {
         // CDMReader for data that will be interpolated
         boost::shared_ptr<MetNoFimex::CDMReader> cdmData_;
 
-        // format time to string
+        // the values from time axis as strings
         vector<string> times_;
         const vector<string>& times() { return times_;}
 
+        // basic conf files - assist in parameter to wdb mapping
         /// Conversion Hash Map - Dataprovider Name
         CfgFileReader point2DataProviderName_;
         /// Conversion Hash Map - Value Parameter
@@ -108,8 +186,19 @@ namespace wdb { namespace load { namespace point {
         vector<string> uWinds_;
         vector<string> vWinds_;
 
+        // the list of parameters (and metadata) to be extracted
         map<string, EntryToLoad> entries2Load_;
     };
+
+
+    // helper factory class - should make easier to add new specialized classes
+    // TODO: move it to own class
+    class FileLoaderFactory
+    {
+    public:
+        static FileLoader *createFileLoader(const std::string &type, class Loader& controller);
+    };
+
 
 } } } // end namespaces
 

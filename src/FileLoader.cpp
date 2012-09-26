@@ -32,6 +32,9 @@
 
 // project
 #include "FileLoader.hpp"
+#include "FeltLoader.hpp"
+#include "GribLoader.hpp"
+#include "NetCDFLoader.hpp"
 
 // libfimex
 #include <fimex/CDM.h>
@@ -122,6 +125,7 @@ namespace wdb { namespace load { namespace point {
         point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
     }
 
+    // find the unit applicable for WDB - reads units.conf file
     void FileLoader::readUnit(const string& unitname, float& coeff, float& term)
     {
         string ret = point2Units_[unitname];
@@ -134,42 +138,14 @@ namespace wdb { namespace load { namespace point {
         term = boost::lexical_cast<float>(t);
      }
 
-    bool FileLoader::openCDM(const string& fileName)
-    {
-        string fType = options().input().type;
-        string fimexConfig = options().loading().fimexConfig;
-
-        if(fType == "felt" or fType == "grib1" or fType == "grib2") {
-            if(fimexConfig.empty()) {
-                stringstream ss;
-                ss << " Can't open fimex reader configuration file (must have for FELT/GRIB1/GRIB2 formats) for data file: " << fileName;
-                throw runtime_error(ss.str());
-            } if(!boost::filesystem::exists(fimexConfig)) {
-                stringstream ss;
-                ss << " Fimex configuration file: " << fimexConfig << " doesn't exist for data file: " << fileName;
-                throw runtime_error(ss.str());
-            }
-        }
-
-        if(fType == "felt") {
-            cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_FELT, fileName, fimexConfig);
-        } else if(fType == "grib1" or fType == "grib2") {
-            cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_GRIB, fileName, fimexConfig);
-        } else if(fType == "netcdf") {
-            cdmData_ = CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
-        } else {
-            stringstream ss;
-            ss << "Unknow file type for data file: " << fileName;
-            throw runtime_error(ss.str());
-        }
-
-        return true;
-    }
-
+    // using fimex and template interpolation
+    // to get the parameter values in predefined
+    // geographical points
     bool FileLoader::interpolateCDM()
     {
         string templateFile = options().loading().fimexTemplate;
 
+        // check & open template file
         if(templateFile.empty())
             return false;
         if(not cdmTemplate().get())
@@ -179,13 +155,17 @@ namespace wdb { namespace load { namespace point {
 
         boost::shared_ptr<CDMInterpolator> interpolator = boost::shared_ptr<CDMInterpolator>(new CDMInterpolator(cdmData_));
 
+        // interpolate in specific geographical (lat/lon) points
         interpolator->changeProjection(controller_.interpolatemethod(), templateFile);
 
+        // set the interpolated structure
+        // as new CDMReader source
         cdmData_ = interpolator;
 
         return true;
     }
 
+    // extract time axis - used to set valid from & valid to times
     bool FileLoader::timeFromCDM()
     {
         const CDM& cdmRef = cdmData_->getCDM();
@@ -205,8 +185,12 @@ namespace wdb { namespace load { namespace point {
         return true;
     }
 
+    // read the u and v wind component names (when rotated)
+    // uses CDMProcessor::rotateVectorToLatLon
     bool FileLoader::processCDM()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+
         uwinds().clear();
         vwinds().clear();
 
@@ -214,36 +198,77 @@ namespace wdb { namespace load { namespace point {
                 && options().loading().fimexProcessRotateVectorToLatLonY.empty())
             return true;
 
+        // create CDMProcessor
         boost::shared_ptr<CDMProcessor> processor(new CDMProcessor(cdmData_));
+
+        // create CDMInterpolator as we need to interpolate processor as well
+        boost::shared_ptr<CDMInterpolator> interpolator = boost::shared_ptr<CDMInterpolator>(new CDMInterpolator(processor));
+
+        string templateFile = options().loading().fimexTemplate;
+
+        if(templateFile.empty())
+            return false;
+        if(not cdmTemplate().get())
+            return false;
+
+        // apply template interpolation
+        interpolator->changeProjection(controller_.interpolatemethod(), templateFile);
 
         boost::split(uwinds(), options().loading().fimexProcessRotateVectorToLatLonX, boost::is_any_of(" ,"));
         boost::split(vwinds(), options().loading().fimexProcessRotateVectorToLatLonY, boost::is_any_of(" ,"));
 
+        processor->rotateVectorToLatLon(true, uwinds(), vwinds());
+
         if(uwinds().size() != vwinds().size())
             throw runtime_error("not the same number of x and y wind components\n");
 
-        processor->rotateVectorToLatLon(true, uwinds(), vwinds());
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " u wind size: " << uwinds().size();
+        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << " v wind size: " << vwinds().size();
 
         cdmData_ = processor;
 
         return true;
     }
 
+    /*
+     * Describes steps used to extract point data
+     **/
     void FileLoader::load(const string& fileName)
     {
+        // create CDMReader for the input file
+        // some fule types need fimex reader xml config file
         openCDM(fileName);
 
+        // if requested rotate wind components
+        // to recalculate wind_speed and wind_direction
         processCDM();
 
+        // use fimex and template interpolation to
+        // interpolase CDMReader in wanted points
         interpolateCDM();
 
+        // extract time axis values
         timeFromCDM();
 
+        // read input file and check config files
+        // to determine what parameters are to
+        // be loaded and how are the mapped in wdb
         loadInterpolated(fileName);
     }
 
+    /*
+     * If requested it will extract the u and v wind components
+     * to calculate wind_speed and wind_direction as prescribed
+     * by met.no scientis
+     * To make this happen, data must have u and w components
+     * and fimex.process.rotateVectorToLatLonX, fimex.process.rotateVectorToLatLonY
+     * command options have to hold fimex points for the u and w components
+     **/
+    // it creates 2 virtual parameters - u and w components
     void FileLoader::loadWindEntries()
     {
+        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
+
         if(uwinds().size() != vwinds().size())
             throw runtime_error("uwinds and vWinds sizes don't match");
 
@@ -347,13 +372,24 @@ namespace wdb { namespace load { namespace point {
             winds.insert(make_pair<string, EntryToLoad>(direction.wdbName_+boost::lexical_cast<string>(i), direction));
         }
 
+        // clear Entry2Load items
         entries2load().clear();
 
+        // insert wind related param as
+        // new Entry2Load items
         entries2load() = winds;
 
         loadEntries();
     }
 
+    /* iterates througth Entry2Load items
+     * reads data from (earlier interpolated) CDMReader
+     * for selected item iterates:
+     * each geo positions (x, y)
+     * each time step (valid from - valid to)
+     * selected levels
+     * each ensemble member - where applicable
+     **/
     void FileLoader::loadEntries()
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FileLoader" );
@@ -367,6 +403,7 @@ namespace wdb { namespace load { namespace point {
         string epsVariableName;
         string epsCFName = "realization";
 
+        // 1. check if there are ensemble members
         boost::shared_array<int> realizations;
         const CDMDimension* epsDim = 0;
         if(!cdmRef.findVariables("standard_name", epsCFName).empty()) {
@@ -377,6 +414,7 @@ namespace wdb { namespace load { namespace point {
             epsMaxVersion = realizations[epsLength - 1];
         }
 
+        // 2. extract unique reference time
         string strReferenceTime;
 	try {
 	    strReferenceTime = toString(MetNoFimex::getUniqueForecastReferenceTime(cdmData_));
@@ -384,12 +422,14 @@ namespace wdb { namespace load { namespace point {
             strReferenceTime = times_[0];
 	}
 
+        // 3. iterate Entry2Load map
         for(map<string, EntryToLoad>::const_iterator it = entries2load().begin(); it != entries2load().end(); ++it)
         {
             const EntryToLoad& entry(it->second);
             // some configuration files have "none" as units
             // for Fimex this should be "1"
             string wdbunit = (entry.wdbUnit_ == "none") ? "1" : entry.wdbUnit_;
+            // 4. write data privder on a separate line (required bywdb-fastload format)
             if(dataprovider != entry.wdbDataProvider_) {
                 dataprovider = entry.wdbDataProvider_;
                 string dpLine = "\n" + dataprovider + "\t88,0,88\n";
@@ -409,169 +449,191 @@ namespace wdb { namespace load { namespace point {
             string fimexstandardname(entry.standardName_);
             string wdbstandardname(entry.wdbName_);
 
-                if(entry.cdmData_.get() == 0) {
-                    boost::algorithm::replace_all(fimexstandardname, " ", "_");
-                    vector<string> variables = cdmRef.findVariables("standard_name", fimexstandardname);
-                    if(variables.empty()) {
-                        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "cant find vars for fimexstandardname: " << fimexstandardname;
-                        continue;
-                    } else if(variables.size() > 1) {
-                        stringstream ss;
-                        ss << "several vars for fimexstandardname: " << fimexstandardname;
-                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << ss.str();
-                        throw std::runtime_error(ss.str());
-                    }
-                    const MetNoFimex::CDMVariable fimexVar = cdmRef.getVariable(variables[0]);
-                    if(find(uwinds().begin(), uwinds().end(), fimexVar.getName()) != uwinds().end()
-                            ||
-                       find(vwinds().begin(), vwinds().end(), fimexVar.getName()) != vwinds().end())
-                    {
-                        continue;
-                    }
-
-                    string lonName;
-                    string latName;
-                    string xName = cdmRef.getHorizontalXAxis(fimexVar.getName());
-                    string yName = cdmRef.getHorizontalYAxis(fimexVar.getName());
-                    fimexXDimLength = cdmRef.getDimension(xName).getLength();
-                    fimexYDimLength = cdmRef.getDimension(yName).getLength();
-
-
-                    if(!cdmRef.getLatitudeLongitude(fimexVar.getName(), latName, lonName)) {
-                        stringstream ss;
-                        ss << "lat and lon not defined for fimex varName: " << fimexVar.getName();
-                        throw runtime_error(ss.str());
-                    }
-
-                    boost::shared_ptr<MetNoFimex::Data> raw = cdmData_->getScaledDataInUnit(fimexVar.getName(), wdbunit);
-                    if(raw->size() == 0)
-                        continue;
-
-                    values = raw->asDouble();
-
-                    // we deal only with variable that are time dependant
-                    list<string> dims(fimexVar.getShape().begin(), fimexVar.getShape().end());
-                    if(find(dims.begin(), dims.end(), "time") == dims.end()) {
-                        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "not time dependent: " << fimexstandardname;
-                        continue;
-                    }
-                    fimexname = fimexVar.getName();
-                    fimexshape = fimexVar.getShape();
-                    fimexlevelname = cdmRef.getVerticalAxis(fimexname);
-                } else {
-                    values = entry.cdmData_;
-                    fimexname = entry.cdmName_;
-                    fimexshape = entry.cdmShape_;
-                    fimexlevelname = entry.cdmLevelName_;
-                    fimexXDimLength = entry.cdmXDimLength_;
-                    fimexYDimLength = entry.cdmYDimLength_;
+            // 5. see if we have already fetched data for param from CDMReader
+            if(entry.cdmData_.get() == 0) {
+                boost::algorithm::replace_all(fimexstandardname, " ", "_");
+                vector<string> variables = cdmRef.findVariables("standard_name", fimexstandardname);
+                if(variables.empty()) {
+                    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "cant find vars for fimexstandardname: " << fimexstandardname;
+                    continue;
+                } else if(variables.size() > 1) {
+                    stringstream ss;
+                    ss << "several vars for fimexstandardname: " << fimexstandardname;
+                    log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << ss.str();
+                    throw std::runtime_error(ss.str());
+                }
+                const MetNoFimex::CDMVariable fimexVar = cdmRef.getVariable(variables[0]);
+                if(find(uwinds().begin(), uwinds().end(), fimexVar.getName()) != uwinds().end()
+                        ||
+                        find(vwinds().begin(), vwinds().end(), fimexVar.getName()) != vwinds().end())
+                {
+                    continue;
                 }
 
-                for(size_t i = 0; i < fimexYDimLength; ++i) {
-                    for(size_t j = 0; j < fimexXDimLength; ++j){
+                string lonName;
+                string latName;
+                string xName = cdmRef.getHorizontalXAxis(fimexVar.getName());
+                string yName = cdmRef.getHorizontalYAxis(fimexVar.getName());
+                fimexXDimLength = cdmRef.getDimension(xName).getLength();
+                fimexYDimLength = cdmRef.getDimension(yName).getLength();
 
-                        stringstream wkt;
-                        wkt <<  "point" << "(" << controller_.longitudes()[i * fimexXDimLength + j] << " " << controller_.latitudes()[i * fimexXDimLength + j] << ")";
 
-                        for(set<double>::const_iterator lIt = entry.wdbLevels_.begin(); lIt != entry.wdbLevels_.end(); ++lIt) {
-                            size_t wdbLevel = *lIt;
-                            size_t fimexLevelIndex = 0;
-                            size_t fimexLevelLength = 1;
-                            if(!fimexlevelname.empty()) {
-                                // match wdbIndex to index in fimex data
-                                MetNoFimex::CDMVariable fimexLevelVar = cdmRef.getVariable(fimexlevelname);
-                                fimexLevelLength = cdmRef.getDimension(fimexlevelname).getLength();
-                                boost::shared_ptr<Data> levelData = cdmData_->getData(fimexLevelVar.getName());
-                                boost::shared_array<double> fimexLevels = levelData->asDouble();
-                                for(size_t index = 0; index < fimexLevelLength; ++ index) {
-                                    if(wdbLevel == fimexLevels[index]) {
-                                        fimexLevelIndex = index;
-                                        break;
-                                    }
+                if(!cdmRef.getLatitudeLongitude(fimexVar.getName(), latName, lonName)) {
+                    stringstream ss;
+                    ss << "lat and lon not defined for fimex varName: " << fimexVar.getName();
+                    throw runtime_error(ss.str());
+                }
+
+                boost::shared_ptr<MetNoFimex::Data> raw = cdmData_->getScaledDataInUnit(fimexVar.getName(), wdbunit);
+                if(raw->size() == 0)
+                    continue;
+
+                values = raw->asDouble();
+
+                // we deal only with variable that are time dependant
+                list<string> dims(fimexVar.getShape().begin(), fimexVar.getShape().end());
+                if(find(dims.begin(), dims.end(), "time") == dims.end()) {
+                    log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "not time dependent: " << fimexstandardname;
+                    continue;
+                }
+                fimexname = fimexVar.getName();
+                fimexshape = fimexVar.getShape();
+                fimexlevelname = cdmRef.getVerticalAxis(fimexname);
+            } else {
+                values = entry.cdmData_;
+                fimexname = entry.cdmName_;
+                fimexshape = entry.cdmShape_;
+                fimexlevelname = entry.cdmLevelName_;
+                fimexXDimLength = entry.cdmXDimLength_;
+                fimexYDimLength = entry.cdmYDimLength_;
+            }
+
+            // 6. iterate by each position
+            // X dim grows faster than Y dim
+            for(size_t i = 0; i < fimexYDimLength; ++i) {
+                for(size_t j = 0; j < fimexXDimLength; ++j){
+
+                    stringstream wkt;
+                    wkt <<  "point" << "(" << controller_.longitudes()[i * fimexXDimLength + j] << " " << controller_.latitudes()[i * fimexXDimLength + j] << ")";
+
+                    // 7. iterate all requested levels (as confgured by levelparameter.conf and/or leveladditions.conf)
+                    for(set<double>::const_iterator lIt = entry.wdbLevels_.begin(); lIt != entry.wdbLevels_.end(); ++lIt) {
+                        size_t wdbLevel = *lIt;
+                        size_t fimexLevelIndex = 0;
+                        size_t fimexLevelLength = 1;
+                        if(!fimexlevelname.empty()) {
+                            // match wdbIndex to index in fimex CDMReader (that is CDM modell)
+                            MetNoFimex::CDMVariable fimexLevelVar = cdmRef.getVariable(fimexlevelname);
+                            fimexLevelLength = cdmRef.getDimension(fimexlevelname).getLength();
+                            boost::shared_ptr<Data> levelData = cdmData_->getData(fimexLevelVar.getName());
+                            boost::shared_array<double> fimexLevels = levelData->asDouble();
+                            for(size_t index = 0; index < fimexLevelLength; ++ index) {
+                                if(wdbLevel == fimexLevels[index]) {
+                                    fimexLevelIndex = index;
+                                    break;
                                 }
                             }
+                        }
 
-                            int version = 0;
-                            bool hasEpsAsDim = false;
+                        int version = 0;
+                        bool hasEpsAsDim = false;
 
-                            if(epsDim != 0) {
-                                list<string> dims(fimexshape.begin(), fimexshape.end());
-                                if(find(dims.begin(), dims.end(), epsVariableName) != dims.end()) {
-                                    hasEpsAsDim = true;
-                                }
-                            } else {
-                                version = 0;
-                                epsLength = 1;
+                        // 8. log the number of ensemble members (default 1)
+                        if(epsDim != 0) {
+                            list<string> dims(fimexshape.begin(), fimexshape.end());
+                            if(find(dims.begin(), dims.end(), epsVariableName) != dims.end()) {
+                                hasEpsAsDim = true;
                             }
+                        } else {
+                            version = 0;
+                            epsLength = 1;
+                        }
 
-                            // eps members
-                            for(size_t e = 0; e < epsLength; ++e)
+                        // 9. iterate each eps member
+                        for(size_t e = 0; e < epsLength; ++e)
+                        {
+                            // 10. time by time slice
+                            for(size_t u = 0; u < times().size(); ++u)
                             {
-                                // time by time slice
-                                for(size_t u = 0; u < times().size(); ++u)
-                                {
-                                    double value;
+                                double value;
 
-                                    if(hasEpsAsDim) {
-                                        version = realizations[e];
+                                if(hasEpsAsDim) {
+                                    version = realizations[e];
 
-                                        value = *
-                                                (values.get() // jump to data start
-                                                + u*(epsLength * fimexLevelLength * fimexXDimLength * fimexYDimLength ) // jump to u-th time slice
-                                                + e * fimexLevelLength * fimexXDimLength * fimexYDimLength // jump to e-th realization-slice
-                                                + fimexLevelIndex * fimexXDimLength * fimexYDimLength // jump to right level
-                                                + i * fimexXDimLength + j); // jump to right x,y coordinate
+                                    value = *
+                                            (values.get() // jump to data start
+                                             + u*(epsLength * fimexLevelLength * fimexXDimLength * fimexYDimLength ) // jump to u-th time slice
+                                             + e * fimexLevelLength * fimexXDimLength * fimexYDimLength // jump to e-th realization-slice
+                                             + fimexLevelIndex * fimexXDimLength * fimexYDimLength // jump to right level
+                                             + i * fimexXDimLength + j); // jump to right x,y coordinate
 
+                                } else {
+                                    version = 0;
+
+                                    value = *
+                                            (values.get() // jump to data start
+                                             + u*(fimexLevelLength * fimexXDimLength * fimexYDimLength ) // jump to u-th time slice
+                                             + fimexLevelIndex * fimexXDimLength * fimexYDimLength // jump to right level
+                                             + i * fimexXDimLength + j); // jump to right x,y coordinate
+
+                                }
+
+                                string validtime = times()[u];
+
+                                try {
+                                    stringstream cmd;
+
+                                    cmd << value            << "\t"
+                                        << wkt.str()        << "\t"
+                                        << strReferenceTime << "\t"
+                                        << validtime        << "\t"
+                                        << validtime        << "\t"
+                                        << wdbstandardname     << "\t"
+                                        << entry.wdbLevelName_ << "\t"
+                                        << wdbLevel         << "\t"
+                                        << wdbLevel         << "\t"
+                                        << version          << "\t"
+                                        << epsMaxVersion
+                                        << endl;
+
+                                    if(value != value) {
+                                        // IEEE way tom test for NaN
+                                        log.debugStream() << cmd.str();
+                                        continue;
                                     } else {
-                                        version = 0;
-
-                                        value = *
-                                                (values.get() // jump to data start
-                                                + u*(fimexLevelLength * fimexXDimLength * fimexYDimLength ) // jump to u-th time slice
-                                                + fimexLevelIndex * fimexXDimLength * fimexYDimLength // jump to right level
-                                                + i * fimexXDimLength + j); // jump to right x,y coordinate
-
+                                        controller_.write(cmd.str());
                                     }
 
-                                    string validtime = times()[u];
-
-                                    try {
-                                                stringstream cmd;
-
-                                                cmd << value            << "\t"
-                                                          << wkt.str()        << "\t"
-                                                          << strReferenceTime << "\t"
-                                                          << validtime        << "\t"
-                                                          << validtime        << "\t"
-                                                          << wdbstandardname     << "\t"
-                                                          << entry.wdbLevelName_ << "\t"
-                                                          << wdbLevel         << "\t"
-                                                          << wdbLevel         << "\t"
-                                                          << version          << "\t"
-                                                          << epsMaxVersion
-                                                          << endl;
-
-                                               if(value != value) {
-                                                   // IEEE way tom test for NaN
-                                                   log.debugStream() << cmd.str();
-                                                   continue;
-                                               } else {
-                                                   controller_.write(cmd.str());
-                                               }
-
-                                    } catch ( wdb::ignore_value &e ) {
-                                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << e.what() << " Data field not loaded.";
-                                    } catch ( out_of_range &e ) {
-                                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
-                                    } catch ( exception & e ) {
-                                        log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << e.what() << " Data field not loaded.";
-                                    }
+                                } catch ( wdb::ignore_value &e ) {
+                                    log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << e.what() << " Data field not loaded.";
+                                } catch ( out_of_range &e ) {
+                                    log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                                } catch ( exception & e ) {
+                                    log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << e.what() << " Data field not loaded.";
+                                }
                             } // time slices end
                         } // eps slices
                     } // z slices
                 } // x slices
             } // y slices
         } // entries2load
+    }
+
+    // TODO: Remove FileLoaderFactory to it's own file
+    //       This way we can cut on dependency with specialized classes
+    FileLoader *FileLoaderFactory::createFileLoader(const std::string &type, class Loader& controller)
+    {
+        if(type == "felt") {
+            return new FeltLoader(controller);
+        } else if(type == "grib1" or type == "grib2") {
+            return new GribLoader(controller);
+        } else if(type == "netcdf") {
+            return new NetCDFLoader(controller);
+        } else {
+            stringstream ss;
+            ss << "Unrecognized input file type: " << type;
+            throw runtime_error(ss.str());
+        }
     }
 
 } } } // end namespaces
