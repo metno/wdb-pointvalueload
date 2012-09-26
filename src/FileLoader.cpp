@@ -206,12 +206,15 @@ namespace wdb { namespace load { namespace point {
 
         string templateFile = options().loading().fimexTemplate;
 
+        // check & open template file
         if(templateFile.empty())
             return false;
         if(not cdmTemplate().get())
             return false;
+        if(not cdmData_.get())
+            return false;
 
-        // apply template interpolation
+        // apply template interpolation to a processor
         interpolator->changeProjection(controller_.interpolatemethod(), templateFile);
 
         boost::split(uwinds(), options().loading().fimexProcessRotateVectorToLatLonX, boost::is_any_of(" ,"));
@@ -246,6 +249,7 @@ namespace wdb { namespace load { namespace point {
         // use fimex and template interpolation to
         // interpolase CDMReader in wanted points
         interpolateCDM();
+
 
         // extract time axis values
         timeFromCDM();
