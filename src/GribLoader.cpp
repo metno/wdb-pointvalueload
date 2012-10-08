@@ -226,9 +226,9 @@ namespace wdb { namespace load { namespace point {
             } catch ( wdb::ignore_value &e ) {
                 log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::out_of_range &e ) {
-                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::exception & e ) {
-                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
+                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             }
         }
 
@@ -241,23 +241,16 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::dataProviderName(const GribField & field) const
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         stringstream keyStr;
         keyStr << field.getGeneratingCenter() << ", "
                << field.getGeneratingProcess();
-        try {
-            std::string ret = point2DataProviderName_[ keyStr.str() ];
-            return ret;
-        }
-        catch ( std::out_of_range &e ) {
-            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the data provider." << " for keyStr " << keyStr;
-            throw;
-        }
+
+        std::string ret = point2DataProviderName_[ keyStr.str() ];
+		return ret;
     }
 
     string GribLoader::valueParameterName(const GribField & field) const
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         stringstream keyStr;
         std::string ret;
         if (editionNumber_ == 1) {
@@ -266,21 +259,11 @@ namespace wdb { namespace load { namespace point {
                    << field.getParameter1() << ", "
                    << field.getTimeRange() << ", "
                    << "0, 0, 0, 0"; // Default values for thresholds
-            try {
-                ret = point2ValueParameter_[keyStr.str()];
-            } catch ( std::out_of_range &e ) {
-                log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
-                throw;
-            }
+			ret = point2ValueParameter_[keyStr.str()];
         }
         else {
             keyStr << field.getParameter2();
-            try {
-                ret = point2ValueParameter2_[keyStr.str()];
-            } catch ( std::out_of_range &e ) {
-                log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter.";
-                throw;
-            }
+			ret = point2ValueParameter2_[keyStr.str()];
         }
         ret = ret.substr( 0, ret.find(',') );
         boost::trim( ret );
@@ -289,7 +272,6 @@ namespace wdb { namespace load { namespace point {
 
     string GribLoader::valueParameterUnit(const GribField & field) const
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.GribLoader" );
         stringstream keyStr;
         std::string ret;
         if (editionNumber_ == 1) {
@@ -298,21 +280,11 @@ namespace wdb { namespace load { namespace point {
                    << field.getParameter1() << ", "
                    << field.getTimeRange() << ", "
                    << "0, 0, 0, 0"; // Default values for thresholds
-            try {
-                ret = point2ValueParameter_[keyStr.str()];
-            } catch ( std::out_of_range &e ) {
-                log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
-                throw;
-            }
+			ret = point2ValueParameter_[keyStr.str()];
         }
         else {
             keyStr << field.getParameter2();
-            try {
-                ret = point2ValueParameter2_[keyStr.str()];
-            } catch ( std::out_of_range &e ) {
-                log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the value parameter identified by " << keyStr.str();
-                throw;
-            }
+			ret = point2ValueParameter2_[keyStr.str()];
         }
         ret = ret.substr( ret.find(',') + 1 );
         boost::trim( ret );
@@ -352,10 +324,8 @@ namespace wdb { namespace load { namespace point {
             wdb::load::Level baseLevel( levelParameter, lev1, lev2 );
             levels.push_back( baseLevel );
         } catch ( wdb::ignore_value &e ) {
-            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
             ignored = true;
-        } catch ( std::out_of_range &e ) {
-            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Could not identify the level parameter identified by " << keyStr.str();
         }
         // Find additional level
         try {

@@ -458,12 +458,12 @@ namespace wdb { namespace load { namespace point {
                 boost::algorithm::replace_all(fimexstandardname, " ", "_");
                 vector<string> variables = cdmRef.findVariables("standard_name", fimexstandardname);
                 if(variables.empty()) {
-                    log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "cant find vars for fimexstandardname: " << fimexstandardname;
+                    log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << "cant find vars for fimexstandardname: " << fimexstandardname;
                     continue;
                 } else if(variables.size() > 1) {
                     stringstream ss;
                     ss << "several vars for fimexstandardname: " << fimexstandardname;
-                    log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << ss.str();
+                    //log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "]" << ss.str();
                     throw std::runtime_error(ss.str());
                 }
                 const MetNoFimex::CDMVariable fimexVar = cdmRef.getVariable(variables[0]);

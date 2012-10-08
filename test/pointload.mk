@@ -9,7 +9,8 @@ pointloadTest_CPPFLAGS = \
         $(AM_CPPFLAGS) \
         $(CPPFLAGS) \
         -I$(top_srcdir)/src \
-        $(BOOST_CPPFLAGS)
+        $(BOOST_CPPFLAGS) \
+        -DSRCDIR=\"@top_srcdir@\"
 
 pointloadTest_LDADD = \
           $(wdb_pointLoad_LDADD) \

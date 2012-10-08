@@ -56,6 +56,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/assign/list_of.hpp>
 
 // std
 #include <string>
@@ -66,40 +67,32 @@ using namespace std;
 
 namespace wdb { namespace load { namespace point {
 
+namespace
+{
+const std::map<std::string, int> interpolationNames = boost::assign::map_list_of
+		("bilinear", MIFI_INTERPOL_BILINEAR)
+		("nearestneighbor", MIFI_INTERPOL_NEAREST_NEIGHBOR)
+		("bicubic",MIFI_INTERPOL_BICUBIC)
+		("coord_nearestneighbor", MIFI_INTERPOL_COORD_NN)
+		("coord_kdtree", MIFI_INTERPOL_COORD_NN_KD)
+		("forward_sum", MIFI_INTERPOL_FORWARD_SUM)
+		("forward_mean", MIFI_INTERPOL_FORWARD_MEAN)
+		("forward_median", MIFI_INTERPOL_FORWARD_MEDIAN)
+		("forward_max", MIFI_INTERPOL_FORWARD_MAX)
+		("forward_min", MIFI_INTERPOL_FORWARD_MIN);
+}
+
     Loader::Loader(const CmdLine& cmdLine) : options_(cmdLine)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
 
-        // check requested interpolation method
-        interpolateMethod_ = MIFI_INTERPOL_BILINEAR;
+        // find wanted interpolation method
+        std::map<std::string, int>::const_iterator find = interpolationNames.find(options().loading().fimexInterpolateMethod);
+        if ( find == interpolationNames.end() )
+        	throw std::runtime_error("Unknown interpolate.method: " + options().loading().fimexInterpolateMethod);
+        interpolateMethod_ = find->second;
 
-        // Not all interpolation methods supported.
-        // If method unrecognized - bilinear used as default.
-        if (options().loading().fimexInterpolateMethod == "bilinear") {
-            interpolateMethod_ = MIFI_INTERPOL_BILINEAR;
-        } else if (options().loading().fimexInterpolateMethod == "nearestneighbor") {
-            interpolateMethod_ = MIFI_INTERPOL_NEAREST_NEIGHBOR;
-        } else if (options().loading().fimexInterpolateMethod == "bicubic") {
-            interpolateMethod_ = MIFI_INTERPOL_BICUBIC;
-        } else if (options().loading().fimexInterpolateMethod == "coord_nearestneighbor") {
-            interpolateMethod_ = MIFI_INTERPOL_COORD_NN;
-        } else if (options().loading().fimexInterpolateMethod == "coord_kdtree") {
-            interpolateMethod_ = MIFI_INTERPOL_COORD_NN_KD;
-        } else if (options().loading().fimexInterpolateMethod == "forward_sum") {
-            interpolateMethod_ = MIFI_INTERPOL_FORWARD_SUM;
-        } else if (options().loading().fimexInterpolateMethod == "forward_mean") {
-            interpolateMethod_ = MIFI_INTERPOL_FORWARD_MEAN;
-        } else if (options().loading().fimexInterpolateMethod == "forward_median") {
-            interpolateMethod_ = MIFI_INTERPOL_FORWARD_MEDIAN;
-        } else if (options().loading().fimexInterpolateMethod == "forward_max") {
-            interpolateMethod_ = MIFI_INTERPOL_FORWARD_MAX;
-        } else if (options().loading().fimexInterpolateMethod == "forward_min") {
-            interpolateMethod_ = MIFI_INTERPOL_FORWARD_MIN;
-        } else {
-            log.warnStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] " << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear";
-        }
-
-        if(!options().output().outFileName.empty()) {
+        if ( !options().output().outFileName.empty() ) {
             output_.open(options().output().outFileName);
         }
     }

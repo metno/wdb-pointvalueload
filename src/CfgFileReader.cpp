@@ -93,7 +93,7 @@ namespace wdb { namespace load { namespace point {
                             throw wdb::ignore_value( std::string("Key value " + key + " is ignored." ) );
                     }
                     else {
-                            throw std::out_of_range( std::string("Key value " + key + " is not defined in configuration file." ) );
+                            throw std::out_of_range( std::string("Key value " + key + " is not defined in " + fileName_ ) );
                     }
             }
     }

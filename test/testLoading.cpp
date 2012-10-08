@@ -125,11 +125,11 @@ int makeArgv(const string& line, char** &argv)
 BOOST_AUTO_TEST_CASE( parseCmdLine1 )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --units.config etc/units.cfg", argv);
+    int argc = makeArgv("pointload --units.config "SRCDIR"/etc/units.cfg", argv);
   
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
-    BOOST_CHECK_EQUAL("etc/units.cfg", cmdLine.loading().unitsConfig);
+    BOOST_CHECK_EQUAL(SRCDIR"/etc/units.cfg", cmdLine.loading().unitsConfig);
 
     delete [] argv;
 }
@@ -145,16 +145,16 @@ BOOST_AUTO_TEST_CASE( parseCmdLine2 )
 
 BOOST_AUTO_TEST_CASE( configFilesExist )
 {
-    BOOST_REQUIRE(boost::filesystem::exists( "etc/felt/load.conf" ));
-    BOOST_REQUIRE(boost::filesystem::exists( "etc/netcdf/load.conf" ));
-    BOOST_REQUIRE(boost::filesystem::exists( "etc/grib1/load.conf" ));
-    BOOST_REQUIRE(boost::filesystem::exists( "etc/grib2/load.conf" ));
+    BOOST_REQUIRE(boost::filesystem::exists( SRCDIR"/etc/felt/load.conf" ));
+    BOOST_REQUIRE(boost::filesystem::exists( SRCDIR"/etc/netcdf/load.conf" ));
+    BOOST_REQUIRE(boost::filesystem::exists( SRCDIR"/etc/grib1/load.conf" ));
+    BOOST_REQUIRE(boost::filesystem::exists( SRCDIR"/etc/grib2/load.conf" ));
 }
 
 BOOST_AUTO_TEST_CASE( loadfelt )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/felt/load.conf --output etc/felt/result.txt", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/felt/load.conf --output etc/felt/result.txt", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE( loadfelt )
         loader.load();
     }
 
-    BOOST_REQUIRE(compareFiles("etc/felt/expected.txt", "etc/felt/result.txt"));
+    BOOST_REQUIRE(compareFiles(SRCDIR"/etc/felt/expected.txt", "etc/felt/result.txt"));
 
     delete [] argv;
 }
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE( loadfelt )
 BOOST_AUTO_TEST_CASE( loadfelt_missing )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/felt/load.conf --name missing.nc", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/felt/load.conf --name missing.nc", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -188,7 +188,7 @@ BOOST_AUTO_TEST_CASE( loadfelt_missing )
 BOOST_AUTO_TEST_CASE( loadfelt_empty )
 {
     char **argv = 0;
-    int argc = makeArgv("wdb-pointload --config etc/felt/load.conf --name etc/common/empty.file", argv);
+    int argc = makeArgv("wdb-pointload --config "SRCDIR"/etc/felt/load.conf --name etc/common/empty.file", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE( loadfelt_empty )
 BOOST_AUTO_TEST_CASE( loadnetcdf )
 {
     char **argv = 0;
-    int argc = makeArgv("wdb-pointload --config etc/netcdf/load.conf --output etc/netcdf/result.txt", argv);
+    int argc = makeArgv("wdb-pointload --config "SRCDIR"/etc/netcdf/load.conf --output etc/netcdf/result.txt", argv);
 
     wdb::load::point::CmdLine cmdLine;
         cmdLine.parse( argc, argv );
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE( loadnetcdf )
         loader.load();
     }
 
-    BOOST_REQUIRE(compareFiles("etc/netcdf/expected.txt", "etc/netcdf/result.txt"));
+    BOOST_REQUIRE(compareFiles(SRCDIR"/etc/netcdf/expected.txt", "etc/netcdf/result.txt"));
 
     delete [] argv;
 }
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE( loadnetcdf )
 BOOST_AUTO_TEST_CASE( loadnetcdf_missing )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/netcdf/load.conf --name missing.nc", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/netcdf/load.conf --name missing.nc", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE( loadnetcdf_missing )
 BOOST_AUTO_TEST_CASE( loadnetcdf_empty )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/netcdf/load.conf --name etc/common/empty.file", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/netcdf/load.conf --name etc/common/empty.file", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE( loadnetcdf_empty )
 BOOST_AUTO_TEST_CASE( loadgrib1 )
 {
     char **argv = 0;
-    int argc = makeArgv("pointLoad --config etc/grib1/load.conf --output etc/grib1/result.txt", argv);
+    int argc = makeArgv("pointLoad --config "SRCDIR"/etc/grib1/load.conf --output etc/grib1/result.txt", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_CASE( loadgrib1 )
         loader.load();
     }
 
-    BOOST_REQUIRE(compareFiles("etc/grib1/expected.txt", "etc/grib1/result.txt"));
+    BOOST_REQUIRE(compareFiles(SRCDIR"/etc/grib1/expected.txt", "etc/grib1/result.txt"));
 
     delete [] argv;
 }
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE( loadgrib1 )
 BOOST_AUTO_TEST_CASE( loadgrib1_missing )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/grib1/load.conf --name missing.nc", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/grib1/load.conf --name missing.nc", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -282,7 +282,7 @@ BOOST_AUTO_TEST_CASE( loadgrib1_missing )
 BOOST_AUTO_TEST_CASE( loadgrib1_empty )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/grib1/load.conf --name etc/common/empty.file", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/grib1/load.conf --name "SRCDIR"/etc/common/empty.file", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE( loadgrib1_empty )
 BOOST_AUTO_TEST_CASE( loadgrib2 )
 {
     char **argv = 0;
-    int argc = makeArgv("pointLoad --config etc/grib2/load.conf --output etc/grib2/result.txt", argv);
+    int argc = makeArgv("pointLoad --config "SRCDIR"/etc/grib2/load.conf --output etc/grib2/result.txt", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse(argc, argv);
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE( loadgrib2 )
         loader.load();
     }
 
-    BOOST_REQUIRE(compareFiles("etc/grib2/expected.txt", "etc/grib2/result.txt"));
+    BOOST_REQUIRE(compareFiles(SRCDIR"/etc/grib2/expected.txt", "etc/grib2/result.txt"));
 
     delete [] argv;
 }
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE( loadgrib2 )
 BOOST_AUTO_TEST_CASE( loadgrib2_missing )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/grib2/load.conf --name missing.nc", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/grib2/load.conf --name missing.nc", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE( loadgrib2_missing )
 BOOST_AUTO_TEST_CASE( loadgrib2_empty )
 {
     char **argv = 0;
-    int argc = makeArgv("pointload --config etc/grib2/load.conf --name=etc/common/empty.file", argv);
+    int argc = makeArgv("pointload --config "SRCDIR"/etc/grib2/load.conf --name="SRCDIR"/etc/common/empty.file", argv);
 
     wdb::load::point::CmdLine cmdLine;
     cmdLine.parse( argc, argv );
