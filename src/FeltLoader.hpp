@@ -30,7 +30,6 @@
 #define POINTFELTLOADER_H_
 
 // project
-#include "Loader.hpp"
 #include "FileLoader.hpp"
 #include "CmdLine.hpp"
 #include "CfgFileReader.hpp"
@@ -75,12 +74,20 @@ namespace wdb { namespace load { namespace point {
 
     private:
 
+        // Create CDMReader for felt inoput file
+        // This needs fimex xml reader confiog file
+        bool openCDM(const string& fileName);
+
+        // Make a list (EntryToLoad) of parameters to be loaded
+        // The config files are describing the params
         void loadInterpolated(const string& fileName);
 
+        // read the metadata mapping for the felt params
         std::string dataProviderName(const felt::FeltField& field);
         std::string valueParameterName(const felt::FeltField & field);
         std::string valueParameterUnit(const felt::FeltField & field);
         void levelValues( std::vector<wdb::load::Level>& levels, const felt::FeltField& field);
+        ///////////////////////////////////////////////////////////////////////////////////////
     };
 
 } } }  // end namespaces

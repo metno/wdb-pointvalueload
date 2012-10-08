@@ -32,10 +32,7 @@
 
 // project
 #include "Loader.hpp"
-#include "FeltLoader.hpp"
-#include "GribFile.hpp"
-#include "GribLoader.hpp"
-#include "NetCDFLoader.hpp"
+#include "FileLoader.hpp"
 
 // libfimex
 #include <fimex/CDM.h>
@@ -69,15 +66,15 @@ using namespace std;
 
 namespace wdb { namespace load { namespace point {
 
-    Loader::Loader(const CmdLine& cmdLine)
-        : options_(cmdLine),
-          northBound_(90.0), southBound_(-90.0), westBound_(-180.0), eastBound_(180.0)
+    Loader::Loader(const CmdLine& cmdLine) : options_(cmdLine)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        // check interpolation method
+
+        // check requested interpolation method
         interpolateMethod_ = MIFI_INTERPOL_BILINEAR;
 
+        // Not all interpolation methods supported.
+        // If method unrecognized - bilinear used as default.
         if (options().loading().fimexInterpolateMethod == "bilinear") {
             interpolateMethod_ = MIFI_INTERPOL_BILINEAR;
         } else if (options().loading().fimexInterpolateMethod == "nearestneighbor") {
@@ -99,7 +96,7 @@ namespace wdb { namespace load { namespace point {
         } else if (options().loading().fimexInterpolateMethod == "forward_min") {
             interpolateMethod_ = MIFI_INTERPOL_FORWARD_MIN;
         } else {
-            log.errorStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] " << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear";
+            log.warnStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] " << "WARNING: unknown interpolate.method: " << options().loading().fimexInterpolateMethod << " using bilinear";
         }
 
         if(!options().output().outFileName.empty()) {
@@ -109,93 +106,82 @@ namespace wdb { namespace load { namespace point {
 
     Loader::~Loader()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(output_.is_open()) {
             output_.close();
-            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         }
     }
 
+//    The first method called by the main function.
+//    Template file (holds stations information) is opened using CDMreader.
+//    The actual loader object "floader_" (based on the input file type) is created.
+//    For each file in the input list the floader_.load(...) is executed.
     void Loader::load()
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        if(options_.input().type.empty()) {
-            log.errorStream() << " @ line["<< __LINE__ << "] " << "Missing input file type";
-            return;
-        }
 
-        if(options_.input().type != "felt" and options_.input().type !="grib1" and options_.input().type !="grib2" and options_.input().type !="netcdf") {
-            log.errorStream() << " @ line[" << __LINE__ << "] " << "Unrecognized input file type";
-            return;
-        }
+        if(options_.input().type.empty()) throw runtime_error("Missing input file type");
 
-        if(options_.input().type == "felt") {
-            felt_ = boost::shared_ptr<FeltLoader>(new FeltLoader(*this));
-        } else if(options_.input().type == "grib1" or options_.input().type == "grib2") {
-            grib_ = boost::shared_ptr<GribLoader>(new GribLoader(*this));
-        } else if(options_.input().type == "netcdf") {
-            netcdf_ = boost::shared_ptr<NetCDFLoader>(new NetCDFLoader(*this));
-        } else {
-            log.errorStream() << " @ line["<< __LINE__ << "] " << "Unrecognized input file type";
-            return;
-        }
-
-        vector<boost::filesystem::path> files;
-        vector<string> names;
-
-        boost::split(names, options().input().file[0], boost::is_any_of(" ,"));
-
-        copy(names.begin(), names.end(), back_inserter(files));
+        floader_ = boost::shared_ptr<FileLoader>(FileLoaderFactory::createFileLoader(options_.input().type, *this));
 
         std::string tmplFileName = options().loading().fimexTemplate;
         openTemplateCDM(tmplFileName);
 
-        for(std::vector<boost::filesystem::path>::const_iterator it = files.begin(); it != files.end(); ++ it)
+        vector<string> filenames;
+        boost::split(filenames, options().input().file[0], boost::is_any_of(","));
+
+        for(size_t i = 0; i < filenames.size(); ++i)
         {
+            string gridded = filenames[i];
+            boost::trim(gridded);
+            if(gridded.empty()) {
+                log.debugStream() << "Skipping to load file with the empty name";
+                continue;
+            }
             try {
-                if(options_.input().type == "felt") {
-                    felt_->load(it->string());
-                } else if(options_.input().type == "grib1" or options_.input().type == "grib2") {
-                    grib_->load(it->string());
-                } else if(options_.input().type == "netcdf") {
-                    netcdf_->load(it->string());
-                }
+                floader_->load(gridded);
             } catch (MetNoFimex::CDMException& e) {
-                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->string();
-                log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
+                log.errorStream() << "Unable to load file [" << gridded << "]";
                 throw e;
             } catch (std::exception& e) {
-                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << it->string();
-                log.errorStream() << " @ line["<< __LINE__ << "]"  << "Reason: " << e.what();
+                log.errorStream() << " @ line["<< __LINE__ << "]" << "Unable to load file " << gridded;
                 throw e;
             }
         }
     }
 
+//    We are using fimex and the process of template interpolation to extract point related data.
+//    One must supply the list of lat/lon values presenting the geographical positions of the points.
+//    The file must be in the netcdf format.
+//    Checks if such template file exists and create corresponding CDMReader object.
     bool Loader::openTemplateCDM(const std::string& fileName)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        if(fileName.empty())
-            throw std::runtime_error(" Can't open template interpolation file! ");
+        if(fileName.empty()) {
+            stringstream ss;
+            ss << " Can't open template interpolation file: " << fileName;
+            throw std::runtime_error(ss.str());
+        }
 
-        if(!boost::filesystem::exists(fileName))
-                    throw std::runtime_error(" Template file: " + fileName + " doesn't exist!");
+        if(!boost::filesystem::exists(fileName))  {
+            stringstream ss;
+            ss << " Template file: " << fileName << " doesn't exist!";
+            throw std::runtime_error(ss.str());
+        }
 
-            cdmTemplate_ = MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
+        cdmTemplate_ = MetNoFimex::CDMFileReaderFactory::create(MIFI_FILETYPE_NETCDF, fileName);
 
-            assert(extractPointIds());
+        if(!extractPointIds()) {
+            stringstream ss;
+            ss << " Can't extract data from : " << fileName << " interpolation template!";
+            throw std::runtime_error(ss.str());
+        }
 
-//        cdmTemplate_->getCDM().toXMLStream(std::cerr);
-            return true;
+        return true;
     }
 
+    // Extracting lat/long positions from the template file.
+    // used when generating data lines for each point.
     bool Loader::extractPointIds()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(not cdmTemplate_.get())
             return false;
 
@@ -220,33 +206,9 @@ namespace wdb { namespace load { namespace point {
         return true;
     }
 
-    bool Loader::extractBounds()
-    {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-        log.debugStream() << __FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        if(not cdmTemplate_.get())
-            return false;
-
-        const MetNoFimex::CDM& cdmRef = cdmTemplate_->getCDM();
-
-        assert(cdmRef.hasVariable("latitude"));
-        assert(cdmRef.hasVariable("longitude"));
-
-        boost::shared_array<double> lats = cdmTemplate_->getData("latitude")->asDouble();
-        northBound_ = *(std::max_element(&lats[0], &lats[cdmTemplate_->getData("latitude")->size()]));
-        southBound_ = *(std::min_element(&lats[0], &lats[cdmTemplate_->getData("latitude")->size()]));
-
-        boost::shared_array<double> lons = cdmTemplate_->getData("longitude")->asDouble();
-        eastBound_ = *(std::max_element(&lons[0], &lons[cdmTemplate_->getData("longitude")->size()]));
-        westBound_ = *(std::min_element(&lons[0], &lons[cdmTemplate_->getData("longitude")->size()]));
-
-        return true;
-    }
-
+    // Writes either to standard output or to a file-
     void Loader::write(const string &str)
     {
-//        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.Loader" );
-//        log.debugStream() << __FUNCTION__ << " @ line["<< __LINE__ << "] CHECK POINT ";
         if(output_.is_open()) {
             output_ << str;
             flush(output_);

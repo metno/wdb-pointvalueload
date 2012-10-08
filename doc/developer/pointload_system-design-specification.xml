@@ -78,7 +78,7 @@
 					<para>libfimex version 0.37.x</para>
 				</listitem>
 				<listitem>
-					<para>libfelt version 0.36.0</para>
+					<para>libfelt version 0.37.0</para>
 				</listitem>
 				<listitem>
 					<para>GRIB API version 1.9.9</para>
@@ -454,7 +454,7 @@
 				</listitem>
 				<listitem>
 					<para>
-						FileLoader::load(...) calls FileLoader::openCDM() -> opens gridded data file creates corresponding CDM model ( libfimex used and read configuration is needed ).
+						FileLoader::load(...) calls FileLoader::openCDM() -> opens gridded data file and creates corresponding CDM model ( libfimex used and read configuration is needed ).
                                         </para>
 				</listitem>
 				<listitem>
@@ -469,12 +469,12 @@
 				</listitem>
                                 <listitem>
 					<para>
-                                        	FileLoader::load(...) calls FileLoader::timeFromCDM() -> extracts various time related information ( time axis from CDM model )
+                                        	FileLoader::load(...) calls FileLoader::timeFromCDM() -> extracts various time related information ( time axis from CDM model ).
 					</para>
                                 </listitem>
                                 <listitem>
 					<para>
-                                        	FileLoader::load(...) calls FileLoader::loadInterpolated(...) -> overloaded method that extracts point data (see FeltLoader::loadInterpolated, GribLoader::loadInterpolated or NetCDF::loadInterpolated)
+                                        	FileLoader::load(...) calls FileLoader::loadInterpolated(...) -> overloaded method that extracts point data (see FeltLoader::loadInterpolated, GribLoader::loadInterpolated or NetCDF::loadInterpolated).
 					</para>
                                 </listitem>
 				<listitem>
@@ -492,7 +492,7 @@
 
 				<listitem>
 					<para>
-						FileLoader::loadInterpolated(...) calls FileLoader::loadWindEntries()() -> similar as File::loadEntries() but handles only wind components if they were requested vima main config file.
+						FileLoader::loadInterpolated(...) calls FileLoader::loadWindEntries()() -> similar as File::loadEntries() but handles only wind components (if requested via main config file).
 					</para>
 				</listitem>
 
@@ -502,93 +502,283 @@
 			</itemizedlist>
 			
 		</sect2>
-		
+
 		<sect2>
-			<title>STIStationRecord</title>
-			
-                        <para>The STIStationRecord class encapsulates a single STINFOSYS record as defined in station table.
-                              It inherits pqxx::connection class.</para>
+			<title>CmdLine</title>
+
+			<para>Command line parsing and parameter extraction.</para>
 		</sect2>
 		
 		<sect2>
-			<title>WDBStationRecord</title>
-
-			<para>The WDBStationRecord class encapsulates a single WDB palce point record.</para>
+			<title>EntryToLoad</title>
+			
+                        <para>
+				The EntryToLoad class encapsulates meta-data needed for a parameter to be extracted abd loaded in vega wdb database. For example, dataprovider, the parameters name in wdb, units to be used, dimensions, standard CF names and so on. This data is obtained by parsing several configuration files (dataprovider.conf, valueparameter.conf, levelparameter.conf ...)
+			</para>
 		</sect2>
+		
 
 		<sect2>
-                        <title>STInfosysDatabaseConnection</title>
+                        <title>Loader</title>
 			
-                        <para>The STInfosysDatabase class encapsulates the STINFOSYS databse. Useful function:</para>
+                        <para>Loader acts as loading controller. Useful functions:</para>
+
+			<sect3>
+                                <title>load</title>
+				
+                                <para>Instantiates correct loader type for the given gridded data file type. At the moment there are 3 types: FeltLoader, GribLoader and NetCDFLoader</para>
+				
+			</sect3>
 			
 			<sect3>
-                                <title>getAllStations</title>
+                                <title>openTemplateCDM</title>
 				
-                                <para>Extracts stations from the station table. Takes out all stations that are still in operation and that have the newest edited_at value</para>
+                                <para>Opens template file that holds geographics positions for the points of interest.</para>
+				
+			</sect3>
+
+			<sect3>
+                                <title>extractPointIs</title>
+				
+                                <para>Extracts lat/lon values from interpolation template file.</para>
+				
+			</sect3>
+
+			<sect3>
+                                <title>longitudes</title>
+				
+                                <para>Returns the vector of longitudes from interpolation template file.</para>
+				
+			</sect3>
+
+			<sect3>
+                                <title>latitudes</title>
+				
+                                <para>Returns the vector of latitudes from interpolation template file.</para>
 				
 			</sect3>
 			
 		</sect2>
 		
 		<sect2>
-                        <title>WDBDatabaseConnection</title>
+                        <title>FileLoader</title>
 			
-                        <para>The WDBDatabaseConnection class inherits pqxx::conection.
-                                Contains function calls for all the WDB database access.</para>
+                        <para>The base class for extracting the point data from gridded files. 3 classes are derived from it (FeltLoader, GribLoader and NetCDFLoader).</para>
 			
-			<para>To maximize performance during loading, most SQL statements and cursors
-				are prepared and declared only once. The database must be indexed such that
-				all searches made occur using indexed search.</para>
-			
-                        <para>updateStations is the most important function. here we will loop through all
-                              the records from STINFOSYS and see if new station should be inserted. If some
-                              station already exists we will check if lon/lat or times have been changed.
-                              If so, we have to update it.</para>
-			
-                        <para>IMPORTANT-. WDB is using two placenamespaceids - default and 4365.
-                              In default we are using station.stationid as placename value.
-                              In 4365 we are using station.wmono as placename value.</para>
+			<para>Outlines the process of point data extraction and implements common tasks. Useful functions:</para>
 
 			<sect3>
-                                <title>GetAllStations</title>
+                                <title>load</title>
 
-                                <para></para>
+                                <para>Prescribes the process of point data extraction.</para>
+
+                        </sect3>
+
+			
+                        <sect3>
+                                <title>setup</title>
+
+                                <para>Open and read configuration files (further specialized in child classes)</para>
 
 			</sect3>
 			
 			<sect3>
-                                <title>AddPlacePoint</title>
+                                <title>openCDM</title>
 
-                                <para></para>
+                                <para>Opens gridded data file and creates corresponding CDM model ( libfimex used and read configuration is needed ).</para>
 				
 			</sect3>
 			
                         <sect3>
-                                <title>UpdatePlacePoint</title>
+                                <title>processCDM</title>
 				
-                                <para></para>
+                                <para>Extracts wind components, speed an direction, if requested ( uses libfimex and CDMProcessore class ). The request comes through command line.</para>
 
 			</sect3>
 			
 			<sect3>
-                                <title>getPlaceName</title>
+                                <title>interpolateCDM</title>
 
-                                <para></para>
+                                <para>Interpolates the gridded data into the point of interest.</para>
 
                         </sect3>
 
+			<sect3>
+                                <title>timeFromCDM</title>
+
+                                <para>Extracts time related information ( time axis ) from CDM model.</para>
+
+                        </sect3>
+
+			<sect3>
+                                <title>loadInterpolated</title>
+
+                                <para>Iterates through the gridded file and assebles the list of parameter to be loaded.</para>
+
+                        </sect3>
+
+			<sect3>
+                                <title>loadEntries</title>
+
+                                <para>Extracts the point data and creates the lines consumable by wdb-fastLoad.</para>
+
+                        </sect3>
+
+			<sect3>
+                                <title>loadWindEntries</title>
+
+                                <para>Similar as loadEntries but for wind speed and direction.</para>
+
+                        </sect3>
 
 		</sect2>
-		
+				
+		<sect2>
+			<title>FeltLoader</title>
+			
+			<para>Inherits FileLoader base class. Understands and extracts point data from felt gridded file types.</para>
+			<para>Felt point loading is based on gridded data loading utility wdb-feltLoad (https://github.com/wdb/wdb-feltload). The following configuration files are neccessary for operation: validtime.conf, dataprovider.conf, valueparameter.conf, levelparameter.conf, leveladditions.conf and units.conf. In addition it requires fimex felt reader configuration file.
+			</para>
+                        <para>Useful functions:</para>
+                        <sect3>
+                                <title>loadInterpolated</title>
+
+                                <para>Implements FileLoader::loadInterpolated.</para>
+
+                        </sect3>
+			<sect3>
+                                <title>dataProviderName</title>
+
+                                <para>Reads dataprovider for given felt parameter (uses dataprovider.conf).</para>
+
+                        </sect3>
+			<sect3>
+                                <title>valueParameteName</title>
+
+                                <para>Reads prameter name to be used in wdb for given felt parameter (uses valueparameter.conf).</para>
+
+                        </sect3>
+			<sect3>
+                                <title>valueParameteUnit</title>
+
+                                <para>Reads prameter units to be used in wdb for given felt parameter (uses valueparameter.conf).</para>
+
+                        </sect3>
+			<sect3>
+                                <title>levelValues</title>
+
+                                <para>Reads what levels and how are they mapped when inserting felt parameter into wdb (uses both levelparameter.conf and leveladditions.conf).</para>
+
+                        </sect3>
+		</sect2>
+
+		<sect2>
+			<title>GribLoader</title>
+			
+			<para>Inherits FileLoader base class. Understands and extracts point data from grib1 and grib2 gridded file types.</para>
+			<para>Grib point loading is based on gridded data loading utility wdb-gribLoad (https://github.com/wdb/wdb-gribload). The following configuration files are neccessary for operation: validtime.conf, dataprovider.conf, valueparameter.conf, levelparameter.conf, leveladditions.conf, valueparameter2.conf, levelparameter2.conf, leveladditions2.conf and units.conf. In addition it requires fimex grib reader configuration file.
+			</para>
+                        <para>Useful functions:</para>
+                        <sect3>
+                                <title>setup</title>
+
+                                <para>Overloads FileLoad::setup to distinguish and read configuration files for grib1 and grib2 files.</para>
+
+                        </sect3>
+                        <sect3>
+                                <title>editionNumber</title>
+
+                                <para>Read the grib edition value for given grib parameter.</para>
+
+                        </sect3>
+                        <sect3>
+                                <title>loadInterpolated</title>
+
+                                <para>Implements FileLoader::loadInterpolated.</para>
+
+                        </sect3>
+			<sect3>
+                                <title>dataProviderName</title>
+
+                                <para>Reads dataprovider for given grib parameter (uses dataprovider.conf).</para>
+
+                        </sect3>
+			<sect3>
+                                <title>valueParameteName</title>
+
+                                <para>Reads prameter name to be used in wdb for given grib parameter.Uses valueparameter.conf (grib1 case) or valueparameter2.conf (grib2 case).</para>
+
+                        </sect3>
+			<sect3>
+                                <title>valueParameteUnit</title>
+
+                                <para>Reads prameter units to be used in wdb for given grib parameter. Uses valueparameter.conf (grib1 case) or valueparameter2.conf (grib2 case).</para>
+
+                        </sect3>
+			<sect3>
+                                <title>levelValues</title>
+
+                                <para>Reads what levels and how are they mapped when inserting grib parameter into wdb. Uses levelparameter.conf and leveladditions.conf (grib1 case) or levelparameter2.conf and leveladditions2.conf (grib2 case).</para>
+
+                        </sect3>
+		</sect2>
+
+		<sect2>
+			<title>NetCDFLoader</title>
+			
+			<para>Inherits FileLoader base class. Understands and extracts point data from netcdf gridded file types.</para>
+			<para>The following configuration files are neccessary for operation: valueparameter.conf, levelparameter.conf and units.conf. In addition it requires fimex netcdf reader configuration file.
+			</para>
+                        <para>Useful functions:</para>
+                        <sect3>
+                                <title>setup</title>
+
+                                <para>Overloads FileLoad::setup to distinguish and read configuration files for netcdf files.</para>
+
+                        </sect3>
+                        <sect3>
+                                <title>loadInterpolated</title>
+
+                                <para>Implements FileLoader::loadInterpolated.</para>
+
+                        </sect3>
+			<sect3>
+                                <title>dataProviderName</title>
+
+                                <para>Reads dataprovider for given netcdf parameter. Uses dataprovider.conf.</para>
+
+                        </sect3>
+			<sect3>
+                                <title>valueParameteName</title>
+
+                                <para>Reads prameter name to be used in wdb for given netcdf parameter.Uses valueparameter.conf.</para>
+
+                        </sect3>
+			<sect3>
+                                <title>valueParameteUnit</title>
+
+                                <para>Reads prameter units to be used in wdb for given netcdf parameter. Uses valueparameter.conf.</para>
+
+                        </sect3>
+			<sect3>
+                                <title>levelValues</title>
+
+                                <para>Reads what levels and how are they mapped when inserting netcdf parameter into wdb. Uses levelparameter.conf.</para>
+
+                        </sect3>
+		</sect2>
+
 		<sect2>
 			<title>Error Handling</title>
 			
-			<para>Errors in the StationLoad system are resolved through exception handling
-			      based on the WdbException base class. All errors are logged using the
-			      Log4cpp library for writing log files (encapsulated in wdbLog).</para>
+			<para>
+		              Errors in the wdb-pointLoad system are resolved through exception handling
+			      based on the WdbException and std:.exception base classes. All errors are logged using the
+			      Log4cpp library for writing log files (encapsulated in wdbLog).
+			</para>
 			
 		</sect2>
-		
+
 	</sect1>
 	
 </chapter>

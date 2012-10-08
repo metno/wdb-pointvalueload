@@ -89,23 +89,13 @@ namespace wdb { namespace load { namespace point {
     NetCDFLoader::NetCDFLoader(Loader& controller)
         : FileLoader(controller)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         setup();
     }
 
-    NetCDFLoader::~NetCDFLoader()
-    {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-        // NOOP
-    }
+    NetCDFLoader::~NetCDFLoader() { }
 
     void NetCDFLoader::setup()
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
-
         // check for excess parameters
         if(!options().loading().dataproviderConfig.empty())
             throw runtime_error("dataprovider.config file not required");
@@ -128,6 +118,14 @@ namespace wdb { namespace load { namespace point {
         point2ValueParameter_.open(getConfigFile(options().loading().valueparameterConfig).string());
         point2LevelParameter_.open(getConfigFile(options().loading().levelparameterConfig).string());
         point2Units_.open(getConfigFile(options().loading().unitsConfig).string());
+    }
+
+    bool NetCDFLoader::openCDM(const string& fileName)
+    {
+        // Fimex reader configuration file not needed for NETCDF file types
+        cdmData_ = CDMFileReaderFactory::create("netcdf", fileName);
+
+        return true;
     }
 
     string NetCDFLoader::dataProviderName(const string& varname)
@@ -154,15 +152,12 @@ namespace wdb { namespace load { namespace point {
         ret = point2ValueParameter_[keyStr.str()];
         ret = ret.substr(0, ret.find(','));
         boost::trim(ret);
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Value parameter " << ret << " found.";
         return ret;
     }
 
     void NetCDFLoader::levelValues(vector<Level> & levels, const string& varname)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         const CDM& cdmRef = cdmData_->getCDM();
         string verticalCoordinate = cdmRef.getVerticalAxis(varname);
 	if(verticalCoordinate.empty())
@@ -201,7 +196,7 @@ namespace wdb { namespace load { namespace point {
             log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] "<< " lvls : " << lvls;
             readUnit( levelUnit, coeff, term );
         } catch ( wdb::ignore_value &e ) {
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
 
         if(!lvls.empty())
@@ -231,12 +226,12 @@ namespace wdb { namespace load { namespace point {
     void NetCDFLoader::loadInterpolated(const string& fileName)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.NetCDFLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         if(times_.size() == 0)
             return;
 
         const CDM& cdmRef = cdmData_->getCDM();
         vector<CDMVariable> variables = cdmRef.getVariables();
+
         for(size_t i = 0; i < variables.size(); ++i)
         {
             try{
@@ -270,16 +265,18 @@ namespace wdb { namespace load { namespace point {
                 }
 
             } catch ( wdb::ignore_value &e ) {
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::out_of_range &e ) {
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
             } catch ( std::exception & e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             }
         }
 
+        // load regualar parameters
         loadEntries();
 
+        // load calculated wind_speed and wind_direction
         loadWindEntries();
     }
 } } } // namespaces

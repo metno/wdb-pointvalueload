@@ -73,6 +73,7 @@
 using namespace std;
 using namespace boost::posix_time;
 using namespace boost::filesystem;
+using namespace MetNoFimex;
 
 namespace {
 
@@ -100,21 +101,34 @@ namespace wdb { namespace load { namespace point {
     FeltLoader::FeltLoader(Loader& controller)
         : FileLoader(controller)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FeltLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
         setup();
     }
 
-    FeltLoader::~FeltLoader()
+    FeltLoader::~FeltLoader() { }
+
+    // create CDMReader for felt input file
+    bool FeltLoader::openCDM(const string& fileName)
     {
-        WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FeltLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
+        if(options().loading().fimexConfig.empty()) {
+            stringstream ss;
+            ss << " Can't open fimex reader configuration file (must have for FELT format) for data file: " << fileName;
+            throw runtime_error(ss.str());
+        } if(!boost::filesystem::exists(options().loading().fimexConfig)) {
+            stringstream ss;
+            ss << " Fimex configuration file: " << options().loading().fimexConfig << " doesn't exist for data file: " << fileName;
+            throw runtime_error(ss.str());
+        }
+
+        cdmData_ = CDMFileReaderFactory::create("felt", fileName, options().loading().fimexConfig);
+
+        return true;
     }
 
+    // create the lost of EntryToLoad items for parameters to be load
+    // config files are describing how should felt params be mapped to wdb
     void FeltLoader::loadInterpolated(const string& fileName)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FeltLoader" );
-        log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] CHECK POINT ";
 
         felt::FeltFile file(fileName);
 
@@ -149,16 +163,19 @@ namespace wdb { namespace load { namespace point {
                 }
 
             } catch ( wdb::ignore_value &e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             } catch ( std::out_of_range &e ) {
-                log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Metadata missing for data value. " << e.what() << " Data field not loaded.";
             } catch ( std::exception & e ) {
-                log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
+                log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what() << " Data field not loaded.";
             }
         }
 
+        // create data lines for selected params
+        // follow wdb-fastload format
         loadEntries();
 
+        // same sa abpve but for wind_direction and wind_speed
         loadWindEntries();
     }
 
@@ -173,7 +190,6 @@ namespace wdb { namespace load { namespace point {
     string FeltLoader::valueParameterName(const felt::FeltField & field)
     {
         WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointLoad.FeltLoader" );
-
         stringstream keyStr;
         keyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << field.level1();
         std::string ret;
@@ -183,12 +199,11 @@ namespace wdb { namespace load { namespace point {
             // Check if we match on any (level1)
             stringstream akeyStr;
             akeyStr << field.parameter() << ", " << field.verticalCoordinate() << ", " << "any";
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Did not find " << keyStr.str() << ". Trying to find " << akeyStr.str();
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Did not find " << keyStr.str() << ". Trying to find " << akeyStr.str();
             ret = point2ValueParameter_[akeyStr.str()];
         }
         ret = ret.substr( 0, ret.find(',') );
         boost::trim( ret );
-        log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Value parameter " << ret << " found.";
         return ret;
     }
 
@@ -249,7 +264,7 @@ namespace wdb { namespace load { namespace point {
             wdb::load::Level baseLevel( levelParameter, lev1, lev2 );
             levels.push_back( baseLevel );
         } catch ( wdb::ignore_value &e ) {
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         }
         // Find additional level
         try {
@@ -258,7 +273,7 @@ namespace wdb { namespace load { namespace point {
                    << field.verticalCoordinate() << ", "
                    << field.level1() << ", "
                    << field.level2();
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Looking for levels matching " << keyStr.str();
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Looking for levels matching " << keyStr.str();
             std::string ret = point2LevelAdditions_[ keyStr.str() ];
             std::string levelParameter = ret.substr( 0, ret.find(',') );
             boost::trim( levelParameter );
@@ -266,15 +281,15 @@ namespace wdb { namespace load { namespace point {
             boost::trim( levFrom );
             string levTo = ret.substr( ret.find_last_of(',') + 1 );
             boost::trim( levTo );
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Found levels from " << levFrom << " to " << levTo;
+            log.debugStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "Found levels from " << levFrom << " to " << levTo;
             float levelFrom = boost::lexical_cast<float>( levFrom );
             float levelTo = boost::lexical_cast<float>( levTo );
             wdb::load::Level level( levelParameter, levelFrom, levelTo );
             levels.push_back( level );
         } catch ( wdb::ignore_value &e ) {
-            log.errorStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << e.what();
         } catch ( std::out_of_range &e ) {
-            log.infoStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "No additional levels found.";
+            log.warnStream() <<__FUNCTION__<< " @ line["<< __LINE__ << "] " << "No additional levels found.";
         }
         if(levels.size() == 0) {
             stringstream key;

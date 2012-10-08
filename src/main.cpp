@@ -111,18 +111,17 @@ int main(int argc, char ** argv)
 
     WdbLogHandler logHandler( cmdLine.logging().loglevel, cmdLine.logging().logfile );
     WDB_LOG & log = WDB_LOG::getInstance( "wdb.pointload.main" );
-    log.debugStream() << "Starting pointLoad";
+    log.infoStream() << "Starting pointLoad";
 
     try {
         wdb::load::point::Loader loader(cmdLine);
         loader.load();
     } catch(std::exception& e) {
-        log.fatalStream() << "Unable to load file " << cmdLine.input().file[0];
         log.fatalStream() << "Reason: " << e.what();
         return -1;
     }
 
-    log.debugStream() << "Exiting pointLoad";
+    log.infoStream() << "Exiting pointLoad";
 
     return 0;
 }
