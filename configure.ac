@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 
-AC_INIT(wdb-pointLoad, 1.1.6, [wdb@met.no])
+AC_INIT(wdb-pointLoad, 1.1.7, [wdb@met.no])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([config/m4])
