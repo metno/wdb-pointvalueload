@@ -27,6 +27,8 @@
  */
 // project
 #include "CmdLine.hpp"
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
 
 using namespace std;
 using namespace boost::program_options;
@@ -96,6 +98,51 @@ namespace wdb { namespace load { namespace point {
     CmdLine::~CmdLine()
     {
         // NOOP
+    }
+
+    namespace
+    {
+    class FilenameExtender
+    {
+    	boost::filesystem::path prefix_;
+    public:
+    	FilenameExtender(const boost::filesystem::path & prefix) : prefix_(prefix) {}
+    	void operator () (std::string & file) const
+    	{
+    		if ( not file.empty() )
+    		{
+				boost::filesystem::path toChange(file);
+				if ( not toChange.is_absolute() )
+				{
+					boost::filesystem::path newFile = prefix_/toChange;
+					file = newFile.string();
+				}
+    		}
+    	}
+    };
+    }
+
+    void CmdLine::parse( int argc, char ** argv )
+    {
+    	WdbConfiguration::parse(argc, argv);
+    	if ( not general().configFile.empty() )
+    	{
+    		boost::filesystem::path config(general().configFile);
+    		boost::filesystem::path basePath = config.parent_path();
+
+    		FilenameExtender extend(basePath);
+    		extend(loading_.validtimeConfig);
+    		extend(loading_.dataproviderConfig);
+			extend(loading_.valueparameterConfig);
+			extend(loading_.levelparameterConfig);
+			extend(loading_.leveladditionsConfig);
+			extend(loading_.valueparameter2Config);
+			extend(loading_.levelparameter2Config);
+			extend(loading_.leveladditions2Config);
+			extend(loading_.unitsConfig);
+			extend(loading_.fimexConfig);
+			extend(loading_.fimexTemplate);
+    	}
     }
 
 } } }

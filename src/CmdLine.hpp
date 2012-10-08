@@ -48,6 +48,8 @@ namespace wdb { namespace load { namespace point {
         CmdLine();
         ~CmdLine();
 
+        virtual void parse( int argc, char ** argv );
+
         struct OutputOptions
         {
             string outFileName;
