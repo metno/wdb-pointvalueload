@@ -1,3 +1,9 @@
+wdb-pointload (1.1.8-1) precise; urgency=low
+
+  * new version
+
+ -- Aleksandar Babic <aleksandarb@met.no>  Tue, 09 Oct 2012 09:28:00 +0200
+
 wdb-pointload (1.1.7-1) precise; urgency=low
 
   * new version
