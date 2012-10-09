@@ -83,6 +83,8 @@ namespace
         version( out );
         out << '\n';
         out << "Usage: PACKAGE_NAME [OPTIONS] FILE...\n\n";
+        out << "Bug: paths are relative to your current directory, unless the --config option\n"
+        		"has been specified. Then all file paths are relative to that file's path.\n\n";
         out << "Options:\n";
         out << options << endl;
     }
