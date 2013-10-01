@@ -1,4 +1,4 @@
-wdb-pointvalueload (1.2.0-1) precise; urgency=low
+wdb-pointvalueload (1.2.0~rc1-1) precise; urgency=low
 
   * Standardized version according to WDB build standard and met.no debian
   package standards.

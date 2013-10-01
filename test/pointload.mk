@@ -1,17 +1,17 @@
-TESTS = pointloadTest
+TESTS = pointValueLoadTest
 
-check_PROGRAMS = pointloadTest
+check_PROGRAMS = pointValueLoadTest
 
-pointloadTest_SOURCES = \
+pointValueLoadTest_SOURCES = \
          test/testLoading.cpp
 
-pointloadTest_CPPFLAGS = \
+pointValueLoadTest_CPPFLAGS = \
         $(AM_CPPFLAGS) \
         $(CPPFLAGS) \
         -I$(top_srcdir)/src \
         $(BOOST_CPPFLAGS) \
         -DSRCDIR=\"@top_srcdir@\"
 
-pointloadTest_LDADD = \
-          $(wdb_pointLoad_LDADD) \
+pointValueLoadTest_LDADD = \
+          $(pointValueLoad_LDADD) \
           $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
