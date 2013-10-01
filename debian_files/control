@@ -1,8 +1,10 @@
-Source: wdb-pointload
+Source: wdb-pointvalueload
 Section: science
 Priority: optional
-Maintainer: Norwegian Meteorological Institute <aleksandarb@met.no>
-Build-Depends: debhelper (>=7.0.50~), autotools-dev,
+Maintainer: WDB Group, Norwegian Meteorological Institute <wdb@met.no>
+Build-Depends: debhelper (>=7.0.50~), 
+ cdbs,
+ autotools-dev,
  libfelt-dev,
  libgrib-api-dev,
  libnetcdf-dev,
@@ -18,10 +20,10 @@ Build-Depends: debhelper (>=7.0.50~), autotools-dev,
  help2man,
  xmlto
 Build-Conflicts: autoconf2.13, automake1.4
-Standards-Version: 3.9.1
+Standards-Version: 3.9.3
 Homepage: http://www.met.no
 
-Package: wdb-pointload
+Package: wdb-pointvalueload-1.2
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Load point data from FELT/GRIB files into wdb
