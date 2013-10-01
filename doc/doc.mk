@@ -23,4 +23,3 @@ EXTRA_DIST += $(DOCUMENTATION_SRC) $(USED_DOCS)
 CLEANFILES += $(DOCUMENTATION_OUTPUT)
 
 include doc/doxygen/doxygen.mk
-#include doc/man/man.mk

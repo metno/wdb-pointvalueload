@@ -25,9 +25,9 @@ SOURCE = src/CmdLine.cpp \
                      src/FileLoader.hpp \
 					 src/NetCDFLoader.hpp
 
-libpointload_a_SOURCES += $(SOURCE)
+libpointvalueload_a_SOURCES += $(SOURCE)
 
-wdb_pointLoad_SOURCES = \
+pointValueLoad_SOURCES = \
                   src/main.cpp
 
 EXTRA_DIST +=		src/src.mk
