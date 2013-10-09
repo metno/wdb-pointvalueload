@@ -98,7 +98,7 @@ WDB_CHECK
 
 AM_PATH_XML2
 
-AC_DEFINE(BOOST_FILESYSTEM_VERSION, 2, [makes thing compilable under precise pangolin])
+AC_DEFINE(BOOST_FILESYSTEM_VERSION, 3, [makes thing compilable under precise pangolin])
 AX_BOOST_BASE(1.40.0)
 AX_BOOST_PROGRAM_OPTIONS(1.40.0)
 AX_BOOST_DATE_TIME(1.40.0)
